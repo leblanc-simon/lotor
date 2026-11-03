@@ -29,7 +29,7 @@ require (
 	golang.org/x/net v0.62.0
 	golang.org/x/text v0.43.0
 	gopkg.in/yaml.v3 v3.0.1
-	leblanc.io/open-go-base v1.3.1-0.20261101111845-0900e0c6a132
+	leblanc.io/open-go-base v1.4.1
 	modernc.org/sqlite v1.60.1
 )
 

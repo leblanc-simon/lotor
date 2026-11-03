@@ -29,9 +29,9 @@ pour 30 s, agent 2 min 13 s et 819 Mio). La recette sur une instance 0.1.0 réel
 jour en 0.2.0 (Docker, Compose, Podman) a tout vérifié sauf ce qui demande l'écoulement du
 temps ou des services réels, et trouvé deux défauts, corrigés (composants IA d'image
 perdus à l'ingestion ; doublons de notification). `v0.2.0` est prête (`CHANGELOG.md`,
-`make release` vérifié). Restent à l'utilisateur : les étiquettes d'open-go-base, la
-mesure de l'IA avec une clé, la publication de `v0.2.0`, les essais sur des services réels
-et la relecture des décisions (voir « Actions pour l'utilisateur »).
+`make release` vérifié). Restent à l'utilisateur : la mesure de l'IA avec une clé, la
+publication de `v0.2.0`, les essais sur des services réels et la relecture des décisions
+(voir « Actions pour l'utilisateur »).
 
 | Lot | PR | Statut | Décisions à relire |
 | --- | --- | --- | --- |
@@ -307,14 +307,11 @@ et la relecture des décisions (voir « Actions pour l'utilisateur »).
 
 Le mandataire git de la session refuse les pushs d'étiquettes (HTTP 403). Dans l'ordre :
 
-1. **Pousser les étiquettes d'open-go-base** créées en local, toutes compatibles :
-   `git -C ../open-go-base push origin v1.4.0` (commit `a0f777f`, PR #5 : codes de secours
-   de mfax), puis `git -C ../open-go-base push origin v1.4.1` (commit `0900e0c`, PR #6 :
-   `EnablePOST` sous verrouillage, SEC2-01).
-2. **Passer lotor de la pseudo-version à `v1.4.1`** : sur une branche,
-   `go get leblanc.io/open-go-base@v1.4.1 && go mod tidy` (même code que
-   `v1.3.1-0.20261101111845-0900e0c6a132` ; ne pas s'arrêter à `v1.4.0`), `make ci`, PR,
-   fusion quand la CI est verte.
+1. **Fait** : étiquettes d'open-go-base `v1.4.0` (commit `a0f777f`, PR #5 : codes de
+   secours de mfax) et `v1.4.1` (commit `0900e0c`, PR #6 : `EnablePOST` sous verrouillage,
+   SEC2-01) poussées.
+2. **Fait** : lotor passé de la pseudo-version à `v1.4.1` (même code que
+   `v1.3.1-0.20261101111845-0900e0c6a132`).
 3. **Mesurer l'enrichissement IA avec une clé** (critère de T18 non coché), pas à pas dans
    [`docs/operations.md`](../docs/operations.md#évaluer-lenrichissement-ia) :
    `scripts/ai-pilot-fetch.sh /tmp/lotor-ai-pilot`, contrôle à blanc
@@ -328,9 +325,8 @@ Le mandataire git de la session refuse les pushs d'étiquettes (HTTP 403). Dans 
    avant d'activer l'IA sur des projets. Facultatif : la même mesure avec Ollama.
 4. **Publier la préversion `v0.2.0`**, après les étapes 1 et 2 (et 3 si le résultat doit
    figurer dans les notes) :
-   1. vérifier la section `## [0.2.0] - 2026-11-01` de `CHANGELOG.md` (date du jour de la
-      pose ; ajouter le résultat de l'IA et la PR de l'étape 2 s'il y a lieu) et la CI de
-      `main` ;
+   1. vérifier la section `## [0.2.0] - 2026-11-03` de `CHANGELOG.md` (date du jour de la
+      pose ; ajouter le résultat de l'IA s'il y a lieu) et la CI de `main` ;
    2. `git fetch origin && git tag -a v0.2.0 origin/main -m "lotor 0.2.0 — préversion du lot 2"` ;
    3. `git push origin v0.2.0` ;
    4. suivre le workflow **release** ; vérifier sur *Releases* une **préversion** `v0.2.0`

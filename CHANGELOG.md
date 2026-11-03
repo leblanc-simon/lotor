@@ -8,7 +8,7 @@ appliquées automatiquement, sans retour arrière.
 
 ## [Non publié]
 
-## [0.2.0] - 2026-11-01
+## [0.2.0] - 2026-11-03
 
 Préversion du **lot 2 · IA et triage** : équipes et droits, conteneurs des serveurs,
 triage et VEX, politiques et alertes, différences d'instantanés et rétention,
