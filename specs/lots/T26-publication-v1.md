@@ -2,7 +2,7 @@
 
 | Lot fonctionnel | Dépend de | Statut |
 | --- | --- | --- |
-| 3 · Ouverture | T19 à T25 | À faire |
+| 3 · Ouverture | T19 à T25, T27 | À faire |
 
 ## Objectif
 

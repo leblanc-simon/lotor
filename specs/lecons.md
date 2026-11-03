@@ -980,3 +980,23 @@ les pièges découverts, pour ne pas les reproduire. Une entrée = le constat, p
 - **Python et l'autorité de test** : Python 3.13 refuse une autorité sans
   `keyUsage` (« CA cert does not include key usage extension ») ; créer l'autorité de
   recette avec `basicConstraints=critical,CA:TRUE` et `keyUsage=critical,keyCertSign`.
+
+## Paquet deb du serveur (T27)
+
+- **Une recommandation n'ordonne rien** : apt configure `lotor-server` avant le PostgreSQL qu'il
+  installe dans le même appel (`Recommends`). Règle : tout ce qu'un script de post-installation
+  attend d'un paquet seulement recommandé doit échouer en douceur, avec une reprise documentée
+  (`dpkg-reconfigure`).
+- **Conteneurs de recette** : les images Debian et Ubuntu portent `/usr/sbin/policy-rc.d`, qui
+  interdit de démarrer les services, et `docker-clean`, qui vide le cache d'apt : les retirer.
+  systemd monte son propre `/tmp` : `docker cp` y dépose un fichier invisible, passer par `/root`.
+- **debconf** : `db_input` renvoie 30 quand personne ne peut répondre, signal fiable pour ne pas
+  compter sur une note ; une valeur invalide doit y être vidée, jamais redemandée en boucle.
+  L'interface `teletype` ignore les valeurs par défaut (Entrée repose la question) : `yes ''`
+  boucle sans fin et remplit le journal. Piloter sous pseudo-terminal, réponses prérenseignées.
+  Les variables de `db_subst` restent dans `config.dat`, lisible par tous : les vider.
+- **Python** : un script nommé `tty.py` masque le module `tty` et casse `import pty`.
+- **Heredoc** : un script Python ou un document qui contient `EOF` dans un heredoc `<<'EOF'`
+  coupe celui-ci, et bash exécute la suite comme des commandes (une ligne `sudo apt-get` d'une
+  documentation, ici arrêtée par sa redirection). Règle : tout texte libre ou tout script un peu
+  long passe par un fichier, avec l'outil d'écriture.

@@ -4,7 +4,7 @@
 
 Ce guide mène d'une instance installée à un premier parc inventorié et interrogé :
 connexion, organisation et équipes, serveurs, dépôts, lecture des résultats, puis triage
-et alertes. L'installation du serveur et des agents est décrite dans
+et alertes. L'installation du serveur (paquet deb ou manuelle) et des agents est décrite dans
 [`operations.md`](operations.md) ; l'usage détaillé dans [`utilisation.md`](utilisation.md).
 
 ## 1. Se connecter

@@ -16,7 +16,7 @@ offre recherche transverse, triage et tableaux de bord. Multi-organisation, en G
    produit.
 2. [`specs/architecture.md`](specs/architecture.md) — **fait autorité** sur l'architecture,
    les noms et les conventions.
-3. [`specs/README.md`](specs/README.md) — les 27 lots techniques, leur ordre, leur statut,
+3. [`specs/README.md`](specs/README.md) — les 28 lots techniques, leur ordre, leur statut,
    la façon de travailler et la définition de « terminé ».
 4. [`specs/lecons.md`](specs/lecons.md) — erreurs déjà commises et pièges connus : à lire
    avant chaque lot, à compléter à la fin.
@@ -160,6 +160,9 @@ lots (lot 3), en parallèle :
 [T21](specs/lots/T21-recherche-historique.md), [T22](specs/lots/T22-agent-windows.md),
 [T23](specs/lots/T23-hors-ligne.md) et [T25](specs/lots/T25-sso-oidc.md) (T24 après T19
 et T23).
+T27 terminé : paquet deb `lotor-server` (ADR 0053 ; `deploy/server/`, debconf en anglais et en
+français, rôles PostgreSQL créés en local, premier administrateur, site nginx ou Apache, aucun
+démarrage sur une mise à jour), recette `make test-package` dans des conteneurs systemd.
 
 ## Règles de travail
 
@@ -225,7 +228,8 @@ make eval-ai            # enrichissement IA sur le corpus annoté, vrai modèle 
 make selfscan           # SBOM des binaires (Syft) et analyse (Grype) ; échec sur une KEV
 make build              # bin/lotor-server, bin/lotor-host-agent, bin/lotor-repo-agent (CGO_ENABLED=0)
 make release VERSION=v0.1.0 RELEASE_DIR=/chemin/vide  # archives, paquets, SHA256SUMS (ADR 0032)
-make packages           # lotor-host-agent amd64 et arm64, paquets deb et rpm dans dist/ (nfpm)
+make packages           # agent serveur (deb, rpm) et serveur (deb), amd64 et arm64, dans dist/ (nfpm)
+make test-package       # recette du paquet deb du serveur, conteneurs systemd (Docker), hors make ci
 make run                # serveur avec config.yaml (cp config.example.yaml config.yaml)
 ```
 
