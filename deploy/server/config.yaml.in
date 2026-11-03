@@ -1,0 +1,21 @@
+# Configuration de lotor-server, créée par le paquet et jamais réécrite ensuite. Les secrets
+# sont dans /etc/lotor/lotor-server.env. Tous les réglages : config.example.yaml dans
+# /usr/share/lotor-server/ et docs/operations.md.
+web:
+  host: 127.0.0.1
+  port: 1758
+  # Le mandataire inverse local, seul à pouvoir déclarer l'IP du client et le HTTPS.
+  trusted_proxies: ["127.0.0.1/32"]
+management:
+  host: 127.0.0.1
+  port: 1761
+auth:
+  cookie_secure: "on"
+logging:
+  format: json
+i18n:
+  default_language: @LANGUAGE@
+vulndb:
+  dir: /var/lib/lotor/vulndb
+notify:
+  public_url: https://@SERVER_NAME@/

@@ -1,0 +1,37 @@
+# Recette du paquet deb du serveur (make test-package) : le vrai paquet installé dans des
+# conteneurs systemd. Longue : seulement quand le paquet ou ce qu'il installe change.
+name: package
+
+on:
+  push:
+    branches: [main]
+    paths: &paths
+      - .github/workflows/package.yml
+      - Makefile
+      - config.example.yaml
+      - deploy/nfpm/server.yaml
+      - deploy/server/**
+      - deploy/systemd/lotor-server.service
+      - scripts/test-package*
+  pull_request:
+    paths: *paths
+
+permissions:
+  contents: read
+
+concurrency:
+  group: package-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # git describe a besoin des étiquettes
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - run: make test-package

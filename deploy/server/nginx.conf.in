@@ -1,0 +1,37 @@
+# Site de lotor, créé par le paquet lotor-server (docs/operations.md, « TLS et mandataire
+# inverse ») et réécrit seulement par dpkg-reconfigure lotor-server.
+server {
+    listen 80;
+    listen [::]:80;
+    server_name @SERVER_NAME@;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name @SERVER_NAME@;
+
+    ssl_certificate @CERT@;
+    ssl_certificate_key @KEY@;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    # Import de la base de vulnérabilités : vulndb.max_archive_mib et vulndb.download_timeout.
+    client_max_body_size 2048m;
+    proxy_read_timeout 1800s;
+    proxy_send_timeout 1800s;
+    proxy_request_buffering off;
+    proxy_buffering off;
+
+    location / {
+        proxy_pass http://127.0.0.1:1758;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        # Host tel quel : la protection inter-origines le compare à Origin.
+        proxy_set_header Host $http_host;
+        # Écrasés : le client ne doit pas choisir l'IP comptée et journalisée.
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
