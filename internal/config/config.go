@@ -75,10 +75,10 @@ type Containers struct {
 // par les workers. Enabled et Monthly, vrais par défaut, n'ont pas d'env-default (un
 // false écrit dans le fichier serait écrasé) : Defaults les pose.
 type Retention struct {
-	Enabled bool `yaml:"enabled" env:"RETENTION_ENABLED" env-description:"Delete old snapshots according to the retention policy (default true); orphan inventory sets and SBOMs are always deleted"`
+	Enabled bool `yaml:"enabled" env:"RETENTION_ENABLED" env-description:"Delete old snapshots according to the retention policy; orphan inventory sets and SBOMs are always deleted"`
 	Days    int  `yaml:"days"    env:"RETENTION_DAYS"    env-default:"90" env-description:"Every snapshot younger than this many days is kept (1 to 36500)"`
 	Count   int  `yaml:"count"   env:"RETENTION_COUNT"   env-default:"0"  env-description:"The latest snapshots of each reference kept whatever their age (0: none beyond the window)"`
-	Monthly bool `yaml:"monthly" env:"RETENTION_MONTHLY" env-description:"Beyond the window, keep the last snapshot of each month, without time limit (default true)"`
+	Monthly bool `yaml:"monthly" env:"RETENTION_MONTHLY" env-description:"Beyond the window, keep the last snapshot of each month, without time limit"`
 }
 
 // VulnDB règle la base de vulnérabilités (§ 12 de l'architecture, ADR 0017) : liste de
@@ -183,7 +183,7 @@ func (t TLS) Enabled() bool { return t.CertFile != "" || t.KeyFile != "" }
 // l'interface publique pour ne jamais les exposer par erreur.
 type Management struct {
 	Host string `yaml:"host" env:"MANAGEMENT_HOST" env-default:"127.0.0.1" env-description:"Listen IP for probes and metrics"`
-	Port int    `yaml:"port" env:"MANAGEMENT_PORT" env-default:"8081"      env-description:"Listen port for probes and metrics"`
+	Port int    `yaml:"port" env:"MANAGEMENT_PORT" env-default:"1761"      env-description:"Listen port for probes and metrics"`
 }
 
 // Database complète le fragment d'appconf (pilote et DSN du rôle d'exécution) par les
@@ -216,7 +216,7 @@ type Secrets struct {
 // l'instance. Enabled n'a pas d'env-default : un défaut d'appconf l'emporterait sur un
 // false écrit dans le fichier (il ne s'applique qu'à une valeur zéro) ; Defaults le pose.
 type Workers struct {
-	Enabled          bool          `yaml:"enabled"           env:"WORKERS_ENABLED"           env-description:"Run job workers and the scheduler on this instance (default true)"`
+	Enabled          bool          `yaml:"enabled"           env:"WORKERS_ENABLED"           env-description:"Run job workers and the scheduler on this instance"`
 	Concurrency      int           `yaml:"concurrency"       env:"WORKERS_CONCURRENCY"       env-default:"4"    env-description:"Number of jobs this instance runs at the same time"`
 	PollInterval     time.Duration `yaml:"poll_interval"     env:"WORKERS_POLL_INTERVAL"     env-default:"1s"   env-description:"Wait of an idle worker before looking for work again"`
 	Lease            time.Duration `yaml:"lease"             env:"WORKERS_LEASE"             env-default:"30s"  env-description:"Job lease, renewed while the job runs; a vanished worker's job is taken over after it"`
@@ -233,6 +233,7 @@ type Workers struct {
 // les change pas.
 func Defaults() Config {
 	var c Config
+	c.Web.Port = 1758 // année de la description de Procyon lotor
 	c.Database.Driver = "postgres"
 	c.I18n.DefaultLanguage = "fr"
 	c.Logging.Level = "info"

@@ -52,7 +52,7 @@ type ServerConfig struct {
 
 // WebhookConfig décrit le récepteur de webhooks, exposé aux forges.
 type WebhookConfig struct {
-	Listen         string   `yaml:"listen"          env:"WEBHOOK_LISTEN"          env-default:":8080" env-description:"Listen address of the webhook receiver (POST /webhooks/<forge>); empty: no receiver, catch-up only"`
+	Listen         string   `yaml:"listen"          env:"WEBHOOK_LISTEN"          env-default:":1762" env-description:"Listen address of the webhook receiver (POST /webhooks/<forge>); empty: no receiver, catch-up only"`
 	TLSCertFile    string   `yaml:"tls_cert_file"   env:"WEBHOOK_TLS_CERT_FILE"   env-description:"PEM certificate for native TLS (otherwise behind a TLS reverse proxy)"`
 	TLSKeyFile     string   `yaml:"tls_key_file"    env:"WEBHOOK_TLS_KEY_FILE"    env-description:"Private key for native TLS: credential:<name> or absolute path of a 0600 file"`
 	MaxBodyKiB     int      `yaml:"max_body_kib"    env:"WEBHOOK_MAX_BODY_KIB"    env-default:"1024" env-description:"Maximum webhook body size, in KiB"`

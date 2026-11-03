@@ -28,8 +28,8 @@ PostgreSQL 16 ou plus.
 2. Configuration : `cp config.example.yaml config.yaml` (valeurs prévues pour
    `deploy/compose.yaml`).
 3. `make run` construit les binaires et lance `bin/lotor-server -c config.yaml`.
-   L'interface répond sur <http://127.0.0.1:8080/>, la gestion sur
-   <http://127.0.0.1:8081/readyz>.
+   L'interface répond sur <http://127.0.0.1:1758/>, la gestion sur
+   <http://127.0.0.1:1761/readyz>.
 
 Tests : `make test` (unitaires), `make test-integration` (PostgreSQL requis : chaque test
 crée sa base et ses rôles jetables à partir de `LOTOR_TEST_DATABASE_DSN`, connexion
@@ -89,7 +89,7 @@ synchronisée (NTP).
    443, l'unité indique la capacité à accorder.
 6. **Démarrage** : `sudo systemctl daemon-reload && sudo systemctl enable --now
    lotor-server`, puis `journalctl -u lotor-server` (« schéma à jour », « serveur
-   démarré ») et `curl -s http://127.0.0.1:8081/readyz`. Tant qu'aucune base de
+   démarré ») et `curl -s http://127.0.0.1:1761/readyz`. Tant qu'aucune base de
    vulnérabilités n'est chargée, `/readyz` répond 503 avec `vulndb` en échec (premier
    téléchargement : quelques minutes ; site isolé : import manuel, voir « Base de
    vulnérabilités »).
@@ -263,7 +263,7 @@ ou mandataire de confiance).
 
 ## Gestion : sondes et métriques
 
-Une écoute séparée, `management.host:management.port` (par défaut `127.0.0.1:8081`), à ne
+Une écoute séparée, `management.host:management.port` (par défaut `127.0.0.1:1761`), à ne
 pas exposer publiquement :
 
 | Chemin | Rôle |
@@ -943,7 +943,7 @@ commentée et unité systemd durcie : `deploy/lotor-repo-agent/`.
   serveur, c'est-à-dire des administrateurs d'organisation : sans cette liste, un
   administrateur pourrait faire inventorier n'importe quel dépôt lisible par les
   identifiants de l'agent. Un dépôt hors périmètre est signalé au journal et ignoré.
-- **TLS du récepteur** : il écoute en HTTP par défaut (`:8080`) ; `X-Gitlab-Token` y
+- **TLS du récepteur** : il écoute en HTTP par défaut (`:1762`) ; `X-Gitlab-Token` y
   circulerait en clair. Le placer derrière un mandataire TLS, ou poser
   `webhook.tls_cert_file` et `webhook.tls_key_file`.
 - **Webhooks** : l'URL publique de l'instance est `https://<hôte public>/webhooks/<nom de
@@ -1315,6 +1315,11 @@ l'ancien binaire (un ancien binaire refuse une base migrée par une version plus
 
 **De 0.1.0 à 0.2.0** (lot 2), à décider **avant** la mise à jour :
 
+- les ports par défaut changent : 1758 au lieu de 8080 pour `web.port`, 1761 au lieu de
+  8081 pour `management.port`, `:1762` au lieu de `:8080` pour `webhook.listen` de l'agent
+  dépôt. Une installation qui les fixe déjà ne change rien ; sinon, les fixer pour garder
+  les anciens, ou adapter le mandataire inverse, les sondes, la collecte des métriques et
+  l'adresse des webhooks déclarée dans les forges ;
 - les migrations 016 à 023 s'appliquent au démarrage ; la 016 crée l'équipe « Général »
   de chaque organisation et y place tous les projets, les jetons d'inscription, les agents
   serveur et tous les membres à leur ancien rôle (`viewer` → lecteur, `analyst` →

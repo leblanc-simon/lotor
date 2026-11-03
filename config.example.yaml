@@ -6,7 +6,7 @@
 # Interface web et API publiques.
 web:
   host: 127.0.0.1        # LOTOR_HOST
-  port: 8080             # LOTOR_PORT
+  port: 1758             # LOTOR_PORT
   rate_limit: 100        # LOTOR_RATE_LIMIT : requêtes par minute et par IP (0 : sans limite)
   # Mandataires inverses de confiance (CIDR) : seuls eux peuvent déclarer l'IP du client
   # (X-Forwarded-For) et le HTTPS (X-Forwarded-Proto). LOTOR_TRUSTED_PROXIES, séparés par ,
@@ -30,7 +30,7 @@ tls:
 # Écoute de gestion, séparée : /healthz, /readyz, /metrics. À ne pas exposer publiquement.
 management:
   host: 127.0.0.1
-  port: 8081
+  port: 1761
 
 logging:
   level: info            # debug | info | warn | error
