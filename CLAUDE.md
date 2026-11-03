@@ -154,8 +154,8 @@ preuves `checkProof`, corpus de 11 cas, échantillon pilote annoté `testdata/ai
 recette sur une mise à jour réelle 0.1.0 → 0.2.0 (Docker, Compose et Podman), deux défauts
 corrigés (composants IA d'image perdus à l'ingestion ; doublons de notification : envois
 réservés, migration 023, ADR 0052), `CHANGELOG.md` `[0.2.0]` prêt. Restent à l'utilisateur
-(`specs/avancement.md`) : étiquettes open-go-base `v1.4.0` et `v1.4.1`, mesure de l'IA avec
-une clé, publication de `v0.2.0`. Prochains lots (lot 3), en parallèle :
+(`specs/avancement.md`) : mesure de l'IA avec une clé, publication de `v0.2.0`. Prochains
+lots (lot 3), en parallèle :
 [T19](specs/lots/T19-dependency-track.md), [T20](specs/lots/T20-licences.md),
 [T21](specs/lots/T21-recherche-historique.md), [T22](specs/lots/T22-agent-windows.md),
 [T23](specs/lots/T23-hors-ligne.md) et [T25](specs/lots/T25-sso-oidc.md) (T24 après T19
