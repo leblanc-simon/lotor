@@ -917,5 +917,6 @@ dupliquer.
 | Clé de limitation configurable dans `ratelimit` (par jeton) | Évite le limiteur maison de `internal/ratelimit` | Fait en T04 (`WithKeyFunc`, PR #2 d'open-go-base) |
 | Codes de secours dans mfax | Récupération sans administrateur d'instance | Fait en T18 (PR #5 d'open-go-base, commit `a0f777f`, étiquette `v1.4.0` à pousser ; ADR 0048) |
 | `EnablePOST` de mfax sous verrouillage par compte, refusé sur un TOTP actif | Revue de sécurité du lot 2 (SEC2-01) | Fait en T18 (PR #6 d'open-go-base, commit `0900e0c`, étiquette `v1.4.1` à pousser) |
+| `--help` d'appconf annonce les défauts préremplis par le projet | L'aide affichait les défauts du fragment au lieu de ceux de lotor (port 8080 pour 1758) | Fait (PR #7 d'open-go-base, commit `5d5e22c`, étiquette `v1.4.2`) |
 | Verrouillage par compte et réauthentification dans mfax ; jeton CSRF lié à la session ; nom du cookie de défi | Revue de sécurité du lot 1 (SEC-01, SEC-02, SEC-08) | Fait en T11 (PR #3 d'open-go-base, commit `9a7b91f`, étiquette `v1.3.0` à pousser) |
 | Composant `oidcx` | SSO réutilisable par les projets open-go | T25 |

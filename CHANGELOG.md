@@ -22,7 +22,8 @@ leur ancien rôle) ; la rétention nocturne réduit dès la première nuit l'his
 antérieur à 90 jours (un instantané par mois) et supprime les conteneurs archivés pour
 absence depuis 180 jours : régler `retention.*` et `containers.purge_after` avant la mise
 à jour si une autre politique est voulue ; les comptes existants n'ont pas de codes de
-secours (à générer depuis **Mon compte › Second facteur**). Détail :
+secours (à générer depuis **Mon compte › Second facteur**) ; les ports par défaut changent
+(1758, 1761 et 1762, voir « Modifié ») pour une installation qui ne les fixe pas. Détail :
 [`docs/operations.md`](https://github.com/leblanc-simon/lotor/blob/main/docs/operations.md#mise-à-jour).
 
 ### Ajouté
@@ -122,9 +123,18 @@ secours (à générer depuis **Mon compte › Second facteur**). Détail :
   lot avant l'appel réseau (T18, ADR 0052, migration 023).
 - `make bench-search` échouait dans son dernier pas (plans `EXPLAIN ANALYZE` sans la
   visibilité des équipes) depuis l'arrivée des équipes (T18).
+- `--help` annonce les défauts réels de lotor (port, nom du cookie de session, langue,
+  niveau de journal…) au lieu de ceux des fragments d'open-go-base (open-go-base v1.4.2).
 
 ### Modifié
 
+- Nouveaux ports par défaut : **1758** pour l'interface et l'API de `lotor-server` (au lieu
+  de 8080), **1761** pour son écoute de gestion (au lieu de 8081), **1762** pour le
+  récepteur de webhooks de `lotor-repo-agent` (au lieu de 8080). Une installation qui ne
+  fixe pas `web.port` (`LOTOR_PORT`), `management.port` (`LOTOR_MANAGEMENT_PORT`) ou
+  `webhook.listen` (`LOTOR_REPO_WEBHOOK_LISTEN`) change donc de port à la mise à jour : les
+  fixer pour garder les anciens, ou adapter le mandataire inverse, les sondes, la collecte
+  des métriques et l'adresse des webhooks déclarée dans les forges.
 - La recherche par composant ne compte plus les constats « non affecté » ni « faux
   positif » parmi les vulnérabilités ouvertes d'une occurrence (T18) ; le filtre `triage`
   sur une recherche qui n'est pas par vulnérabilité répond 400 ([#27](https://github.com/leblanc-simon/lotor/pull/27)).

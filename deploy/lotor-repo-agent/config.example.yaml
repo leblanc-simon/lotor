@@ -28,7 +28,7 @@ server:
 # Récepteur de webhooks, exposé aux forges : POST https://<hôte public>/webhooks/<nom de
 # la forge>. Placé derrière un mandataire inverse qui termine TLS, ou en TLS natif.
 webhook:
-  listen: ":8080"        # vide : pas de récepteur, rattrapage seul
+  listen: ":1762"        # vide : pas de récepteur, rattrapage seul
   tls_cert_file: ""      # TLS natif : certificat PEM…
   tls_key_file: ""       # … et sa clé (credential:<nom> ou fichier 0600)
   max_body_kib: 1024     # corps au-delà : 413

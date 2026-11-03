@@ -28,9 +28,9 @@ func load(t *testing.T, args ...string) (Config, error) {
 
 func valid() Config {
 	c := Defaults()
-	c.Web.Host, c.Web.Port, c.Web.RateLimit = "127.0.0.1", 8080, 100
+	c.Web.Host, c.Web.Port, c.Web.RateLimit = "127.0.0.1", 1758, 100
 	c.HTTP = HTTP{ReadHeaderTimeout: time.Second, ShutdownTimeout: time.Second}
-	c.Management = Management{Host: "127.0.0.1", Port: 8081}
+	c.Management = Management{Host: "127.0.0.1", Port: 1761}
 	c.Logging.Format = "text"
 	c.Database.DSN = testDSN
 	c.Database.MaxOpenConns, c.Database.MaxIdleConns = 10, 5
@@ -77,7 +77,7 @@ func TestLoadFromEnvironmentWithDefaults(t *testing.T) {
 	if cfg.Web.Port != 9000 || cfg.Database.DSN != testDSN || cfg.Database.MaxOpenConns != 7 {
 		t.Errorf("variables non lues : %+v", cfg)
 	}
-	if cfg.Database.MaxIdleConns != 10 || cfg.HTTP.ShutdownTimeout != 30*time.Second || cfg.Migration.MaxConns != 2 || cfg.Management.Port != 8081 {
+	if cfg.Database.MaxIdleConns != 10 || cfg.HTTP.ShutdownTimeout != 30*time.Second || cfg.Migration.MaxConns != 2 || cfg.Management.Port != 1761 {
 		t.Errorf("défauts env-default non appliqués : %+v", cfg)
 	}
 	if !cfg.Workers.Enabled || cfg.Workers.Concurrency != 4 || cfg.Workers.Retention != 168*time.Hour || cfg.Workers.OrgLimit != 2 {
@@ -102,6 +102,42 @@ func TestLoadFromEnvironmentWithDefaults(t *testing.T) {
 	}
 	if cfg.Secrets.Keys["k1"] == "" {
 		t.Errorf("clés de secrets non lues : %v", cfg.Secrets.Keys)
+	}
+}
+
+func TestDefaultWebPort(t *testing.T) {
+	t.Setenv("LOTOR_DB_DSN", testDSN)
+	t.Setenv("LOTOR_SECRETS_KEYS", "k1:"+base64.StdEncoding.EncodeToString(bytes.Repeat([]byte{1}, 32)))
+	t.Setenv("LOTOR_SECRETS_ACTIVE_KEY", "k1")
+	cfg, err := load(t)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Web.Port != 1758 {
+		t.Errorf("port web par défaut = %d, attendu 1758", cfg.Web.Port)
+	}
+}
+
+// --help termine le processus : le test se relance lui-même.
+func TestHelpAnnouncesProjectDefaults(t *testing.T) {
+	if os.Getenv("LOTOR_TEST_HELP") == "1" {
+		os.Args = []string{"lotor-server", "--help"}
+		_, _ = Load("lotor-server", "test")
+		return
+	}
+	cmd := exec.Command(os.Args[0], "-test.run=^TestHelpAnnouncesProjectDefaults$")
+	cmd.Env = append(os.Environ(), "LOTOR_TEST_HELP=1")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("--help : %v\n%s", err, out)
+	}
+	for _, want := range []string{`Listen port (default "1758")`, `(default "1761")`, `(default "lotor_session")`} {
+		if !strings.Contains(string(out), want) {
+			t.Errorf("--help n'annonce pas %s :\n%s", want, out)
+		}
+	}
+	if strings.Contains(string(out), `"8080"`) {
+		t.Errorf("--help annonce encore le défaut d'appconf :\n%s", out)
 	}
 }
 
@@ -208,8 +244,8 @@ func TestValidate(t *testing.T) {
 		{"même rôle pour migrer", "migration.dsn", func(c *Config) { c.Migration.DSN = testDSN }},
 		{"port web", "web.port", func(c *Config) { c.Web.Port = 70000 }},
 		{"proxy", "web.trusted_proxies", func(c *Config) { c.Web.TrustedProxies = []string{"10.0.0.0/33"} }},
-		{"gestion sur le port web", "management.port", func(c *Config) { c.Management.Port = 8080 }},
-		{"gestion sur toutes les interfaces", "management.port", func(c *Config) { c.Management = Management{Host: "0.0.0.0", Port: 8080} }},
+		{"gestion sur le port web", "management.port", func(c *Config) { c.Management.Port = 1758 }},
+		{"gestion sur toutes les interfaces", "management.port", func(c *Config) { c.Management = Management{Host: "0.0.0.0", Port: 1758} }},
 		{"niveau de journal", "logging.level", func(c *Config) { c.Logging.Level = "verbose" }},
 		{"format de journal", "logging.format", func(c *Config) { c.Logging.Format = "xml" }},
 		{"langue", "i18n.default_language", func(c *Config) { c.I18n.DefaultLanguage = "x!" }},

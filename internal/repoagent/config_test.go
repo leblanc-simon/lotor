@@ -73,7 +73,7 @@ func TestReadSecretFromSystemdCredential(t *testing.T) {
 func validConfig() Config {
 	c := Defaults()
 	c.Server = ServerConfig{URL: "https://sbom.example.org", TokenFile: "credential:agent-token", Timeout: time.Minute, Retries: 5}
-	c.Webhook = WebhookConfig{Listen: ":8080", MaxBodyKiB: 1024, RateLimit: 60}
+	c.Webhook = WebhookConfig{Listen: ":1762", MaxBodyKiB: 1024, RateLimit: 60}
 	c.Work = WorkConfig{Dir: "/var/lib/x", Parallelism: 2, QueueSize: 10, CloneTimeout: time.Minute, ScanTimeout: time.Minute, MaxCloneMiB: 10, Git: "git"}
 	c.Catchup = CatchupConfig{Interval: 15 * time.Minute, MaxCommits: 20}
 	c.AI = testAIConfig()
@@ -95,7 +95,7 @@ func TestValidate(t *testing.T) {
 		"url identifiée": func(c *Config) { c.Server.URL = "https://a:b@sbom" },
 		"jeton":          func(c *Config) { c.Server.TokenFile = "" },
 		"délai serveur":  func(c *Config) { c.Server.Timeout = 0 },
-		"écoute":         func(c *Config) { c.Webhook.Listen = "8080" },
+		"écoute":         func(c *Config) { c.Webhook.Listen = "1762" },
 		"tls":            func(c *Config) { c.Webhook.TLSCertFile = "/c.pem" },
 		"corps":          func(c *Config) { c.Webhook.MaxBodyKiB = 0 },
 		"débit":          func(c *Config) { c.Webhook.RateLimit = -1 },
@@ -215,7 +215,7 @@ forges:
 		t.Fatal(err)
 	}
 	if c.Server.TokenFile != "credential:agent-token" || c.Work.Parallelism != 2 || c.Catchup.Interval != 15*time.Minute ||
-		c.Webhook.Listen != ":8080" || c.Logging.Level != "info" || c.Forges[0].AppID != "123" {
+		c.Webhook.Listen != ":1762" || c.Logging.Level != "info" || c.Forges[0].AppID != "123" {
 		t.Fatalf("%+v", c)
 	}
 }
