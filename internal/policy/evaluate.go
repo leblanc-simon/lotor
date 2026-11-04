@@ -67,6 +67,12 @@ func OnAnalyzed(ctx context.Context, tx *db.OrgTx, _ uuid.UUID, projectID uuid.U
 	return EnqueueProject(ctx, tx, projectID, jobs.PriorityHigh)
 }
 
+// OnLicenseChange est le point d'accroche de license.Options.OnChange : un projet dont des
+// constats de licence changent est réévalué (règles de sujet « licence », T20).
+func OnLicenseChange(ctx context.Context, tx *db.OrgTx, projectID uuid.UUID) error {
+	return EnqueueProject(ctx, tx, projectID, jobs.PriorityNormal)
+}
+
 // OnTriageChange est le point d'accroche de triage.Options.OnChange : chaque projet dont
 // un statut de triage change est réévalué.
 func OnTriageChange(ctx context.Context, tx *db.OrgTx, changes []triage.Change) error {
@@ -396,6 +402,9 @@ func (s *Service) EvaluateProject(ctx context.Context, org tenant.OrgID, project
 		if err := recordErrors(ctx, tx, rules, now); err != nil {
 			return err
 		}
+		if err := s.evaluateLicenses(ctx, tx, p, projectID, now); err != nil {
+			return err
+		}
 		_, err = tx.ExecContext(ctx, `
 			INSERT INTO policy_evaluations (org_id, ref_id, project_id, analyzed_at, evaluated_at)
 			SELECT ra.org_id, ra.ref_id, ra.project_id, ra.analyzed_at, $2 FROM ref_analyses ra WHERE ra.project_id = $1
@@ -404,6 +413,83 @@ func (s *Service) EvaluateProject(ctx context.Context, org tenant.OrgID, project
 		return err
 	})
 	return wrap("évaluation d'un projet", err)
+}
+
+// licenseQuery lit les constats de licence ouverts des références actives d'un projet.
+const licenseQuery = `SELECT f.id, f.ref_id, f.verdict, f.license_ids, f.licenses, f.missing, f.first_seen_at,
+	c.purl, c.purl_base, c.type, c.name, c.version, r.kind, r.name
+	FROM license_findings f
+	JOIN components c ON c.org_id = f.org_id AND c.id = f.component_id
+	JOIN tracked_refs r ON r.org_id = f.org_id AND r.id = f.ref_id
+	WHERE f.project_id = $1 AND f.status = 'open' AND r.removed_at IS NULL
+	ORDER BY f.id`
+
+// licenseRow est un constat de licence ouvert lu pour l'évaluation.
+type licenseRow struct {
+	id, ref uuid.UUID
+	in      LicenseInput
+}
+
+// readLicenses lit les constats de licence ouverts des références actives d'un projet.
+func readLicenses(ctx context.Context, tx *db.OrgTx, p Project, projectID uuid.UUID, now time.Time) ([]licenseRow, error) {
+	rows, err := tx.QueryContext(ctx, licenseQuery, projectID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []licenseRow
+	for rows.Next() {
+		var l licenseRow
+		lc := &l.in.License
+		if err := rows.Scan(&l.id, &l.ref, &lc.Verdict, db.Array(&lc.IDs), db.Array(&lc.Licenses), &lc.Missing, &lc.FirstSeen,
+			&l.in.Component.PURL, &l.in.Component.PURLBase, &l.in.Component.Type, &l.in.Component.Name,
+			&l.in.Component.Version, &l.in.Ref.Kind, &l.in.Ref.Name); err != nil {
+			return nil, err
+		}
+		lc.FirstSeen = lc.FirstSeen.UTC()
+		lc.AgeDays = days(lc.FirstSeen, now)
+		l.in.Project = p
+		out = append(out, l)
+	}
+	return out, rows.Err()
+}
+
+// evaluateLicenses évalue les règles de licence (T20) sur les constats de licence ouverts
+// d'un projet, comme EvaluateProject pour les constats de vulnérabilité.
+func (s *Service) evaluateLicenses(ctx context.Context, tx *db.OrgTx, p projectRow, projectID uuid.UUID, now time.Time) error {
+	rules, err := s.rules(ctx, tx, SubjectLicense)
+	if err != nil {
+		return err
+	}
+	hits := map[subjectKey]findingHit{}
+	if !p.archived && len(rules) > 0 {
+		ls, err := readLicenses(ctx, tx, p.Project, projectID, now)
+		if err != nil {
+			return err
+		}
+		for _, l := range ls {
+			for _, r := range rules {
+				if r.prg == nil {
+					continue
+				}
+				ok, err := r.prg.MatchLicense(ctx, l.in, now)
+				if err != nil {
+					if ctx.Err() != nil {
+						return ctx.Err()
+					}
+					r.fail(err)
+					continue
+				}
+				if ok {
+					hits[subjectKey{r.ID, l.id}] = findingHit{ref: l.ref, project: projectID}
+				}
+			}
+		}
+	}
+	if err := s.apply(ctx, tx, SubjectLicense, `project_id = $1`, []any{projectID}, rules, hits, now); err != nil {
+		return err
+	}
+	return recordErrors(ctx, tx, rules, now)
 }
 
 // EvaluateAgents évalue les règles d'agent actives sur les agents non désactivés.
@@ -467,10 +553,7 @@ func AgentContext(a agent.Agent, now time.Time) Agent {
 // (désactivée entre-temps) sont résolues aussi.
 func (s *Service) apply(ctx context.Context, tx *db.OrgTx, subject Subject, where string, args []any, rules []*rule,
 	hits map[subjectKey]findingHit, now time.Time) error {
-	col := "finding_id"
-	if subject == SubjectAgent {
-		col = "agent_id"
-	}
+	col := map[Subject]string{SubjectFinding: "finding_id", SubjectAgent: "agent_id", SubjectLicense: "license_finding_id"}[subject]
 	rows, err := tx.QueryContext(ctx, `SELECT id, policy_id, `+col+` FROM policy_violations
 		WHERE resolved_at IS NULL AND subject = '`+string(subject)+`' AND `+where, args...)
 	if err != nil {
@@ -525,7 +608,7 @@ func (s *Service) apply(ctx context.Context, tx *db.OrgTx, subject Subject, wher
 		}
 		ids, pols, subjects = append(ids, id.String()), append(pols, k.policy.String()), append(subjects, k.subject.String())
 		ref, project := "", ""
-		if subject == SubjectFinding {
+		if subject != SubjectAgent {
 			ref, project = h.ref.String(), h.project.String()
 		}
 		refs, projects = append(refs, ref), append(projects, project)
@@ -536,13 +619,20 @@ func (s *Service) apply(ctx context.Context, tx *db.OrgTx, subject Subject, wher
 	if len(ids) == 0 {
 		return nil
 	}
-	findingCol, agentCol := "u.subject_id", "NULL::uuid"
-	if subject == SubjectAgent {
-		findingCol, agentCol = "NULL::uuid", "u.subject_id"
+	findingCol, agentCol, licenseCol := "NULL::uuid", "NULL::uuid", "NULL::uuid"
+	switch subject {
+	case SubjectAgent:
+		agentCol = "u.subject_id"
+	case SubjectLicense:
+		licenseCol = "u.subject_id"
+	default:
+		findingCol = "u.subject_id"
 	}
 	if _, err := tx.ExecContext(ctx, `
-		INSERT INTO policy_violations (org_id, id, policy_id, subject, finding_id, agent_id, project_id, ref_id, opened_at, last_seen_at)
-		SELECT $1, u.id, u.policy_id, $2, `+findingCol+`, `+agentCol+`, NULLIF(u.project, '')::uuid, NULLIF(u.ref, '')::uuid, $3, $3
+		INSERT INTO policy_violations (org_id, id, policy_id, subject, finding_id, agent_id, license_finding_id, project_id, ref_id,
+		                               opened_at, last_seen_at)
+		SELECT $1, u.id, u.policy_id, $2, `+findingCol+`, `+agentCol+`, `+licenseCol+`, NULLIF(u.project, '')::uuid,
+		       NULLIF(u.ref, '')::uuid, $3, $3
 		  FROM unnest($4::uuid[], $5::uuid[], $6::uuid[], $7::text[], $8::text[]) AS u(id, policy_id, subject_id, ref, project)`,
 		tx.OrgID(), subject, now, ids, pols, subjects, refs, projects); err != nil {
 		return err

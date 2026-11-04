@@ -1055,6 +1055,13 @@ organisation). Les notifications (ADR 0046) partent par le job `notify.send` d'u
 le résumé quotidien par `notify.digest_all` à `notify.digest_hour`. Il faut une instance à
 workers. Format des messages et du webhook : [`notifications.md`](notifications.md).
 
+Les **licences** (ADR 0060) s'évaluent dans la même transaction que l'analyse d'une
+référence, juste avant la mise en file de `policy.evaluate_project` ; un changement de
+politique de licences met en file `license.evaluate_org`, qui réévalue toutes les
+références de l'organisation (une transaction par projet). Aucun réglage d'instance : la
+politique se règle par organisation (page **Licences**), et accepte par défaut toute
+licence SPDX connue.
+
 Configuration (`config.example.yaml`) :
 
 - `web.public_url` : URL publique du serveur, pour les liens des messages, des verdicts de

@@ -11,6 +11,7 @@ layout:
 nav:
   admin_signup: "Sign-up"
   violations: "Violations"
+  licenses: "Licenses"
   policies: "Policies"
   channels: "Channels"
   triage: "Triage"
@@ -100,6 +101,7 @@ flash:
   member_updated: The member's role is changed.
   member_removed: The member is removed from the organization.
   org_saved: The organization settings are saved.
+  license_policy_saved: "The license policy is saved; the projects are being re-evaluated."
   org_created: The organization is created.
   org_archived: The organization is archived; its members no longer have access.
   org_unarchived: The organization is active again.
@@ -166,6 +168,9 @@ validation:
   channel_name_invalid: "The name has 1 to 100 characters."
   channel_name_taken: "A channel already has this name."
   channel_kind_invalid: "Unknown channel kind (it does not change after creation)."
+  license_id_invalid: "Enter one SPDX license identifier (or LicenseRef-…) per line, without operator or exception."
+  license_too_many: "Too many licenses in this list."
+  license_default_invalid: "Choose the rule for unlisted licenses."
   channel_recipients_invalid: "Enter 1 to 20 valid e-mail addresses."
   channel_url_invalid: "Invalid http(s) address."
   channel_room_invalid: "Matrix room identifier expected (!abc:server)."
@@ -491,6 +496,7 @@ audit:
     account_totp_reconfigured: "Second factor of {{.Target}} removed by its owner, to be reconfigured"
     policy_created: "Policy created: {{.Target}}"
     policy_updated: "Policy updated: {{.Target}}"
+    license_policy_updated: "License policy updated (default: {{.D_default}}; denied {{.D_denied}}, review {{.D_review}}, allowed {{.D_allowed}})"
     policy_deleted: "Policy deleted: {{.Target}}"
     channel_created: "Notification channel created: {{.Target}}"
     channel_updated: "Notification channel updated: {{.Target}}"
@@ -739,9 +745,9 @@ error:
     hash_invalid:
       title: Unreadable digest
       text: A digest reads sha256:<64 hexadecimal characters>, or the 64 characters alone.
-    license_unavailable:
-      title: License search to come
-      text: License search comes with license analysis; meanwhile, search by component.
+    license_invalid:
+      title: Invalid license
+      text: "Write license: followed by one SPDX identifier, for example license:AGPL-3.0-only."
     filter_invalid:
       title: Unknown filter
       text: A filter or an order in the address does not exist; reset the filters.
@@ -940,6 +946,7 @@ project:
   versions: Versions (Dependency-Track endpoint)
   version_id: identifier
   tab_vex: "VEX"
+  tab_licenses: "Licenses"
   tab_findings: Findings
   title: "{{.Name}}"
   tabs: Project sections
@@ -1612,11 +1619,13 @@ search:
   kind_range: range
   kind_vulnerability: vulnerability
   kind_hash: digest
+  kind_license: license
   syntax: Search syntax
   syntax_name: Component name, approximate, every version and ecosystem
   syntax_purl: purl, optionally followed by a version range in vers format (compared by the ecosystem rules)
   syntax_vulnerability: "CVE or GHSA identifier: affected projects, with status and fixed version"
   syntax_hash: SHA-256 digest of a file known to an SBOM
+  syntax_license: "SPDX license identifier: components declaring it, alone or in an expression"
   filters: Filters
   facet_project_type: Project type
   facet_label: Label
@@ -2140,6 +2149,8 @@ policy_subject:
   finding_desc: "Each open finding, with its project, component, reference and triage status."
   agent: "Agents"
   agent_desc: "Each agent not disabled, with its state and how long it has been silent."
+  license: "License findings"
+  license_desc: "Each open license finding (denied or to review by the license policy), with its project, component and reference."
 policy_delivery:
   immediate: "Immediate"
   digest: "Daily digest"
@@ -2156,7 +2167,7 @@ policy_template:
     text: "An agent that has sent nothing (server) or made no contact (repository) for 7 days."
   license_agpl:
     name: "AGPL license in a distributed product"
-    text: "A component under an AGPL license in a distributed project; delivered with license analysis (phase 3)."
+    text: "A license finding whose deciding license is an AGPL, in a project that carries the « distribution » label; blocking."
 policy_form:
   title_new: "New policy"
   title_edit: "Policy {{.Name}}"
@@ -2184,6 +2195,9 @@ policy_form:
   preview_agent:
     one: "The rule would be violated by {{.Count}} agent today."
     other: "The rule would be violated by {{.Count}} agents today."
+  preview_license:
+    one: "The rule would be violated by {{.Count}} open license finding today."
+    other: "The rule would be violated by {{.Count}} open license findings today."
   preview_failures:
     one: "{{.Count}} evaluation failed (for instance a missing label) and counts as not violated."
     other: "{{.Count}} evaluations failed (for instance a missing label) and count as not violated."
@@ -2199,8 +2213,48 @@ policy_help:
   triage: "The effective triage status: in_triage, affected, not_affected, false_positive, risk_accepted, fixed."
   ref: "The tracked reference: kind (branch, tag, host, container) and name."
   agent: "The agent: name, kind, version, team, state, silent days, last contact."
+  license: "The license finding: verdict (denied, review), deciding license identifiers (ids), declared licenses, missing (no license), first_seen, age_days."
   now: "The evaluation instant (timestamp)."
   examples: "Examples, those of the provided templates:"
+license_verdict:
+  allowed: "Allowed"
+  review: "To review"
+  denied: "Denied"
+licenses:
+  title: "Licenses"
+  project_title: "Licenses of {{.Name}}"
+  heading: "Licenses"
+  lead: "The license policy of the organization and the components it denies or asks to review, in the current inventory of each reference."
+  policy_title: "License policy"
+  default: "Unlisted SPDX licenses"
+  default_hint: "Applies to every known SPDX license not listed below. An unknown identifier or a free-text license is always to review."
+  denied: "Denied licenses"
+  review: "Licenses to review"
+  allowed: "Allowed licenses"
+  list_hint: "One SPDX identifier per line (for example GPL-3.0-only, or LicenseRef-acme); a trailing + covers later versions. At most {{.Max}} per list."
+  require_license: "A component without license is to review"
+  require_yes: "Yes"
+  require_no: "No"
+  expression_hint: "In an expression, OR keeps the most favorable choice and AND the least favorable; a component with several licenses takes the least favorable."
+  none_listed: "None"
+  usage_title: "Licenses of the current inventory"
+  usage_caption: "Licenses declared by the components of the active references, with their verdict"
+  col_license: "License"
+  col_components: "Components"
+  col_verdict: "Verdict"
+  col_component: "Component"
+  col_project: "Project"
+  col_ref: "Reference"
+  col_since: "Since"
+  no_license: "No license"
+  unknown: "Unknown to the SPDX list"
+  no_usage: "No component in the current inventory."
+  findings_title: "License findings"
+  findings_caption: "Components denied or to review by the license policy"
+  filter_verdict: "Filter by verdict"
+  filter_all: "All"
+  no_findings: "No license finding: every component complies with the policy."
+  truncated: "Only the first findings are listed; filter by verdict or open a project."
 violations:
   title: "Violations"
   heading: "Violations"
@@ -2218,6 +2272,7 @@ violations:
   col_opened: "Opened"
   col_resolved: "Resolved"
   agent: "Agent"
+  license: "License"
   no_project: "No project"
   empty_open: "No open violation."
   empty_resolved: "No resolved violation."
@@ -2288,6 +2343,7 @@ notify:
   more: "… and {{.Count}} more"
   line_finding: "{{.Policy}}: {{.Vuln}} ({{.Severity}}) in {{.Component}}, project {{.Project}} ({{.Ref}})"
   line_agent: "{{.Policy}}: agent {{.Agent}}"
+  line_license: "{{.Policy}}: license {{.Vuln}} ({{.Severity}}) in {{.Component}}, project {{.Project}} ({{.Ref}})"
   kev: "[KEV]"
   blocking: "[blocking]"
   # HTML version of notification e-mails (internal/delivery, ADR 0056).
@@ -2301,6 +2357,8 @@ notify:
     finding_headline: "{{.Vuln}} in {{.Component}}"
     finding_detail: "Project {{.Project}}, reference {{.Ref}}"
     agent_headline: "Agent {{.Agent}}"
+    license_headline: "License {{.Vuln}} in {{.Component}}"
+    license_detail: "{{.Verdict}} — project {{.Project}}, reference {{.Ref}}"
     policy: "Policy: {{.Policy}}"
     kev: "KEV"
     blocking: "Blocking"

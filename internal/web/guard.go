@@ -72,6 +72,8 @@ func orgRoutes(id *identity) []orgRoute {
 		{post, "/triage/decisions/{decisionID}/withdraw", tenant.PermTriageOrg, targetOrg, id.withdrawOrgDecision},
 
 		{get, "/violations", tenant.PermOrgView, targetOrg, id.violations},
+		{get, "/licenses", tenant.PermOrgView, targetOrg, id.licenses},
+		{post, "/licenses", tenant.PermPolicyManage, targetOrg, id.saveLicensePolicy},
 		{get, "/policies", tenant.PermPolicyManage, targetOrg, id.policies},
 		{get, "/policies/new", tenant.PermPolicyManage, targetOrg, id.newPolicy},
 		{post, "/policies", tenant.PermPolicyManage, targetOrg, id.createPolicy},
@@ -106,6 +108,7 @@ func orgRoutes(id *identity) []orgRoute {
 		{get, "/projects/{project}/decisions/{decisionID}/withdraw", tenant.PermFindingTriage, targetProject, id.confirmWithdrawProjectDecision},
 		{post, "/projects/{project}/decisions/{decisionID}/withdraw", tenant.PermFindingTriage, targetProject, id.withdrawProjectDecision},
 		{get, "/projects/{project}/vex", tenant.PermProjectView, targetProject, id.vexPage},
+		{get, "/projects/{project}/licenses", tenant.PermProjectView, targetProject, id.projectLicenses},
 		{get, "/projects/{project}/vex/export", tenant.PermProjectView, targetProject, id.vexExport},
 		{post, "/projects/{project}/vex/import", tenant.PermFindingTriage, targetProject, id.vexImport},
 		{get, "/projects/{project}/snapshots", tenant.PermProjectView, targetProject, id.snapshots},

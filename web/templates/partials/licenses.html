@@ -1,0 +1,39 @@
+{{define "license_findings" -}}
+<section class="panel" aria-labelledby="license-findings">
+  <div class="panel__head">
+    <h2 class="panel__title" id="license-findings">{{T "licenses.findings_title"}}</h2>
+    <nav class="segmented panel__action" aria-label="{{T "licenses.filter_verdict"}}">
+      {{- range .Tabs}}<a href="{{.Href}}"{{if .Current}} aria-current="true"{{end}}><span>{{T .LabelKey}}</span> {{.Count}}</a>{{end}}
+    </nav>
+  </div>
+  {{- if .Rows}}
+  <div class="panel__body panel__body--flush">
+    <div class="table-wrap" role="group" aria-labelledby="license-findings" tabindex="0">
+      <table class="data-table">
+        <caption class="visually-hidden">{{T "licenses.findings_caption"}}</caption>
+        <thead><tr><th scope="col">{{T "licenses.col_component"}}</th><th scope="col">{{T "licenses.col_license"}}</th><th scope="col">{{T "licenses.col_verdict"}}</th>{{if not .InProject}}<th scope="col">{{T "licenses.col_project"}}</th>{{else}}<th scope="col">{{T "licenses.col_ref"}}</th>{{end}}<th scope="col">{{T "licenses.col_since"}}</th></tr></thead>
+        <tbody>
+          {{- $in := .InProject}}
+          {{- range .Rows}}
+          <tr>
+            <th scope="row"><span class="cell-stack"><a href="{{.ComponentHref}}">{{.Name}}</a><span class="mono muted">{{.Version}}</span></span></th>
+            <td><span class="cell-stack">{{range .Licenses}}<span class="mono">{{.}}</span>{{else}}<span class="muted">{{T "licenses.no_license"}}</span>{{end}}</span></td>
+            <td><span class="status{{if .Denied}} status--danger{{else}} status--warning{{end}}">{{T .VerdictKey}}</span></td>
+            {{- if $in}}
+            <td><span class="cell-stack"><span class="mono">{{.RefName}}</span><span class="muted">{{T .RefKindKey}}</span></span></td>
+            {{- else}}
+            <td><span class="cell-stack"><a href="{{.ProjectHref}}/licenses">{{.Project}}</a><span class="mono muted">{{.RefName}}</span></span></td>
+            {{- end}}
+            <td>{{template "stamp" .Since}}</td>
+          </tr>
+          {{- end}}
+        </tbody>
+      </table>
+    </div>
+    {{- if .Truncated}}<p class="panel__body muted">{{T "licenses.truncated"}}</p>{{end}}
+  </div>
+  {{- else}}
+  <div class="panel__body"><p class="muted">{{T "licenses.no_findings"}}</p></div>
+  {{- end}}
+</section>
+{{- end}}

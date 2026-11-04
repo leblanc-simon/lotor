@@ -115,9 +115,15 @@ func (s *Service) composeHTML(loc *i18n.Localizer, o orgInfo, ev event, m Messag
 		if it.Blocking {
 			item.BlockingLabel = loc.T("notify.mail.blocking")
 		}
-		if it.Subject == "agent" {
+		switch it.Subject {
+		case "agent":
 			item.Headline = loc.T("notify.mail.agent_headline", args)
-		} else {
+		case "license":
+			// Constat de licence (T20) : VulnID porte les licences décisives, Severity le verdict.
+			item.Headline = loc.T("notify.mail.license_headline", args)
+			item.Detail = loc.T("notify.mail.license_detail", map[string]any{"Project": it.Project, "Ref": it.Ref,
+				"Verdict": loc.T("license_verdict." + it.Severity)})
+		default:
 			item.Severity, item.SeverityLabel = it.Severity, loc.T("severity."+it.Severity)
 			item.Headline = loc.T("notify.mail.finding_headline", args)
 			item.Detail = loc.T("notify.mail.finding_detail", args)
@@ -132,8 +138,12 @@ func line(loc *i18n.Localizer, it Item) string {
 	args := map[string]any{"Policy": it.Policy, "Project": it.Project, "Ref": it.Ref, "Vuln": it.VulnID,
 		"Severity": loc.T("severity." + it.Severity), "Component": it.Component, "Agent": it.Agent}
 	key := "notify.line_finding"
-	if it.Subject == "agent" {
+	switch it.Subject {
+	case "agent":
 		key = "notify.line_agent"
+	case "license":
+		key = "notify.line_license"
+		args["Severity"] = loc.T("license_verdict." + it.Severity)
 	}
 	out := loc.T(key, args)
 	if it.KEV {

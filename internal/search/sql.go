@@ -76,7 +76,7 @@ const componentHits = `
 	         FROM findings f
 	        WHERE f.org_id = i.org_id AND f.ref_id = r.id AND f.component_id = i.component_id AND f.status = 'open'
 	          AND f.triage_status <> ALL(%HIDDEN%::text[])) v ON true
-	 WHERE i.component_id = ANY(%IDS%::uuid[])`
+	 WHERE %MATCH%`
 
 // componentHitsAt : composants désignés dans l'instantané en vigueur à une date de chaque
 // référence (le dernier scanné avant elle, par snapshots_ref_idx), des projets visibles.
@@ -94,7 +94,7 @@ const componentHitsAt = `
 	        WHERE s.org_id = r.org_id AND s.ref_id = r.id AND s.scanned_at < %AT%::timestamptz
 	        ORDER BY s.scanned_at DESC, s.id DESC LIMIT 1) s
 	  JOIN component_set_items i ON i.org_id = r.org_id AND i.set_id = s.set_id
-	 WHERE i.component_id = ANY(%IDS%::uuid[])`
+	 WHERE %MATCH%`
 
 // vulnHits : constats des vulnérabilités désignées, sur les références actives des projets
 // actifs et visibles, avec l'élément de l'inventaire courant s'il contient encore le composant,
@@ -124,11 +124,20 @@ func hitsSQL(t target, f Filters, projectIDs []uuid.UUID, a *args) string {
 		}
 		base = strings.NewReplacer("%RANK%", rankSQL("f.severity"), "%IDS%", a.add(t.vulnIDs),
 			"%STATUS%", a.add(statuses)).Replace(vulnHits)
-	} else if f.At != nil {
-		base = strings.NewReplacer("%IDS%", a.add(t.components), "%AT%", a.add(*f.At)).Replace(componentHitsAt)
 	} else {
-		base = strings.NewReplacer("%RANK%", rankSQL("f.severity"), "%IDS%", a.add(t.components),
-			"%HIDDEN%", a.add(hiddenStatuses())).Replace(componentHits)
+		// Composants désignés, ou éléments qui portent une des expressions de licence (T20).
+		var match string
+		if t.licenses != nil {
+			match = "i.licenses && " + a.add(t.licenses) + "::text[]"
+		} else {
+			match = "i.component_id = ANY(" + a.add(t.components) + "::uuid[])"
+		}
+		if f.At != nil {
+			base = strings.NewReplacer("%MATCH%", match, "%AT%", a.add(*f.At)).Replace(componentHitsAt)
+		} else {
+			base = strings.NewReplacer("%RANK%", rankSQL("f.severity"), "%MATCH%", match,
+				"%HIDDEN%", a.add(hiddenStatuses())).Replace(componentHits)
+		}
 	}
 	var where []string
 	if projectIDs != nil {

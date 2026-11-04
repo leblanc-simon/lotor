@@ -43,8 +43,45 @@ func TestEveryTemplateCompiles(t *testing.T) {
 			t.Errorf("%s : %v", tpl.Key, err)
 		}
 	}
-	if _, ok := TemplateByKey(TemplateLicenseAGPL); ok {
-		t.Error("le modèle AGPL doit rester indisponible jusqu'à T20")
+}
+
+// Modèle AGPL (T20) : une licence AGPL décisive dans un projet étiqueté « distribution ».
+func TestLicenseTemplate(t *testing.T) {
+	c := compiler(t)
+	tpl, ok := TemplateByKey(TemplateLicenseAGPL)
+	if !ok || tpl.Subject != SubjectLicense || !tpl.Blocking {
+		t.Fatalf("modèle AGPL %+v", tpl)
+	}
+	p, err := c.Compile(tpl.Subject, tpl.Expression)
+	if err != nil {
+		t.Fatal(err)
+	}
+	in := LicenseInput{Project: Project{Name: "Portail", Labels: map[string]string{"distribution": ""}},
+		Component: Component{Name: "ghostscript"}, License: License{Verdict: "denied", IDs: []string{"AGPL-3.0-only"}}}
+	for name, c := range map[string]struct {
+		mutate func(*LicenseInput)
+		want   bool
+	}{
+		"AGPL distribuée":    {func(*LicenseInput) {}, true},
+		"AGPL ou ultérieure": {func(in *LicenseInput) { in.License.IDs = []string{"AGPL-3.0-or-later"} }, true},
+		"non distribuée":     {func(in *LicenseInput) { in.Project.Labels = nil }, false},
+		"GPL":                {func(in *LicenseInput) { in.License.IDs = []string{"GPL-3.0-only"} }, false},
+		"sans licence":       {func(in *LicenseInput) { in.License.IDs = nil; in.License.Missing = true }, false},
+	} {
+		x := in
+		x.Project.Labels = map[string]string{"distribution": ""}
+		c.mutate(&x)
+		got, err := p.MatchLicense(context.Background(), x, now)
+		if err != nil || got != c.want {
+			t.Errorf("%s : %v %v", name, got, err)
+		}
+	}
+	// Un champ de constat de vulnérabilité n'existe pas pour une licence.
+	if _, err := c.Compile(SubjectLicense, `finding.kev`); err == nil {
+		t.Error("finding accepté dans une règle de licence")
+	}
+	if _, err := p.MatchFinding(context.Background(), FindingInput{}, now); err == nil {
+		t.Error("règle de licence évaluée sur un constat")
 	}
 }
 

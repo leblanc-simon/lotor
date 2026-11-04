@@ -75,7 +75,7 @@ func (s *Service) Export(ctx context.Context, org tenant.OrgID, vis tenant.Visib
 		if err := enc.begin(t.truncated); err != nil {
 			return err
 		}
-		if len(t.components) == 0 && len(t.vulnIDs) == 0 {
+		if len(t.components) == 0 && len(t.vulnIDs) == 0 && len(t.licenses) == 0 {
 			return nil
 		}
 		a := &args{}

@@ -61,7 +61,7 @@ func TestSearchScreenAndAPI(t *testing.T) {
 		for _, q := range queries {
 			pg := b.get("/o/org-a/search?" + q + "&lang=" + lang)
 			want := http.StatusOK
-			if strings.Contains(q, "vers%3Anpm") || strings.Contains(q, "license") || strings.Contains(q, "log4j-core&triage") ||
+			if strings.Contains(q, "vers%3Anpm") || strings.Contains(q, "log4j-core&triage") ||
 				strings.Contains(q, "at=2099") || strings.Contains(q, "CVE-2021-44228&at") {
 				want = http.StatusBadRequest
 			}

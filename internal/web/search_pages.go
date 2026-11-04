@@ -134,6 +134,7 @@ var syntaxExamples = []syntaxExample{
 	{"pkg:npm/lodash vers:npm/<4.17.21", "search.syntax_purl"},
 	{"CVE-2021-44228", "search.syntax_vulnerability"},
 	{"sha256:0925e8ad7bd971391a8b1e98be8e87a6971919eb5b60c196485941c3c1df089a", "search.syntax_hash"},
+	{"license:AGPL-3.0-only", "search.syntax_license"},
 }
 
 // href écrit des paramètres de recherche en lien relatif ; url.Values les encode, le

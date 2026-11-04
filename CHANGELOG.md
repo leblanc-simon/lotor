@@ -10,7 +10,7 @@ appliquées automatiquement, sans retour arrière.
 
 **Mise à jour** : `notify.public_url` devient **`web.public_url`** (`LOTOR_PUBLIC_URL`) ;
 déplacer la clé sous `web:` avant de redémarrer : l'ancienne est ignorée (messages sans
-lien). Les migrations 024 à 026 s'appliquent au démarrage ; l'instance reste privée.
+lien). Les migrations 024 à 027 s'appliquent au démarrage ; l'instance reste privée.
 
 ### Ajouté
 
@@ -52,6 +52,14 @@ lien). Les migrations 024 à 026 s'appliquent au démarrage ; l'instance reste p
   références retirées compris, avec sa date ; composants seulement (les constats d'alors ne
   sont pas conservés) ; avertissement « résultat partiel » avant l'horizon de la rétention
   (`partial` et `retention_horizon` dans l'API).
+- Licences (T20, ADR 0060) : politique de licences par organisation (page **Licences** :
+  licences refusées, à revoir, acceptées, règle des licences SPDX non citées, composant sans
+  licence à revoir ou non) ; **par défaut, toute licence SPDX connue est acceptée**, une
+  licence inconnue ou en texte libre est à revoir. Expressions SPDX évaluées
+  (`MIT OR GPL-3.0-only` conforme si MIT est acceptée). Constats de licence par référence,
+  onglet **Licences** de chaque projet, recherche `license:AGPL-3.0-only`, règles de
+  politique de sujet « constats de licence » et modèle « Licence AGPL dans un produit
+  distribué » désormais disponible (bloquant).
 
 ### Modifié
 

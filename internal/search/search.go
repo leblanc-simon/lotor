@@ -18,6 +18,7 @@ import (
 	"leblanc.io/lotor/internal/db/crossorg"
 	"leblanc.io/lotor/internal/finding"
 	"leblanc.io/lotor/internal/inventory"
+	"leblanc.io/lotor/internal/license"
 	"leblanc.io/lotor/internal/pagination"
 	"leblanc.io/lotor/internal/project"
 	"leblanc.io/lotor/internal/sbom"
@@ -187,6 +188,9 @@ type Result struct {
 type target struct {
 	components []uuid.UUID
 	vulnIDs    []string
+	// licenses : expressions de licence qui citent la licence recherchée (T20) ; les
+	// occurrences sont les éléments d'inventaire qui en portent une.
+	licenses []string
 	// excluded et unreadable : composants du paquet écartés par la version ou la plage
 	// (recherche par purl).
 	excluded   []uuid.UUID
@@ -304,6 +308,12 @@ func (s *Service) resolve(ctx context.Context, tx *db.OrgTx, q Query) (target, e
 		return target{vulnIDs: ids}, err
 	case KindPURL:
 		return s.resolvePURL(ctx, tx, q)
+	case KindLicense:
+		exprs, err := license.Expressions(ctx, tx, q.License)
+		if exprs == nil {
+			exprs = []string{}
+		}
+		return target{licenses: exprs}, err
 	}
 	return target{}, fmt.Errorf("nature de requête %q", q.Kind)
 }
@@ -416,7 +426,7 @@ var orders = map[Sort]struct{ order, after string }{
 
 // page lit une page de projets, puis leurs occurrences.
 func (s *Service) page(ctx context.Context, tx *db.OrgTx, t target, req Request, after pageCursor, limit int, res *Result) error {
-	if len(t.components) == 0 && len(t.vulnIDs) == 0 {
+	if len(t.components) == 0 && len(t.vulnIDs) == 0 && len(t.licenses) == 0 {
 		return nil
 	}
 	a := &args{}

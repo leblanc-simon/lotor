@@ -192,6 +192,15 @@ et `offline.only` (inscription par la première archive, jeton tiré par l'agent
 dépôt `offline.dir`, import `ingest.Importer` par Agents › Importer des archives,
 `POST /api/v1/orgs/{org}/archives` et `offline.watch_dir`, dédoublonnage
 `ingestions.archive_sha256` (migration 026).
+T20 terminé : licences (ADR 0060, Grant étudié et non importé). `internal/license` : parseur
+et évaluateur SPDX (`OR` = plus favorable, `AND` = moins favorable, inconnue = à revoir),
+liste SPDX du schéma CycloneDX (`license.KnownFrom`), politique par organisation
+(`license_policies` ; défaut : tout accepter, décision de l'utilisateur), constats
+`license_findings` évalués dans `OnAnalyzed` avant les politiques, job
+`license.evaluate_org` ; sujet `license` des règles (`policy.OnLicenseChange`, modèle AGPL
+disponible), recherche `license:` (`license_expressions`), page `/o/{slug}/licenses` et
+onglet Licences du projet (migration 027). **Lot 3 en cours** : T19, T20, T21, T23 faits ;
+restent T22, T25, puis T24 et T26.
 
 ## Règles de travail
 

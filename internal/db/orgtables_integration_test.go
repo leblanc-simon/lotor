@@ -198,6 +198,22 @@ var orgTables = []orgTable{
 			VALUES ($1, $2, $3, now(), now())`, tx.OrgID(), seedID(tx, "ref"), seedID(tx, "project"))
 		return err
 	}},
+	{"license_policies", "org_id", func(ctx context.Context, tx *db.OrgTx, _ int64) error {
+		_, err := tx.ExecContext(ctx, `INSERT INTO license_policies (org_id, default_status, denied) VALUES ($1, 'allowed', '{AGPL-3.0-only}')`,
+			tx.OrgID())
+		return err
+	}},
+	{"license_expressions", "org_id", func(ctx context.Context, tx *db.OrgTx, _ int64) error {
+		_, err := tx.ExecContext(ctx, `INSERT INTO license_expressions (org_id, expression) VALUES ($1, 'MIT OR AGPL-3.0-only')`, tx.OrgID())
+		return err
+	}},
+	{"license_findings", "org_id", func(ctx context.Context, tx *db.OrgTx, _ int64) error {
+		_, err := tx.ExecContext(ctx, `INSERT INTO license_findings (org_id, id, project_id, ref_id, component_id, status, verdict,
+			licenses, license_ids, snapshot_id, first_seen_at, last_seen_at)
+			VALUES ($1, gen_random_uuid(), $2, $3, $4, 'open', 'denied', '{AGPL-3.0-only}', '{AGPL-3.0-only}', $5, now(), now())`,
+			tx.OrgID(), seedID(tx, "project"), seedID(tx, "ref"), seedID(tx, "component"), seedID(tx, "snapshot"))
+		return err
+	}},
 	{"agent_tokens", "org_id", func(ctx context.Context, tx *db.OrgTx, _ int64) error {
 		_, err := tx.ExecContext(ctx, `INSERT INTO agent_tokens (org_id, id, agent_id, public_id, secret_hash, name)
 			VALUES ($1, $2, $3, $4, sha256('a'::bytea), 'initial')`,

@@ -1,0 +1,52 @@
+{{define "content" -}}
+<div class="stack">
+  <div class="page-head">
+    <h1 class="page-head__title">{{T "licenses.heading"}}</h1>
+    <p class="page-head__lead">{{T "licenses.lead"}}</p>
+  </div>
+  {{template "flash" .FlashKey}}
+  {{template "form_error" .Error}}
+  <section class="panel" aria-labelledby="license-policy">
+    <div class="panel__head"><h2 class="panel__title" id="license-policy">{{T "licenses.policy_title"}}</h2></div>
+    <div class="panel__body">
+      {{- if .CanManage}}
+      <form class="form" method="post" action="{{.Base}}/licenses">
+        {{csrfField .Page.CSRFToken}}
+        <div class="field">
+          <label class="field__label" for="license-default">{{T "licenses.default"}}</label>
+          <select class="select" id="license-default" name="default" aria-describedby="license-default-hint"{{if eq .Error.Field "default"}} aria-invalid="true"{{end}}>
+            {{- range .Defaults}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{T .LabelKey}}</option>{{end}}
+          </select>
+          <p class="field__hint" id="license-default-hint">{{T "licenses.default_hint"}}</p>
+        </div>
+        <div class="field">
+          <label class="field__label" for="license-denied">{{T "licenses.denied"}}</label>
+          <textarea class="input input--code input--multiline" id="license-denied" name="denied" rows="4" spellcheck="false" aria-describedby="license-list-hint"{{if eq .Error.Field "denied"}} aria-invalid="true"{{end}}>{{.Form.Denied}}</textarea>
+        </div>
+        <div class="field">
+          <label class="field__label" for="license-review">{{T "licenses.review"}}</label>
+          <textarea class="input input--code input--multiline" id="license-review" name="review" rows="4" spellcheck="false" aria-describedby="license-list-hint"{{if eq .Error.Field "review"}} aria-invalid="true"{{end}}>{{.Form.Review}}</textarea>
+        </div>
+        <div class="field">
+          <label class="field__label" for="license-allowed">{{T "licenses.allowed"}}</label>
+          <textarea class="input input--code input--multiline" id="license-allowed" name="allowed" rows="4" spellcheck="false" aria-describedby="license-list-hint"{{if eq .Error.Field "allowed"}} aria-invalid="true"{{end}}>{{.Form.Allowed}}</textarea>
+        </div>
+        <p class="field__hint" id="license-list-hint">{{T "licenses.list_hint" "Max" .MaxListed}}</p>
+        <label class="check"><input type="checkbox" name="require_license" value="1"{{if .Form.RequireLicense}} checked{{end}}> <span>{{T "licenses.require_license"}}</span></label>
+        <p class="muted">{{T "licenses.expression_hint"}}</p>
+        <p><button type="submit" class="btn btn--primary">{{T "form.save"}}</button></p>
+      </form>
+      {{- else}}
+      <dl class="kv">
+        <dt>{{T "licenses.default"}}</dt><dd>{{T (print "license_verdict." .Policy.Default)}}</dd>
+        <dt>{{T "licenses.denied"}}</dt><dd class="mono">{{range $i, $l := .Policy.Denied}}{{if $i}}, {{end}}{{$l}}{{else}}<span class="muted">{{T "licenses.none_listed"}}</span>{{end}}</dd>
+        <dt>{{T "licenses.review"}}</dt><dd class="mono">{{range $i, $l := .Policy.Review}}{{if $i}}, {{end}}{{$l}}{{else}}<span class="muted">{{T "licenses.none_listed"}}</span>{{end}}</dd>
+        <dt>{{T "licenses.allowed"}}</dt><dd class="mono">{{range $i, $l := .Policy.Allowed}}{{if $i}}, {{end}}{{$l}}{{else}}<span class="muted">{{T "licenses.none_listed"}}</span>{{end}}</dd>
+        <dt>{{T "licenses.require_license"}}</dt><dd>{{if .Policy.RequireLicense}}{{T "licenses.require_yes"}}{{else}}{{T "licenses.require_no"}}{{end}}</dd>
+      </dl>
+      {{- end}}
+    </div>
+  </section>
+  {{template "license_findings" .Findings}}
+</div>
+{{- end}}

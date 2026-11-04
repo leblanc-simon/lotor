@@ -27,13 +27,16 @@ const (
 	SubjectFinding Subject = "finding"
 	// SubjectAgent : un agent non désactivé.
 	SubjectAgent Subject = "agent"
+	// SubjectLicense : un constat de licence ouvert (T20), avec son projet, son composant et
+	// sa référence.
+	SubjectLicense Subject = "license"
 )
 
 // Subjects renvoie les sujets, dans l'ordre des écrans.
-func Subjects() []Subject { return []Subject{SubjectFinding, SubjectAgent} }
+func Subjects() []Subject { return []Subject{SubjectFinding, SubjectLicense, SubjectAgent} }
 
 // Valid indique un sujet connu.
-func (s Subject) Valid() bool { return s == SubjectFinding || s == SubjectAgent }
+func (s Subject) Valid() bool { return s == SubjectFinding || s == SubjectAgent || s == SubjectLicense }
 
 // Contexte d'évaluation, tel que la règle le lit. Les noms CEL sont ceux des étiquettes
 // « cel » ; les types sont déclarés à CEL, si bien qu'un champ inconnu est refusé à la
@@ -103,6 +106,28 @@ type Agent struct {
 	// dernier contact (agent dépôt), à partir de la création sans l'un ni l'autre.
 	SilentDays int64     `cel:"silent_days"`
 	LastSeen   time.Time `cel:"last_seen"`
+}
+
+// License est un constat de licence ouvert (T20).
+type License struct {
+	// Verdict : « denied » (refusée) ou « review » (à revoir) selon la politique de
+	// licences de l'organisation.
+	Verdict string `cel:"verdict"`
+	// IDs : identifiants des licences qui décident du verdict ; Licenses : licences
+	// déclarées par le composant, telles que reçues.
+	IDs       []string  `cel:"ids"`
+	Licenses  []string  `cel:"licenses"`
+	Missing   bool      `cel:"missing"`
+	FirstSeen time.Time `cel:"first_seen"`
+	AgeDays   int64     `cel:"age_days"`
+}
+
+// LicenseInput est le contexte d'évaluation d'une règle sur un constat de licence.
+type LicenseInput struct {
+	Project   Project
+	Component Component
+	License   License
+	Ref       Ref
 }
 
 // FindingInput est le contexte d'évaluation d'une règle sur un constat.
@@ -198,6 +223,17 @@ func NewCompiler() (*Compiler, error) {
 	if err != nil {
 		return nil, fmt.Errorf("policy: environnement CEL des constats : %w", err)
 	}
+	licenseEnv, err := cel.NewEnv(append([]cel.EnvOption{
+		ext.NativeTypes(reflect.TypeFor[Project](), reflect.TypeFor[Component](), reflect.TypeFor[License](),
+			reflect.TypeFor[Ref](), ext.ParseStructTags(true)),
+		cel.Variable("project", cel.ObjectType("policy.Project")),
+		cel.Variable("component", cel.ObjectType("policy.Component")),
+		cel.Variable("license", cel.ObjectType("policy.License")),
+		cel.Variable("ref", cel.ObjectType("policy.Ref")),
+	}, common...)...)
+	if err != nil {
+		return nil, fmt.Errorf("policy: environnement CEL des licences : %w", err)
+	}
 	agentEnv, err := cel.NewEnv(append([]cel.EnvOption{
 		ext.NativeTypes(reflect.TypeFor[Agent](), ext.ParseStructTags(true)),
 		cel.Variable("agent", cel.ObjectType("policy.Agent")),
@@ -205,7 +241,7 @@ func NewCompiler() (*Compiler, error) {
 	if err != nil {
 		return nil, fmt.Errorf("policy: environnement CEL des agents : %w", err)
 	}
-	return &Compiler{envs: map[Subject]*cel.Env{SubjectFinding: findingEnv, SubjectAgent: agentEnv},
+	return &Compiler{envs: map[Subject]*cel.Env{SubjectFinding: findingEnv, SubjectAgent: agentEnv, SubjectLicense: licenseEnv},
 		cache: map[string]*Program{}}, nil
 }
 
@@ -327,6 +363,24 @@ func (p *Program) MatchFinding(ctx context.Context, in FindingInput, now time.Ti
 		"triage": in.Triage, "ref": in.Ref, "now": now})
 }
 
+// MatchLicense évalue une règle de licence.
+func (p *Program) MatchLicense(ctx context.Context, in LicenseInput, now time.Time) (bool, error) {
+	if p.Subject != SubjectLicense {
+		return false, fmt.Errorf("policy: règle de %s évaluée sur une licence", p.Subject)
+	}
+	if in.Project.Labels == nil {
+		in.Project.Labels = map[string]string{}
+	}
+	if in.License.IDs == nil {
+		in.License.IDs = []string{}
+	}
+	if in.License.Licenses == nil {
+		in.License.Licenses = []string{}
+	}
+	return p.eval(ctx, map[string]any{"project": in.Project, "component": in.Component, "license": in.License,
+		"ref": in.Ref, "now": now})
+}
+
 // MatchAgent évalue une règle d'agent.
 func (p *Program) MatchAgent(ctx context.Context, a Agent, now time.Time) (bool, error) {
 	if p.Subject != SubjectAgent {
@@ -355,6 +409,15 @@ func celFields(t reflect.Type) []string {
 func Variables(s Subject) []Variable {
 	if s == SubjectAgent {
 		return []Variable{{Name: "agent", Fields: celFields(reflect.TypeFor[Agent]())}, {Name: "now"}}
+	}
+	if s == SubjectLicense {
+		return []Variable{
+			{Name: "project", Fields: celFields(reflect.TypeFor[Project]())},
+			{Name: "component", Fields: celFields(reflect.TypeFor[Component]())},
+			{Name: "license", Fields: celFields(reflect.TypeFor[License]())},
+			{Name: "ref", Fields: celFields(reflect.TypeFor[Ref]())},
+			{Name: "now"},
+		}
 	}
 	return []Variable{
 		{Name: "project", Fields: celFields(reflect.TypeFor[Project]())},

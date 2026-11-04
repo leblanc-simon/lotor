@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"leblanc.io/lotor/internal/audit"
+	"leblanc.io/lotor/internal/license"
 	"leblanc.io/lotor/internal/project"
 	"leblanc.io/lotor/internal/tenant"
 )
@@ -17,7 +18,7 @@ import (
 // TestTeamFilterOnEverySurface est le test unique des surfaces de lecture : deux projets
 // touchés par la même vulnérabilité, l'un dans l'équipe « Général », l'autre dans
 // « Sécurité ». Chaque surface (liste et fiche des projets, recherche, exports de
-// l'écran et de l'API, tableau de bord, fiches vulnérabilité et composant, agents,
+// l'écran et de l'API, tableau de bord, fiches vulnérabilité et composant, licences, agents,
 // équipes) ne montre à un membre que le projet de son équipe, rien à un membre sans
 // équipe, et les deux à l'administrateur d'organisation.
 func TestTeamFilterOnEverySurface(t *testing.T) {
@@ -51,6 +52,14 @@ func TestTeamFilterOnEverySurface(t *testing.T) {
 		}
 	}
 	component := a.componentID(f.org.ID, log4jCore)
+	// Licences (T20) : les composants sans licence sont à revoir, pour qu'une surface en
+	// montre les constats.
+	if err := a.licenses.SetPolicy(ctx, audit.System, f.org.ID, license.Policy{Default: license.StatusAllowed, RequireLicense: true}); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.licenses.EvaluateOrg(ctx, f.org.ID); err != nil {
+		t.Fatal(err)
+	}
 
 	general, security, none := a.user("general@example.org", false), a.user("secu@example.org", false), a.user("none@example.org", false)
 	a.addTeamMember(f.org, general, tenant.TeamReader)
@@ -83,6 +92,7 @@ func TestTeamFilterOnEverySurface(t *testing.T) {
 			"export CSV":           b.get("/o/org-a/search/export?q=log4j-core&format=csv"),
 			"tableau de bord":      b.get("/o/org-a"),
 			"fiche vulnérabilité":  b.get("/o/org-a/vulnerabilities/CVE-2021-44228"),
+			"licences":             b.get("/o/org-a/licenses"),
 			"API de recherche":     a.apiGet(pat.Plaintext, "/api/v1/orgs/org-a/search?q=log4j-core"),
 			"export JSON de l'API": a.apiGet(pat.Plaintext, "/api/v1/orgs/org-a/search/export?q=CVE-2021-44228&format=json"),
 		}
@@ -110,7 +120,7 @@ func TestTeamFilterOnEverySurface(t *testing.T) {
 			if visible {
 				want = http.StatusOK
 			}
-			for _, path := range []string{"", "/findings", "/snapshots"} {
+			for _, path := range []string{"", "/findings", "/snapshots", "/licenses"} {
 				if p := b.get("/o/org-a/projects/" + slug + path); p.status != want {
 					t.Errorf("%s : /projects/%s%s %d, attendu %d", c.who.Email, slug, path, p.status, want)
 				}

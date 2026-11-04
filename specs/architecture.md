@@ -87,8 +87,7 @@ internal/
   notify/                # canaux de notification, envois, messages traduits (T15)
   mailer/                # courriels transactionnels de l'instance : file mail.send, composition (T28)
   signup/                # inscription : modes, codes, vérifications d'adresse, liens d'invitation (T28)
-  license/
-    grant/               # lot 3
+  license/               # expressions SPDX, politique de licences, constats de licence (T20, ADR 0060)
   web/                   # routeur chi, handlers HTML par écran, gestion, serveurs
     middleware/          # identifiant de requête, journal, en-têtes, langue, métriques
     webtest/             # assistant de test : accessibilité, absence de code en ligne
@@ -132,7 +131,8 @@ Nommage : paquets courts en anglais, jamais de paquet fourre-tout (`util`, `help
   - `github.com/anchore/stereoscope/...` : `hostagent` (références de fichier du résolveur
     de l'index compact, ADR 0055) ;
   - `github.com/anchore/grype/...` : `vuln/grype`, `version/grypeversion` ;
-  - `github.com/anchore/grant/...` : `license/grant`.
+  - `github.com/anchore/grant/...` : `license/grant`, s'il devait être adopté ; T20 ne
+    l'importe pas (ADR 0060 : les expressions SPDX sont évaluées par `internal/license`).
 - Les types d'Anchore ne traversent jamais la frontière d'un adaptateur.
 - Le métier n'ouvre aucune connexion : un téléchargement passe par une interface injectée
   (`vuln.Fetcher`), implémentée par `download`, paquet serveur hors métier (ADR 0017) ; de
@@ -159,7 +159,7 @@ relevées en T00 (une montée de version ultérieure ne demande pas de nouvelle 
 | Configuration, journaux, i18n, CSRF, limitation de débit (par IP ou par clé), CORS, comptes, sessions, TOTP | `leblanc.io/open-go-base` | v1.0.1, puis commits de v1.1.0 (T03), v1.2.0 (T04) et v1.3.0 (T11), étiquettes à pousser | Décidé |
 | Pilote PostgreSQL | `github.com/jackc/pgx/v5/stdlib` via `database/sql` (partagé avec les stores d'authx et mfax) | v5.12.0 | Validé (ADR 0002) |
 | Routeur HTTP | `github.com/go-chi/chi/v5` (comme open-go-canivet) | v5.5.0 | Validé (ADR 0003) |
-| SBOM, vulnérabilités, licences | `github.com/anchore/syft`, `grype`, `grant` | v1.55.0, v0.121.0, v0.6.8 | Décidé (ADR 0007) |
+| SBOM, vulnérabilités, licences | `github.com/anchore/syft`, `grype` (`grant` étudié, non importé : ADR 0060) | v1.55.0, v0.121.0 | Décidé (ADR 0007, 0060) |
 | Pilote SQLite pur Go, exigé par Syft pour les bases RPM récentes | `modernc.org/sqlite` (déjà dans le graphe d'open-go-base) | v1.60.1, import direct de `hostagent` (T07) | Validé en T00 (ADR 0007) |
 | Manipulation CycloneDX côté agents et dans l'adaptateur `sbom/syft` (réencodage) | `github.com/CycloneDX/cyclonedx-go` (déjà dans le graphe de Syft) | v0.12.0 | Validé |
 | purl | `github.com/package-url/packageurl-go` (déjà dans le graphe de Syft) | v0.1.7 | Validé |
@@ -620,11 +620,23 @@ qu'aucune mesure ne la justifie (ADR 0015).
   attente tant que son ensemble n'est pas l'ensemble analysé et évalué de sa référence,
   non conforme s'il reste une violation ouverte d'une règle bloquante.
 
+- **Licences** (T20, ADR 0060) : `internal/license` lit les expressions SPDX et les
+  confronte à la politique de l'organisation (`license_policies` ; sans ligne, toute
+  licence SPDX connue est acceptée ; une licence inconnue ou en texte libre est toujours à
+  revoir ; `OR` retient le plus favorable, `AND` le moins favorable). La liste SPDX est
+  celle du schéma CycloneDX 1.6 embarqué. Constats `license_findings` par (référence,
+  composant), au cycle de vie des constats de vulnérabilité, évalués dans la transaction de
+  l'analyse (`finding.Options.OnAnalyzed`, avant les politiques) et réévalués par
+  `license.evaluate_org` après un changement de politique ; un changement met en file
+  l'évaluation des politiques du projet, dont le sujet `license` ouvre des violations.
+
 ## 13. Recherche
 
 - Une barre unique ; le type de requête est déduit : `pkg:` → purl, `CVE-`/`GHSA-` →
   vulnérabilité, `sha256:` ou 64 caractères hexadécimaux → empreinte, `license:` →
-  licence, sinon nom de composant (approché par trigrammes).
+  licence, sinon nom de composant (approché par trigrammes). `license:<identifiant>`
+  retient en Go les expressions de licence de l'organisation qui citent l'identifiant
+  (`license_expressions`), puis SQL les éléments d'inventaire qui en portent une (ADR 0060).
 - Une plage de versions `vers` ne s'applique qu'à un `purl_base` exact : SQL réduit
   l'ensemble à ce paquet (un nombre borné de versions), puis Go compare les versions par
   l'écosystème. Une recherche approchée par nom n'accepte pas de plage.

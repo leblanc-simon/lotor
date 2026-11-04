@@ -11,6 +11,7 @@ import (
 
 	"leblanc.io/open-go-base/i18n"
 
+	"leblanc.io/lotor/internal/license"
 	"leblanc.io/lotor/internal/locale"
 	"leblanc.io/lotor/internal/policy"
 	"leblanc.io/lotor/internal/render"
@@ -371,11 +372,16 @@ func (id *identity) deletePolicy(w http.ResponseWriter, r *http.Request) {
 
 // violationRow est une violation prête à afficher.
 type violationRow struct {
-	Policy      string
-	Blocking    bool
-	Agent       bool
-	AgentName   string
-	AgentHref   string
+	Policy    string
+	Blocking  bool
+	Agent     bool
+	AgentName string
+	AgentHref string
+	// License : constat de licence (T20) ; VulnID porte alors les licences décisives et
+	// VerdictKey le verdict.
+	License     bool
+	VerdictKey  string
+	Denied      bool
 	VulnID      string
 	VulnHref    string
 	Sev         sevBadge
@@ -476,6 +482,8 @@ func (id *identity) violations(w http.ResponseWriter, r *http.Request) {
 		}
 		if v.Subject == policy.SubjectAgent {
 			row.Agent, row.AgentName, row.AgentHref = true, v.Agent, base+"/agents/"+v.AgentID.String()
+		} else if v.Subject == policy.SubjectLicense {
+			licenseRow(&row, v, base)
 		} else {
 			projectHref := base + "/projects/" + url.PathEscape(v.ProjectSlug)
 			row.VulnID, row.VulnHref = v.VulnID, base+"/vulnerabilities/"+url.PathEscape(v.VulnID)
@@ -486,6 +494,16 @@ func (id *identity) violations(w http.ResponseWriter, r *http.Request) {
 		view.Rows = append(view.Rows, row)
 	}
 	id.rd.Render(w, r, http.StatusOK, "org/violations", view)
+}
+
+// licenseRow remplit la ligne d'une violation de licence (T20) : licences décisives,
+// verdict, composant, lien vers l'onglet des licences du projet.
+func licenseRow(row *violationRow, v policy.Violation, base string) {
+	projectHref := base + "/projects/" + url.PathEscape(v.ProjectSlug)
+	row.License, row.VulnID, row.VerdictKey, row.Component = true, v.VulnID, "license_verdict."+v.Severity, v.Component
+	row.Denied = v.Severity == string(license.StatusDenied)
+	row.Project, row.ProjectHref, row.Ref = v.Project, projectHref, v.Ref
+	row.FindingHref = projectHref + "/licenses"
 }
 
 // alertsView est la section « Alertes » du tableau de bord.
@@ -507,6 +525,8 @@ func (id *identity) alertsOf(r *http.Request, base string) (*alertsView, error) 
 		row := violationRow{Policy: v.Policy, Blocking: v.Blocking, Opened: stampAt(v.OpenedAt)}
 		if v.Subject == policy.SubjectAgent {
 			row.Agent, row.AgentName, row.AgentHref = true, v.Agent, base+"/agents/"+v.AgentID.String()
+		} else if v.Subject == policy.SubjectLicense {
+			licenseRow(&row, v, base)
 		} else {
 			projectHref := base + "/projects/" + url.PathEscape(v.ProjectSlug)
 			row.VulnID, row.Sev, row.KEV, row.Component = v.VulnID, sevOf(vulnSeverity(v.Severity), nil), v.KEV, v.Component

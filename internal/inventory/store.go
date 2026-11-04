@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"maps"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -276,7 +278,25 @@ func insertItems(ctx context.Context, tx *db.OrgTx, setID uuid.UUID, cs []sbom.C
 			return err
 		}
 	}
-	return nil
+	return recordLicenseExpressions(ctx, tx, cs)
+}
+
+// recordLicenseExpressions note les expressions de licence de l'ensemble parmi celles de
+// l'organisation (recherche « license: », T20) ; triées, sans doublon.
+func recordLicenseExpressions(ctx context.Context, tx *db.OrgTx, cs []sbom.Component) error {
+	seen := map[string]bool{}
+	for _, c := range cs {
+		for _, l := range c.Licenses {
+			seen[l] = true
+		}
+	}
+	if len(seen) == 0 {
+		return nil
+	}
+	exprs := slices.Sorted(maps.Keys(seen))
+	_, err := tx.ExecContext(ctx, `INSERT INTO license_expressions (org_id, expression)
+		SELECT $1, e FROM unnest($2::text[]) e ON CONFLICT DO NOTHING`, tx.OrgID(), exprs)
+	return err
 }
 
 // current est l'état courant d'une référence.

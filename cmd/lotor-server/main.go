@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"syscall"
 
+	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 
@@ -31,6 +32,7 @@ import (
 	"leblanc.io/lotor/internal/ingest"
 	"leblanc.io/lotor/internal/inventory"
 	"leblanc.io/lotor/internal/jobs"
+	"leblanc.io/lotor/internal/license"
 	"leblanc.io/lotor/internal/locale"
 	"leblanc.io/lotor/internal/mailer"
 	"leblanc.io/lotor/internal/notify"
@@ -181,6 +183,13 @@ func run(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
 		return err
 	}
 	policies := policy.NewService(policy.Options{Pool: pool, Compiler: compiler, PublicURL: cfg.Web.PublicURL, Logger: logger})
+	// Licences (T20) : liste SPDX du schéma CycloneDX embarqué ; un changement de constat
+	// réévalue les règles de politique du projet.
+	licenses, err := license.NewService(license.Options{Pool: pool, Known: license.KnownFrom(validator.CycloneDXLicenseIDs("1.6")),
+		OnChange: policy.OnLicenseChange})
+	if err != nil {
+		return err
+	}
 	sender := delivery.New(delivery.Options{Timeout: cfg.Notify.Timeout, AllowPrivate: cfg.Notify.AllowPrivateNetworks,
 		UserAgent: name + "/" + version, SMTP: delivery.SMTPConfig{Host: cfg.SMTP.Host, Port: cfg.SMTP.Port, TLS: cfg.SMTP.TLS,
 			Username: cfg.SMTP.Username, Password: cfg.SMTP.Password, From: cfg.SMTP.From, HELO: cfg.SMTP.HELO}})
@@ -226,6 +235,7 @@ func run(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
 			Reencodes:             reencodes,
 			Dashboard:             dash,
 			Policies:              policies,
+			Licenses:              licenses,
 			Notify:                notifier,
 			Signup:                signups,
 			Mailer:                mail,
@@ -335,7 +345,7 @@ func run(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
 			jobs.WithOrgLimit(cfg.Workers.OrgLimit), jobs.WithTimeout(cfg.Ingest.DecodeTimeout)); err != nil {
 			return err
 		}
-		if err := registerAnalysis(cfg, runner, scheduler, pool, vulndb, ingester, triager, logger); err != nil {
+		if err := registerAnalysis(cfg, runner, scheduler, pool, vulndb, ingester, triager, licenses, logger); err != nil {
 			return err
 		}
 		if err := scheduler.Register(account.PurgeSchedule()); err != nil {
@@ -372,9 +382,16 @@ func run(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
 // registerAnalysis enregistre l'analyse de vulnérabilités : analyses des références,
 // réanalyse du parc, vérification de la liste de distribution (sauf hors ligne).
 func registerAnalysis(cfg config.Config, runner *jobs.Runner, scheduler *jobs.Scheduler, pool *db.Pool, vulndb *vuln.Manager,
-	ingester *ingest.Service, triager *triage.Service, logger *slog.Logger) error {
+	ingester *ingest.Service, triager *triage.Service, licenses *license.Service, logger *slog.Logger) error {
+	// Après chaque analyse : licences de la référence (T20), puis règles de politique.
+	onAnalyzed := func(ctx context.Context, tx *db.OrgTx, refID, projectID uuid.UUID) error {
+		if err := licenses.OnAnalyzed(ctx, tx, refID, projectID); err != nil {
+			return err
+		}
+		return policy.OnAnalyzed(ctx, tx, refID, projectID)
+	}
 	analyzer := finding.NewAnalyzer(finding.Options{Pool: pool, Engine: vulndb, Blobs: ingester, Triage: triager,
-		OnAnalyzed: policy.OnAnalyzed, Logger: logger})
+		OnAnalyzed: onAnalyzed, Logger: logger})
 	source, err := grype.NewSource(download.New(name+"/"+version, cfg.VulnDB.DownloadTimeout), cfg.VulnDB.ListingURL)
 	if err != nil {
 		return err
@@ -395,6 +412,8 @@ func registerAnalysis(cfg config.Config, runner *jobs.Runner, scheduler *jobs.Sc
 			jobs.WithTimeout(cfg.VulnDB.AnalysisTimeout)}},
 		{vuln.RescanAllKind, analyzer.RescanAllHandler(), nil},
 		{finding.RescanOrgKind, analyzer.RescanOrgHandler(), nil},
+		// Réévaluation des licences après un changement de politique (T20).
+		{license.EvaluateOrgKind, licenses.OrgHandler(), nil},
 		// Échéance d'un risque accepté (triage).
 		{triage.ExpireKind, triager.ExpireHandler(), nil},
 		// Téléchargement, puis installation complète pour valider l'archive.

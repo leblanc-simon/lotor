@@ -11,6 +11,7 @@ layout:
 nav:
   admin_signup: "Inscription"
   violations: "Violations"
+  licenses: "Licences"
   policies: "Politiques"
   channels: "Canaux"
   triage: "Triage"
@@ -100,6 +101,7 @@ flash:
   member_updated: Le rôle du membre est modifié.
   member_removed: Le membre est retiré de l'organisation.
   org_saved: Les paramètres de l'organisation sont enregistrés.
+  license_policy_saved: "La politique de licences est enregistrée ; les projets sont en cours de réévaluation."
   org_created: L'organisation est créée.
   org_archived: L'organisation est archivée ; ses membres n'y ont plus accès.
   org_unarchived: L'organisation est de nouveau active.
@@ -166,6 +168,9 @@ validation:
   channel_name_invalid: "Le nom compte de 1 à 100 caractères."
   channel_name_taken: "Un canal porte déjà ce nom."
   channel_kind_invalid: "Nature de canal inconnue (elle ne change pas après la création)."
+  license_id_invalid: "Saisissez un identifiant de licence SPDX (ou LicenseRef-…) par ligne, sans opérateur ni exception."
+  license_too_many: "Trop de licences dans cette liste."
+  license_default_invalid: "Choisissez la règle des licences non citées."
   channel_recipients_invalid: "Saisissez de 1 à 20 adresses e-mail valides."
   channel_url_invalid: "Adresse http(s) invalide."
   channel_room_invalid: "Identifiant de salon Matrix attendu (!abc:serveur)."
@@ -491,6 +496,7 @@ audit:
     account_totp_reconfigured: "Second facteur de {{.Target}} retiré par son titulaire, à reconfigurer"
     policy_created: "Politique créée : {{.Target}}"
     policy_updated: "Politique modifiée : {{.Target}}"
+    license_policy_updated: "Politique de licences modifiée (par défaut : {{.D_default}} ; refusées {{.D_denied}}, à revoir {{.D_review}}, acceptées {{.D_allowed}})"
     policy_deleted: "Politique supprimée : {{.Target}}"
     channel_created: "Canal de notification créé : {{.Target}}"
     channel_updated: "Canal de notification modifié : {{.Target}}"
@@ -739,9 +745,9 @@ error:
     hash_invalid:
       title: Empreinte illisible
       text: Une empreinte s'écrit sha256:<64 caractères hexadécimaux>, ou les 64 caractères seuls.
-    license_unavailable:
-      title: Recherche par licence à venir
-      text: La recherche par licence arrive avec l'analyse des licences ; cherchez en attendant par composant.
+    license_invalid:
+      title: Licence illisible
+      text: "Écrivez license: suivi d'un identifiant SPDX, par exemple license:AGPL-3.0-only."
     filter_invalid:
       title: Filtre inconnu
       text: Un filtre ou un ordre de l'adresse n'existe pas ; réinitialisez les filtres.
@@ -940,6 +946,7 @@ project:
   versions: Versions (point Dependency-Track)
   version_id: identifiant
   tab_vex: "VEX"
+  tab_licenses: "Licences"
   tab_findings: Constats
   title: "{{.Name}}"
   tabs: Sections du projet
@@ -1612,11 +1619,13 @@ search:
   kind_range: plage
   kind_vulnerability: vulnérabilité
   kind_hash: empreinte
+  kind_license: licence
   syntax: Syntaxe de recherche
   syntax_name: Nom de composant, approché, toutes versions et tous écosystèmes
   syntax_purl: purl, éventuellement suivi d'une plage de versions au format vers (comparée selon l'écosystème)
   syntax_vulnerability: "Identifiant CVE ou GHSA : projets touchés, avec statut et version corrigée"
   syntax_hash: Empreinte SHA-256 d'un fichier connu d'un SBOM
+  syntax_license: "Identifiant de licence SPDX : composants qui la déclarent, seule ou dans une expression"
   filters: Filtres
   facet_project_type: Type de projet
   facet_label: Étiquette
@@ -2140,6 +2149,8 @@ policy_subject:
   finding_desc: "Chaque constat ouvert, avec son projet, son composant, sa référence et son statut de triage."
   agent: "Agents"
   agent_desc: "Chaque agent non désactivé, avec son état et la durée de son silence."
+  license: "Constats de licence"
+  license_desc: "Chaque constat de licence ouvert (refusée ou à revoir selon la politique de licences), avec son projet, son composant et sa référence."
 policy_delivery:
   immediate: "Envoi immédiat"
   digest: "Résumé quotidien"
@@ -2156,7 +2167,7 @@ policy_template:
     text: "Un agent qui n'a rien envoyé (serveur) ou rien contacté (dépôt) depuis 7 jours."
   license_agpl:
     name: "Licence AGPL dans un produit distribué"
-    text: "Un composant sous licence AGPL dans un projet distribué ; livré avec l'analyse des licences (lot 3)."
+    text: "Un constat de licence dont une licence décisive est une AGPL, dans un projet qui porte l'étiquette « distribution » ; bloquant."
 policy_form:
   title_new: "Nouvelle politique"
   title_edit: "Politique {{.Name}}"
@@ -2184,6 +2195,9 @@ policy_form:
   preview_agent:
     one: "La règle serait violée par {{.Count}} agent aujourd'hui."
     other: "La règle serait violée par {{.Count}} agents aujourd'hui."
+  preview_license:
+    one: "La règle serait violée par {{.Count}} constat de licence ouvert aujourd'hui."
+    other: "La règle serait violée par {{.Count}} constats de licence ouverts aujourd'hui."
   preview_failures:
     one: "{{.Count}} évaluation a échoué (par exemple une étiquette absente) et compte comme non violée."
     other: "{{.Count}} évaluations ont échoué (par exemple une étiquette absente) et comptent comme non violées."
@@ -2199,8 +2213,48 @@ policy_help:
   triage: "Le statut de triage effectif : in_triage, affected, not_affected, false_positive, risk_accepted, fixed."
   ref: "La référence suivie : nature (branch, tag, host, container) et nom."
   agent: "L'agent : nom, nature, version, équipe, état, jours de silence, dernier contact."
+  license: "Le constat de licence : verdict (denied, review), identifiants des licences décisives (ids), licences déclarées (licenses), missing (sans licence), first_seen, age_days."
   now: "L'instant de l'évaluation (horodatage)."
   examples: "Exemples, ceux des modèles fournis :"
+license_verdict:
+  allowed: "Acceptée"
+  review: "À revoir"
+  denied: "Refusée"
+licenses:
+  title: "Licences"
+  project_title: "Licences de {{.Name}}"
+  heading: "Licences"
+  lead: "La politique de licences de l'organisation et les composants qu'elle refuse ou demande de revoir, dans l'inventaire courant de chaque référence."
+  policy_title: "Politique de licences"
+  default: "Licences SPDX non citées"
+  default_hint: "S'applique à toute licence SPDX connue absente des listes ci-dessous. Un identifiant inconnu ou une licence en texte libre est toujours à revoir."
+  denied: "Licences refusées"
+  review: "Licences à revoir"
+  allowed: "Licences acceptées"
+  list_hint: "Un identifiant SPDX par ligne (par exemple GPL-3.0-only, ou LicenseRef-acme) ; un + final couvre les versions ultérieures. Au plus {{.Max}} par liste."
+  require_license: "Un composant sans licence est à revoir"
+  require_yes: "Oui"
+  require_no: "Non"
+  expression_hint: "Dans une expression, OR retient le choix le plus favorable et AND le moins favorable ; un composant à plusieurs licences prend la moins favorable."
+  none_listed: "Aucune"
+  usage_title: "Licences de l'inventaire courant"
+  usage_caption: "Licences déclarées par les composants des références actives, avec leur verdict"
+  col_license: "Licence"
+  col_components: "Composants"
+  col_verdict: "Verdict"
+  col_component: "Composant"
+  col_project: "Projet"
+  col_ref: "Référence"
+  col_since: "Depuis"
+  no_license: "Sans licence"
+  unknown: "Inconnue de la liste SPDX"
+  no_usage: "Aucun composant dans l'inventaire courant."
+  findings_title: "Constats de licence"
+  findings_caption: "Composants refusés ou à revoir selon la politique de licences"
+  filter_verdict: "Filtrer par verdict"
+  filter_all: "Tous"
+  no_findings: "Aucun constat de licence : tous les composants respectent la politique."
+  truncated: "Seuls les premiers constats sont listés ; filtrez par verdict ou ouvrez un projet."
 violations:
   title: "Violations"
   heading: "Violations"
@@ -2218,6 +2272,7 @@ violations:
   col_opened: "Ouverte"
   col_resolved: "Résolue"
   agent: "Agent"
+  license: "Licence"
   no_project: "Sans projet"
   empty_open: "Aucune violation ouverte."
   empty_resolved: "Aucune violation résolue."
@@ -2288,6 +2343,7 @@ notify:
   more: "… et {{.Count}} autres"
   line_finding: "{{.Policy}} : {{.Vuln}} ({{.Severity}}) dans {{.Component}}, projet {{.Project}} ({{.Ref}})"
   line_agent: "{{.Policy}} : agent {{.Agent}}"
+  line_license: "{{.Policy}} : licence {{.Vuln}} ({{.Severity}}) dans {{.Component}}, projet {{.Project}} ({{.Ref}})"
   kev: "[KEV]"
   blocking: "[bloquante]"
   # Version HTML des courriels de notification (internal/delivery, ADR 0056).
@@ -2301,6 +2357,8 @@ notify:
     finding_headline: "{{.Vuln}} dans {{.Component}}"
     finding_detail: "Projet {{.Project}}, référence {{.Ref}}"
     agent_headline: "Agent {{.Agent}}"
+    license_headline: "Licence {{.Vuln}} dans {{.Component}}"
+    license_detail: "{{.Verdict}} — projet {{.Project}}, référence {{.Ref}}"
     policy: "Politique : {{.Policy}}"
     kev: "KEV"
     blocking: "Bloquante"

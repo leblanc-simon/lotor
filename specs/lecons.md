@@ -1083,3 +1083,21 @@ les pièges découverts, pour ne pas les reproduire. Une entrée = le constat, p
 - **Utilisateur d'un paquet** : l'agent serveur tourne sous `lotor-agent` (sysusers), pas
   sous le nom du paquet ; le lire dans `deploy/host-agent/sysusers.conf` avant de scripter
   une recette.
+
+## Licences (T20)
+
+- **Argument SQL ajouté mais non référencé** : la recherche `license:` construisait les
+  deux conditions possibles et n'en gardait qu'une ; le paramètre des composants restait
+  dans la liste sans figurer dans la requête, et PostgreSQL refusait (« could not
+  determine data type of parameter $1 »). Le test unitaire de la requête ne l'a pas vu, un
+  vrai inventaire si. Règle : avec un assembleur d'arguments numérotés (`args.add`),
+  n'ajouter un argument que dans la branche qui l'écrit dans la requête.
+- **Étude d'une bibliothèque avant l'adaptateur** : la fiche prévoyait Grant ; son
+  évaluation contredisait le premier critère d'acceptation. Règle : confronter le
+  comportement d'une dépendance prévue aux critères de la fiche, par un essai, avant d'en
+  écrire l'adaptateur.
+- **Nouveau sujet de règle** : un sujet de politique touche la contrainte `subject` de deux
+  tables, le contexte CEL, l'aperçu, les violations (jointure, visibilité), les
+  notifications (titre, ligne), l'écran des violations et les clés `policy_subject.*`,
+  `policy_form.preview_*` et `policy_help.*` (vérifiées par `TestDynamicKeysExist`). Règle :
+  chercher `SubjectAgent` dans tout le dépôt et traiter chaque occurrence.

@@ -9,6 +9,7 @@ import (
 
 	"github.com/package-url/packageurl-go"
 
+	"leblanc.io/lotor/internal/license"
 	"leblanc.io/lotor/internal/sbom"
 	"leblanc.io/lotor/internal/version"
 )
@@ -46,7 +47,7 @@ const (
 	KeyVersMismatch    = "error.search.vers_mismatch"
 	KeyVulnInvalid     = "error.search.vulnerability_invalid"
 	KeyHashInvalid     = "error.search.hash_invalid"
-	KeyLicense         = "error.search.license_unavailable"
+	KeyLicense         = "error.search.license_invalid"
 	KeyFilterInvalid   = "error.search.filter_invalid"
 	// KeyTriageVulnOnly : le filtre de triage ne vaut que pour une recherche par
 	// vulnérabilité (un constat a un statut de triage, un composant non).
@@ -101,6 +102,9 @@ type Query struct {
 	VulnID string
 	// Hash : KindHash, « sha256:<hex> » en minuscules (forme de components.hashes).
 	Hash string
+	// License : KindLicense, identifiant tel que saisi (comparé sans tenir compte de la
+	// casse), T20.
+	License string
 }
 
 var (
@@ -146,12 +150,27 @@ func Parse(raw string, c version.Comparer) (Query, error) {
 	case strings.HasPrefix(first, "sha256:"), len(rest) == 1 && hexPattern.MatchString(first):
 		return parseHash(q, rest)
 	case strings.HasPrefix(first, "license:"):
-		return Query{}, refuse(KeyLicense)
+		return parseLicense(q, rest)
 	}
 	q.Kind, q.Name = KindName, q.Raw
 	if utf8.RuneCountInString(q.Name) > MaxNameLen {
 		return Query{}, refuse(KeyTooLong)
 	}
+	return q, nil
+}
+
+// parseLicense lit « license:<identifiant> » (T20) : un identifiant SPDX ou une
+// référence LicenseRef-, sans opérateur.
+func parseLicense(q Query, rest []string) (Query, error) {
+	if len(rest) != 1 {
+		return Query{}, refuse(KeyLicense)
+	}
+	id := rest[0][len("license:"):]
+	n, err := license.Parse(id)
+	if err != nil || n.ID == "" || n.Exception != "" {
+		return Query{}, refuse(KeyLicense)
+	}
+	q.Kind, q.License = KindLicense, id
 	return q, nil
 }
 
@@ -252,6 +271,8 @@ func (q Query) Tokens() []Token {
 		return []Token{{KindKey: "search.kind_hash", Value: q.Hash}}
 	case KindName:
 		return []Token{{KindKey: "search.kind_name", Value: q.Name}}
+	case KindLicense:
+		return []Token{{KindKey: "search.kind_license", Value: q.License}}
 	}
 	return nil
 }

@@ -50,6 +50,8 @@ type env struct {
 	analyzer *finding.Analyzer
 	source   *vulntest.Source
 	checker  *vuln.Checker
+	engine   *vulntest.Engine
+	dir      string
 	policies *Service
 	notifier *notify.Service
 	box      *secret.Box
@@ -99,6 +101,7 @@ func newEnv(t *testing.T) *env {
 	e.checker = vuln.NewChecker(vuln.CheckerOptions{Pool: d.App, Source: e.source, Engine: engine, Dir: dir, MaxArchive: 1 << 20})
 	manager := vuln.NewManager(vuln.ManagerOptions{Pool: d.App, Engine: engine, Dir: dir})
 	e.analyzer = finding.NewAnalyzer(finding.Options{Pool: d.App, Engine: manager, Blobs: ing, OnAnalyzed: OnAnalyzed})
+	e.engine, e.dir = engine, dir
 	e.org, e.agent, e.repo, e.main = e.newOrg("api", `{"env": "production"}`)
 	return e
 }
