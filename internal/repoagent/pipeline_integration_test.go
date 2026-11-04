@@ -25,6 +25,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
+
 	"leblanc.io/lotor/internal/agentclient"
 	"leblanc.io/lotor/internal/forge"
 	"leblanc.io/lotor/internal/sbom"
@@ -601,4 +603,28 @@ func TestWrongCredentialsFailCleanly(t *testing.T) {
 		t.Fatalf("journal : %s", logs.String())
 	}
 	assertEmpty(t, a.opts.Work.Dir)
+}
+
+// recordingDT retient les envois à Dependency-Track.
+type recordingDT struct {
+	mu   sync.Mutex
+	sent []dtSent
+}
+
+type dtSent struct {
+	target agentclient.DTTarget
+	bom    []byte
+}
+
+func (d *recordingDT) Upload(_ context.Context, t agentclient.DTTarget, bom []byte) (agentclient.DTUpload, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.sent = append(d.sent, dtSent{t, bom})
+	return agentclient.DTUpload{Token: uuid.New()}, nil
+}
+
+func (d *recordingDT) all() []dtSent {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	return append([]dtSent(nil), d.sent...)
 }
