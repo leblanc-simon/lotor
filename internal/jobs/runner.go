@@ -141,6 +141,9 @@ type Runner struct {
 	kinds    map[string]kindConfig
 	started  bool
 	stopping bool
+	// inflight liste les jobs pris et pas encore conclus. Un job interrompu par l'arrêt y
+	// reste après la fin de son handler : Stop, qui les relève après avoir annulé les
+	// handlers, libère ainsi aussi le bail de ceux qui ont rendu la main avant le relevé.
 	inflight map[uuid.UUID]*claimed
 	// claiming est tenu en lecture par chaque prise jusqu'à l'inscription du job dans
 	// inflight, et en écriture par Stop avant de relever les jobs à libérer : aucun job
@@ -155,6 +158,10 @@ type Runner struct {
 	stop    chan struct{} // fermé par Stop : plus aucune prise
 	wg      sync.WaitGroup
 	aborted atomic.Bool // délai de Stop écoulé : les handlers sont annulés
+
+	// afterCancel, nil hors des tests, s'exécute dans Stop entre l'annulation des handlers
+	// et le relevé des jobs à libérer : il rend la course déterministe.
+	afterCancel func()
 
 	base       context.Context // opérations en base, jusqu'à la fin de Stop
 	cancelBase context.CancelFunc
@@ -282,6 +289,9 @@ func (r *Runner) Stop(ctx context.Context) error {
 
 	r.aborted.Store(true)
 	r.cancelJobs()
+	if r.afterCancel != nil {
+		r.afterCancel()
+	}
 	// Une prise en cours finit en quelques millisecondes ; si la base ne répond plus,
 	// on n'attend pas au-delà du délai.
 	for !r.claiming.TryLock() {
@@ -361,7 +371,11 @@ func (r *Runner) execute(c *claimed) {
 	if !c.OrgID.IsZero() {
 		log = log.With("org", c.OrgID)
 	}
+	interrupted := false
 	defer func() {
+		if interrupted {
+			return // Stop libère le bail (voir inflight)
+		}
 		r.mu.Lock()
 		delete(r.inflight, c.ID)
 		r.mu.Unlock()
@@ -389,6 +403,7 @@ func (r *Runner) execute(c *claimed) {
 	}
 	if r.aborted.Load() && err != nil {
 		// Interrompu par l'arrêt : Stop libère le bail.
+		interrupted = true
 		return
 	}
 	r.conclude(c, err, log)

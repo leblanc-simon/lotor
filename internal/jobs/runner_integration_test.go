@@ -464,6 +464,44 @@ func TestStopReturnsInTimeAndReleasesLeases(t *testing.T) {
 	}
 }
 
+// Un handler qui rend la main dès son annulation peut finir avant que Stop ne relève les
+// jobs à libérer : son bail doit être libéré quand même (course vue en CI, un échec sur
+// vingt de TestStopReturnsInTimeAndReleasesLeases). afterCancel attend la fin du job
+// interrompu avant le relevé.
+func TestStopReleasesLeaseOfJobInterruptedBeforeSnapshot(t *testing.T) {
+	t.Parallel()
+	tdb := dbtest.New(t)
+	returned := make(chan struct{})
+	r := NewRunner(tdb.App, fastOptions(RunnerOptions{Concurrency: 1}))
+	mustRegister(t, r, "test.polite", func(ctx context.Context, _ Execution) error {
+		defer close(returned)
+		<-ctx.Done()
+		return ctx.Err()
+	})
+	r.afterCancel = func() {
+		<-returned
+		// La sortie d'execute suit de près celle du handler.
+		time.Sleep(200 * time.Millisecond)
+	}
+	id := enqueue(t, tdb.App, Job{Kind: "test.polite"})
+	if err := r.Start(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, 10*time.Second, "job en cours", func() bool { return status(t, tdb.App, id) == "running" })
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if err := r.Stop(ctx); err != nil {
+		t.Fatalf("Stop : %v", err)
+	}
+	if n := count(t, tdb.App, "status = 'running' OR lease_token IS NOT NULL"); n != 0 {
+		t.Fatalf("%d baux actifs après Stop", n)
+	}
+	if j := readJob(t, tdb.App, id); j.Status != "pending" || j.Attempts != 0 {
+		t.Errorf("job interrompu : %+v, attendu pending sans tentative comptée", j)
+	}
+}
+
 // Stop sans job en cours rend la main tout de suite ; un second Stop est sans effet.
 func TestStopIdle(t *testing.T) {
 	t.Parallel()

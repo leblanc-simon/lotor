@@ -35,6 +35,10 @@ appliquées automatiquement, sans retour arrière.
   gardait un arbre en mémoire ; l'agent parcourt désormais l'arborescence une seule fois,
   sans ouvrir les fichiers, et Syft ne lit que ceux qui l'intéressent. Même inventaire
   qu'avant, vérifié sur la racine d'un hôte réel.
+- File de traitements : à l'arrêt d'une instance, un job dont le handler rendait la main
+  dès son annulation pouvait garder son bail jusqu'à expiration (repris environ 30 s plus
+  tard au lieu de tout de suite) ; `Stop` libère désormais aussi son bail. Cause des échecs
+  intermittents de `TestStopReturnsInTimeAndReleasesLeases` en CI.
 
 ## [0.2.0] - 2026-11-04
 
