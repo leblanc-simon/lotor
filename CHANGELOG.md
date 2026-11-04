@@ -25,6 +25,9 @@ appliquées automatiquement, sans retour arrière.
   Cassandra, RabbitMQ et Prometheus), ainsi que les systèmes de fichiers virtuels du noyau
   où qu'ils soient montés. Un hôte dont l'inventaire change de ce fait renvoie un SBOM
   complet à son premier scan après la mise à jour.
+- Agent serveur : syntaxe des motifs de `scan.exclude` documentée, avec exemples
+  (`/home/*/www`, `/home/**/www`, `/home/*/{www,public_html}`, `/srv/data/**/cache` ;
+  `docs/operations.md`, « Agent serveur ») et couverte par un test.
 
 ## [0.2.0] - 2026-11-04
 

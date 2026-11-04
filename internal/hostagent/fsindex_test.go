@@ -326,3 +326,57 @@ func TestGlobMatcher(t *testing.T) {
 		}
 	}
 }
+
+// TestConfiguredExclusionPatterns : les motifs de scan.exclude s'appliquent au parcours
+// depuis la racine : « * » couvre un seul niveau, « ** » toutes les profondeurs, « {a,b} »
+// une alternative ; un répertoire exclu n'est pas parcouru. Exemples de docs/operations.md.
+func TestConfiguredExclusionPatterns(t *testing.T) {
+	root := t.TempDir()
+	files := []string{
+		"home/alice/www/node_modules/a/package.json", "home/bob/www/x.jar", "home/bob/public_html/p.jar",
+		"home/alice/www2/z.jar", "home/alice/sites/www/s.jar", "home/bob/app/y.jar", "srv/www/w.jar",
+		"srv/data/a/cache/c.jar", "srv/data/a/b/cache/d.jar", "srv/data/a/keep.jar",
+	}
+	for _, p := range files {
+		if err := os.MkdirAll(filepath.Join(root, filepath.Dir(p)), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, p), []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	cases := []struct {
+		exclude []string
+		gone    []string // dossiers absents de l'index
+		kept    []string // fichiers présents
+	}{
+		{[]string{"/home/*/www"},
+			[]string{"/home/alice/www", "/home/bob/www"},
+			[]string{"/home/alice/www2/z.jar", "/home/alice/sites/www/s.jar", "/home/bob/public_html/p.jar", "/srv/www/w.jar"}},
+		{[]string{"/home/**/www"},
+			[]string{"/home/alice/www", "/home/bob/www", "/home/alice/sites/www"},
+			[]string{"/home/alice/www2/z.jar", "/srv/www/w.jar"}},
+		{[]string{"/home/*/{www,public_html}"},
+			[]string{"/home/alice/www", "/home/bob/www", "/home/bob/public_html"},
+			[]string{"/home/bob/app/y.jar", "/home/alice/sites/www/s.jar"}},
+		{[]string{"/srv/data/**/cache/"},
+			[]string{"/srv/data/a/cache", "/srv/data/a/b/cache"},
+			[]string{"/srv/data/a/keep.jar", "/srv/www/w.jar"}},
+	}
+	for _, c := range cases {
+		idx, err := buildIndex(context.Background(), root, exclusionPatterns(c.exclude, nil))
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, p := range c.gone {
+			if _, ok := idx.lookup(p); ok {
+				t.Errorf("%v : %s indexé", c.exclude, p)
+			}
+		}
+		for _, p := range c.kept {
+			if _, ok := idx.lookup(p); !ok {
+				t.Errorf("%v : %s absent", c.exclude, p)
+			}
+		}
+	}
+}

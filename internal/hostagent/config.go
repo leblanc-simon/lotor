@@ -69,7 +69,8 @@ type Scan struct {
 	PollInterval time.Duration `yaml:"poll_interval" env:"LOTOR_HOST_AGENT_SCAN_POLL_INTERVAL" env-default:"5m"  env-description:"Daemon: time between two heartbeats (on-demand scan requests)"`
 	MaxDuration  time.Duration `yaml:"max_duration"  env:"LOTOR_HOST_AGENT_SCAN_MAX_DURATION"  env-default:"1h"  env-description:"Maximum duration of one scan"`
 	// Exclude complète les exclusions par défaut (DefaultExclusions) : chemins absolus,
-	// motifs doublestar admis (/srv/data/**/cache).
+	// motifs doublestar admis (/home/*/www, /srv/data/**/cache), comparés au chemin complet
+	// depuis la racine du scan (TestConfiguredExclusionPatterns).
 	Exclude []string `yaml:"exclude" env:"LOTOR_HOST_AGENT_SCAN_EXCLUDE" env-separator:"," env-description:"Absolute paths excluded from the scan, besides the defaults"`
 }
 

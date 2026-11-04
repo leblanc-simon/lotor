@@ -610,6 +610,26 @@ le binaire de l'archive `lotor-host-agent_<version>_linux_<arch>.tar.gz` en
   les ajouter à `scan.exclude`. Les conteneurs sont inventoriés à part,
   si l'option est activée (« Conteneurs » ci-dessous). Syft travaille hors ligne : il
   n'exécute aucun outil (`go list`) et ne sort pas sur le réseau.
+- **Exclusions configurées** (`scan.exclude`) : chemins absolus ou motifs, comparés au
+  chemin complet depuis la racine du scan ; un répertoire exclu n'est pas parcouru.
+  `*` couvre un seul niveau de répertoire, `**` n'importe quelle profondeur, `?` un
+  caractère, `[abc]` un caractère parmi d'autres, `{a,b}` une alternative ; une barre
+  finale est ignorée.
+
+  | Motif | Exclut | Garde |
+  | --- | --- | --- |
+  | `/srv/data` | `/srv/data` et tout son contenu | `/srv/data2` |
+  | `/home/*/www` | `/home/alice/www`, `/home/bob/www` | `/home/alice/sites/www`, `/home/alice/www2` |
+  | `/home/**/www` | tout répertoire `www` sous `/home`, à toute profondeur | `/srv/www` |
+  | `/home/*/{www,public_html}` | `www` et `public_html` de chaque compte | `/home/bob/app` |
+  | `/srv/data/**/cache` | tout répertoire `cache` sous `/srv/data` | `/srv/data/a/keep.jar` |
+
+  Un motif qui ne commence pas par `/` empêche l'agent de démarrer. Avec la variable
+  `LOTOR_HOST_AGENT_SCAN_EXCLUDE`, les motifs sont séparés par des virgules : un motif
+  `{a,b}` s'écrit alors dans le fichier de configuration. Ce qui est exclu disparaît de
+  l'inventaire : n'exclure que des données (médias, téléversements, caches), jamais des
+  applications (`node_modules`, `vendor` de Composer, extensions WordPress, archives Java),
+  dont les vulnérabilités ne seraient plus suivies.
 - **Envoi conditionnel** : l'empreinte d'inventaire du SBOM est calculée comme par le
   serveur. Inchangée, l'agent envoie un signal de vie avec son empreinte ; le serveur
   avance la date de dernière analyse, ou réclame le SBOM s'il ne connaît pas cet
