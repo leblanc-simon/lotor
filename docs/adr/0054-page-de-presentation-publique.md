@@ -25,6 +25,10 @@ lien vers la connexion.
   dans `landing.*` (français et anglais), feuille `screens/landing.css` sur les tokens,
   aucun script. Les captures sont des fichiers `static/img/screenshots/*.webp` servis avec
   empreinte (type `image/webp` ajouté à `render`) ; elles sont aussi celles du README.
+- **Version des commandes d'installation** tirée du binaire (`main.version`, injectée au
+  build) et convertie comme `PKG_VERSION` du Makefile (`v0.2.0` → `0.2.0`) ; un binaire de
+  développement (commit, `git describe`, `-dirty`) affiche `<version>` plutôt qu'un nom de
+  paquet qui n'existe pas.
 - **Liens externes** : guide de démarrage et mesures sur GitHub, dans la langue de la page.
 
 ## Conséquences

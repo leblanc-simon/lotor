@@ -218,11 +218,12 @@
         <a class="btn btn--lg" href="{{T "landing.install.guide_url"}}">{{T "landing.install.guide"}}</a>
       </p>
     </div>
+    {{- $version := .PackageVersion}}{{if not $version}}{{$version = T "landing.install.version_placeholder"}}{{end}}
     <pre class="landing__term" tabindex="0" aria-label="{{T "landing.install.commands_label"}}"><code><span class="landing__term-comment">{{T "landing.install.cmd_server_comment"}}</span>
-{{T "landing.install.cmd_server"}}
+{{T "landing.install.cmd_server" "Version" $version}}
 
 <span class="landing__term-comment">{{T "landing.install.cmd_agent_comment"}}</span>
-{{T "landing.install.cmd_agent"}}
+{{T "landing.install.cmd_agent" "Version" $version}}
 <span class="landing__term-comment">{{T "landing.install.cmd_config_comment"}}</span>
 <span class="landing__term-comment">{{T "landing.install.cmd_token_comment"}}</span>
 {{T "landing.install.cmd_token"}}

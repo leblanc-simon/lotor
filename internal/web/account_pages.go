@@ -20,23 +20,6 @@ func accountNav(current string) []render.NavItem {
 
 // home envoie un compte vers son organisation par défaut, sinon la première ; sans
 // organisation, il affiche une page d'attente.
-// root sert « / » : la page de présentation à un visiteur anonyme (ADR 0054), l'accueil du
-// compte sinon, derrière requireAuth comme les autres pages (une session de configuration
-// va à l'enrôlement du TOTP).
-func (id *identity) root(w http.ResponseWriter, r *http.Request) {
-	if viewerFrom(r) == nil {
-		id.rd.Render(w, r, http.StatusOK, "landing/index", &landingView{Page: render.Page{TitleKey: "landing.title"}})
-		return
-	}
-	requireAuth(http.HandlerFunc(id.home)).ServeHTTP(w, r)
-}
-
-// landingView est la page de présentation, sans autre donnée que la page : rien n'y vient
-// de la base, puisque le visiteur n'est pas connecté.
-type landingView struct {
-	render.Page
-}
-
 func (id *identity) home(w http.ResponseWriter, r *http.Request) {
 	v := viewerFrom(r)
 	orgs := v.state.Orgs

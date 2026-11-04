@@ -37,6 +37,11 @@ func TestLandingForAnonymousVisitors(t *testing.T) {
 		if strings.Contains(p.body, "admin@example.org") || strings.Contains(p.body, `action="/logout"`) {
 			t.Errorf("%s : la page anonyme montre un compte", name)
 		}
+		// Binaire de test (version « test ») : la commande garde un paramètre à remplacer
+		// plutôt qu'un nom de paquet inexistant ; packageVersion est testé à part.
+		if !strings.Contains(body, "./lotor-server_<version>_amd64.deb") {
+			t.Errorf("%s : commande d'installation sans paramètre de version", name)
+		}
 		assertScreen(t, "présentation "+name, p)
 	}
 
