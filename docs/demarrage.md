@@ -11,7 +11,9 @@ et alertes. L'installation du serveur (paquet deb ou manuelle) et des agents est
 
 1. L'exploitant vous transmet l'adresse de l'instance (par exemple
    `https://sbom.example.org`), votre adresse e-mail de connexion et un **mot de passe
-   temporaire**, affiché une seule fois à la création du compte.
+   temporaire**, affiché une seule fois à la création du compte. Si l'instance est ouverte
+   à l'inscription, ou si vous avez reçu une invitation, créez plutôt votre compte vous-même
+   (encadré ci-dessous).
 2. Ouvrez l'adresse et connectez-vous. À la première connexion, l'écran **Configurez votre
    second facteur** affiche un QR code : scannez-le avec une application d'authentification
    (FreeOTP, Aegis, Google Authenticator, 1Password…), ou recopiez la clé affichée, puis
@@ -30,6 +32,16 @@ second facteur et vous transmet un nouveau mot de passe temporaire. **Mon compte
 haut à droite) règle la langue (français ou anglais) et le thème, change le mot de passe,
 gère vos codes de secours et vos jetons d'accès.
 
+**Créer son compte soi-même.** Selon le réglage de l'instance, la page de connexion
+propose **Créer un compte** (inscription publique) ou **Vous avez un code d'inscription ?**
+(code transmis par un administrateur de l'instance). Indiquez votre adresse : vous recevez
+un lien pour la confirmer (sauf si l'instance n'envoie pas de courriels), puis choisissez le
+nom de votre organisation, dont vous serez administrateur, et votre mot de passe. Le
+**lien d'une invitation** d'organisation (courriel, ou lien transmis par son administrateur)
+crée de même votre compte à l'adresse invitée, ou, si vous avez déjà un compte, vous fait
+vous connecter pour accepter. Dans les deux cas, vous configurez aussitôt votre second
+facteur (étapes 2 et 3) ; aucun mot de passe temporaire n'est à changer.
+
 ## 2. Créer l'organisation (administrateur d'instance)
 
 Une **organisation** regroupe des projets et leurs membres ; rien ne passe d'une
@@ -40,9 +52,11 @@ organisation à l'autre.
    administrateur d'instance : l'interface le rappelle tant qu'il n'y en a qu'un.
 2. **Administration › Organisations** : créez l'organisation (identifiant court, par
    exemple `infra`, nom, langue) et désignez son premier administrateur.
-3. Dans l'organisation, **Membres** : **invitez** chaque compte par son adresse, comme
-   **membre** ou **administrateur** de l'organisation ; il accepte depuis **Mon compte ›
-   Invitations** (30 jours).
+3. Dans l'organisation, **Membres** : **invitez** chaque personne par son adresse, comme
+   **membre** ou **administrateur** de l'organisation ; elle accepte depuis **Mon compte ›
+   Invitations** (30 jours), ou par le lien de l'invitation, qui crée son compte s'il
+   n'existe pas : envoyé par courriel si l'instance en envoie, affiché une seule fois
+   sinon, à lui transmettre.
 4. **Équipes** : chaque projet appartient à une équipe (« Général » existe d'office) ; un
    membre ne voit que les projets de ses équipes. Créez les équipes utiles, puis, sur la
    page de chacune, ajoutez-y les membres avec leur **rôle d'équipe** — **lecteur**

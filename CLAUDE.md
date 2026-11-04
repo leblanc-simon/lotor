@@ -168,6 +168,14 @@ Agent serveur, hors lot (ADR 0055) : index compact de l'arborescence (`hostagent
 fichier ; répertoires de données exclus par défaut ; parité vérifiée par
 `TestIndexSourceMatchesSyftDirectory` (`LOTOR_PARITY_ROOT=/` pour une vraie racine, à refaire
 à chaque montée de version de Syft).
+T28 terminé : inscription (`internal/signup`, ADR 0056). `signup.mode` `private` (défaut),
+`invitation` (codes d'instance à usage unique, `/admin/signup`) ou `public` (adresse
+vérifiée, `signup.allowed_domains`, SMTP et `web.public_url` exigés) ; une organisation par
+inscription, compte administrateur, session de configuration puis TOTP. Lien secret sur
+chaque invitation d'organisation (`/invitation/{jeton}`, tous modes). Courriels
+transactionnels `internal/mailer` (job `mail.send` chiffré) et gabarit HTML commun des
+courriels (`internal/delivery/mailhtml.go`, contraintes du mode sombre de Thunderbird dans
+son commentaire). `web.public_url` remplace `notify.public_url`.
 
 ## Règles de travail
 

@@ -69,7 +69,7 @@ sur les choix techniques ; une fiche de lot précise le quoi et le comment d'une
 | [T24](lots/T24-sbom-signes.md) | SBOM signés | 3 | T19, T23 | À faire |
 | [T25](lots/T25-sso-oidc.md) | SSO OIDC | 3 | T18 | À faire |
 | [T27](lots/T27-paquet-serveur.md) | Paquet deb du serveur | 3 | T18 | Terminé |
-| [T28](lots/T28-inscription.md) | Inscription | 3 | T18 | En cours |
+| [T28](lots/T28-inscription.md) | Inscription | 3 | T18 | Terminé |
 | [T26](lots/T26-publication-v1.md) | Publication de la v1.0 | 3 | T19 à T25, T27 | À faire |
 
 ## Ordre de réalisation

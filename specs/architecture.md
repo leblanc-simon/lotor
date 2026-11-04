@@ -64,7 +64,7 @@ internal/
   org/                   # organisations, membres, équipes, invitations, accès d'une requête
   project/               # projets, références suivies, hiérarchie hôte/conteneurs
   agent/                 # agents, jetons d'inscription et d'agent, signaux de vie
-  token/                 # format des jetons (agt, enr, pat), tirage, lecture, empreinte
+  token/                 # format des jetons (agt, enr, pat, sgn, vrf, inv), tirage, lecture, empreinte
   sbom/                  # modèle interne, normalisation purl, empreinte d'inventaire
     syft/                # décodage et encodage via Syft
   inventory/             # composants, ensembles d'inventaire, instantanés, différences, rétention
@@ -75,7 +75,7 @@ internal/
     grype/               # correspondance et cycle de vie de la base via Grype
     vulntest/            # fausse base (Engine, Source) pour les tests
   download/              # téléchargements HTTP(S) du serveur (vuln.Fetcher), hors métier
-  delivery/              # envois des notifications (HTTP gardé contre la SSRF, SMTP), hors métier
+  delivery/              # envois des notifications (HTTP gardé contre la SSRF, SMTP, gabarit HTML des courriels), hors métier
   finding/               # cycle de vie des constats, analyse des références
   benchdata/             # jeu synthétique et SBOM des mesures (docs/benchmarks.md)
   search/                # analyse de requête, plan, exécution, export
@@ -84,6 +84,8 @@ internal/
     vex/                 # OpenVEX et CycloneDX VEX : écriture, lecture, schéma OpenVEX embarqué
   policy/                # règles CEL, évaluation, violations, verdict d'un instantané (T15)
   notify/                # canaux de notification, envois, messages traduits (T15)
+  mailer/                # courriels transactionnels de l'instance : file mail.send, composition (T28)
+  signup/                # inscription : modes, codes, vérifications d'adresse, liens d'invitation (T28)
   license/
     grant/               # lot 3
   web/                   # routeur chi, handlers HTML par écran, gestion, serveurs
@@ -133,7 +135,8 @@ Nommage : paquets courts en anglais, jamais de paquet fourre-tout (`util`, `help
 - Les types d'Anchore ne traversent jamais la frontière d'un adaptateur.
 - Le métier n'ouvre aucune connexion : un téléchargement passe par une interface injectée
   (`vuln.Fetcher`), implémentée par `download`, paquet serveur hors métier (ADR 0017) ; de
-  même, les notifications passent par `notify.Sender`, implémenté par `delivery` (ADR 0046).
+  même, les notifications passent par `notify.Sender`, implémenté par `delivery` (ADR 0046),
+  et les courriels transactionnels par `mailer.Sender`, qu'il implémente aussi (ADR 0056).
 - `agentclient`, `hostagent`, `repoagent`, `forge`, `llm` ne dépendent d'aucun paquet
   serveur (`db`, `inventory`…) : les agents restent des binaires légers.
 - Pas de variable globale mutable ; les dépendances sont injectées par constructeur.
@@ -179,7 +182,8 @@ confinement des fichiers (`os.Root`).
 ## 6. Configuration
 
 `internal/config.Config` compose les fragments d'`appconf` avec le préfixe `LOTOR_` :
-`Web`, `Logging`, `I18n`, `Database` (complété par les réglages du pool et l'attente au
+`Web` (complété par `public_url`, URL publique des liens des messages, des verdicts et des
+courriels, T28), `Logging`, `I18n`, `Database` (complété par les réglages du pool et l'attente au
 démarrage), `Auth` et `MFA` (avec authx et mfax, T03), `CORS` (API utilisateur). Fragments
 propres au projet : `HTTP` (délais des serveurs, délai d'arrêt propre),
 `TLS` (certificat, clé, autorité des certificats clients pour le mTLS des agents),
@@ -197,8 +201,10 @@ jetons refusés par IP, durée et nombre simultané des exports de la recherche,
 `AI` (`forbid_external` : interdire tout fournisseur de modèle externe aux agents dépôt,
 T12, ADR 0043),
 `Retention` (rétention des instantanés : fenêtre en jours, nombre gardé, dernier
-instantané de chaque mois au-delà, T17, ADR 0039), `Notify` (URL publique des liens, délai
-d'un envoi, adresses privées autorisées, heure du résumé quotidien, T15, ADR 0046), `SMTP`
+instantané de chaque mois au-delà, T17, ADR 0039), `Notify` (délai d'un envoi, adresses
+privées autorisées, heure du résumé quotidien, T15, ADR 0046), `Signup` (mode
+d'inscription `private`, `invitation` ou `public`, domaines acceptés du mode public, T28,
+ADR 0056), `SMTP`
 (serveur d'envoi des courriels : hôte, port, `starttls`/`tls`/`none`, identifiants,
 expéditeur, T15),
 `Containers` (absence au-delà de laquelle le projet d'un conteneur est archivé, T13),
@@ -218,6 +224,8 @@ Contrôles au démarrage :
   une pendant que les migrations travaillent sur une autre) ;
 - le rôle d'exécution ne doit être ni superutilisateur, ni `BYPASSRLS`, ni propriétaire des
   tables : sinon la RLS serait contournée, et le serveur refuse de démarrer ;
+- `signup.mode: public` exige l'envoi de courriels (`smtp.host`, `smtp.from` et
+  `web.public_url`) : sans lui, le serveur refuse de démarrer (ADR 0056) ;
 - TLS natif facultatif ; sans lui, le serveur est placé derrière un mandataire inverse qui
   termine TLS, et le mTLS des agents est alors indisponible.
 
@@ -275,13 +283,14 @@ Données **globales** (publiques ou propres à l'instance, jamais des données d
 | `account_settings`, `session_auth` | préférences du compte ; méthode d'authentification de chaque session |
 | `personal_access_tokens` | jetons d'accès personnels d'un compte, hachés (ADR 0025) : donnée du compte, sans donnée d'organisation |
 | `instance_audit_events` | journal d'audit de l'instance (événements sans organisation) |
+| `signup_codes`, `signup_verifications` | codes d'inscription (libellé, échéance, usage unique, révocation ; empreinte seule) ; vérifications d'adresse en attente (lien haché, 24 h, code éventuel) (T28, ADR 0056) |
 
 Données **par organisation** (toutes portent `org_id`) :
 
 | Table | Contenu |
 | --- | --- |
 | `organizations`, `org_memberships` | organisation (slug, nom, langue par défaut) ; compte × organisation × rôle (`member`, `admin`) |
-| `teams`, `team_members`, `org_invitations` | équipes ; membre de l'organisation × équipe × rôle d'équipe (`reader`, `analyst`, `admin`) ; invitations à rejoindre l'organisation (T16, ADR 0034) |
+| `teams`, `team_members`, `org_invitations` | équipes ; membre de l'organisation × équipe × rôle d'équipe (`reader`, `analyst`, `admin`) ; invitations à rejoindre l'organisation, avec leur lien secret haché (T16, ADR 0034 ; T28, ADR 0056) |
 | `projects` | type (`repo`, `host`, `container`), nom, slug, étiquettes, équipe (obligatoire, T16), archivage, réglage de l'enrichissement IA `ai_mode` (`disabled` par défaut, `local`, `external` ; T12, ADR 0043) ; pour un conteneur, `parent_id` (l'hôte, dont il garde l'équipe par clé étrangère en cascade), identité dans l'hôte, contexte, dernier signalement, archivage pour absence (T13, ADR 0040) |
 | `tracked_refs` | référence suivie (branche, tag, l'hôte, ou le conteneur nommé par son identité) |
 | `agents`, `agent_tokens`, `enrollment_tokens` | agents (équipe facultative : sans équipe, agent d'organisation) et jetons hachés ; jeton d'inscription rattaché à une équipe, dont héritent projet et agent inscrits ; pour un agent serveur, demande de scan en attente et dernier contexte d'hôte (T07) |
@@ -367,7 +376,9 @@ journalisée (`project.purged`, T18, ADR 0049).
   `lotor_search_component_names`, `lotor_search_component_hashes`, qui ne sortent pas
   de l'organisation déclarée par `InOrg` mais contournent la RLS pour servir les index de
   recherche, § 13 ; 0034 : `lotor_user_invitations`, les invitations en attente adressées
-  à l'e-mail d'un compte), et tout ajout est relu comme un changement de sécurité.
+  à l'e-mail d'un compte ; 0056 : `lotor_invitation_by_token`, l'invitation non expirée
+  d'une organisation active désignée par l'identifiant public de son lien, pour le visiteur
+  qui le présente), et tout ajout est relu comme un changement de sécurité.
 
 ### Équipes : filtre de visibilité à l'intérieur d'une organisation
 
@@ -442,8 +453,15 @@ grandes tables par `org_id` donnerait la même séparation physique en gardant l
   `auth.cookie_secure` vaut `on` (ADR 0031).
 - Secrets TOTP chiffrés en base par `internal/secret` (enveloppe du store de mfax),
   rechiffrés par la clé active au démarrage (ADR 0013).
-- Les comptes sont créés avec un mot de passe temporaire ; le courriel (T15) ne sert
-  qu'aux notifications des politiques (réinitialisation par courriel hors cahier des charges).
+- Un compte créé par un administrateur reçoit un mot de passe temporaire. **Inscription**
+  (T28, ADR 0056) selon `signup.mode` : `private` (défaut, aucune), `invitation` (code
+  d'inscription d'instance, usage unique) ou `public` (adresse vérifiée, domaines
+  facultatifs) ; le compte inscrit choisit son mot de passe (`account.Register`), devient
+  administrateur d'une organisation créée dans la même transaction `InOrg`, et passe par
+  une session de configuration (`authx.PurposeSetup`) qui impose l'enrôlement du TOTP. Le
+  courriel sert aux notifications et aux courriels transactionnels de l'inscription
+  (`internal/mailer`) ; réinitialisation du mot de passe par courriel hors cahier des
+  charges.
 - Rôles (T16, décision du 1er novembre 2026, ADR 0034) : le rôle d'organisation vaut
   `member` ou `admin` (qui voit et gère tout) ; les droits sur un projet, un agent ou une
   équipe viennent du rôle dans l'équipe de la ressource : `reader` (consulte), `analyst`
@@ -459,8 +477,12 @@ grandes tables par `org_id` donnerait la même séparation physique en gardant l
   `ai.forbid_external` l'interdit sur toute l'instance (T12, ADR 0043).
 - Un compte devient membre d'une organisation en **acceptant une invitation** (30 jours ;
   réponse identique que le compte existe ou non, SEC-09) ; seul l'administrateur de
-  l'instance ajoute directement un membre.
-- Jetons : préfixés par leur nature (`lotor_agt_`, `lotor_enr_`, `lotor_pat_`), puis un
+  l'instance ajoute directement un membre. Le lien secret d'une invitation (T28), envoyé
+  dans la langue de l'invitant ou montré une fois, crée dans tous les modes le compte de
+  l'adresse invitée (imposée) ou fait accepter le compte connecté de cette adresse.
+- Jetons : préfixés par leur nature (`lotor_agt_`, `lotor_enr_`, `lotor_pat_` ; T28 :
+  `lotor_sgn_` code d'inscription, `lotor_vrf_` vérification d'adresse, `lotor_inv_` lien
+  d'invitation), puis un
   identifiant public (128 bits) et un secret de 256 bits, en base32 minuscule séparés par
   `_`. Seul le SHA-256 du secret est stocké ; comparaison en temps constant ; révocation
   immédiate ; date de dernier usage (écrite une fois par minute au plus). L'organisation
@@ -667,6 +689,12 @@ qu'aucune mesure ne la justifie (ADR 0015).
   statiques sous `/static/<empreinte>/` (immuables, un an de cache). La bascule de thème
   mémorise le choix dans `localStorage` et dans le cookie `lotor_theme`, que le serveur
   lit pour rendre `data-theme` dès la première peinture, sans script en ligne.
+- **Exception : le gabarit HTML des courriels** (`internal/delivery/templates/`, ADR 0056)
+  n'est pas une page de l'interface : CSS à plat et couleurs en styles en ligne (les
+  messageries ne comprennent pas le CSS imbriqué, et le mode sombre de Thunderbird
+  réécrit les styles), logo PNG joint au message (`cid:`), couleurs propres choisies pour
+  survivre à ce mode sombre (seule « Critique » reprend `tokens.css`), textes traduits
+  depuis Go hormis « lotor ».
 - JavaScript : modules ES natifs, un par écran, amélioration progressive ; chaque page
   fonctionne sans JS. Les libellés arrivent traduits via des attributs `data-`.
 - Graphiques en SVG produits côté serveur, avec titre, description et tableau de données :

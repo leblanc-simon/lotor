@@ -1,7 +1,7 @@
 # Modèle de menace
 
-Version 3 (revue de sécurité du lot 2, T18, 1er novembre 2026 ; version 2 : revue du
-lot 1, T11 ; version 1 : T00). Tenu à jour à chaque lot qui ajoute une frontière de
+Version 4 (inscription, T28, 4 novembre 2026 ; version 3 : revue de sécurité du lot 2,
+T18, 1er novembre 2026 ; version 2 : revue du lot 1, T11 ; version 1 : T00). Tenu à jour à chaque lot qui ajoute une frontière de
 confiance, un actif ou un acteur (§ 19 de l'architecture). Gravité évaluée selon l'OWASP
 Risk Rating au moment où une faiblesse est trouvée ; ce document liste les menaces et les
 parades prévues, et le lot qui les porte. Les constats de la revue du lot 1 (SEC-01 à
@@ -36,6 +36,10 @@ dans les Journaux de T11 et de T18 (ADR 0051).
 - **Porteur d'un jeton d'inscription d'une équipe** : outillage de déploiement où le jeton
   circule, qui choisit le nom d'hôte déclaré.
 - **Administrateur d'instance** : rôle privilégié assumé, audité.
+- **Inscrit** (T28) : toute personne qui crée son compte sur une instance ouverte (code
+  d'inscription ou mode public) ; administrateur de sa seule organisation, inconnu de
+  l'exploitant. **Porteur d'un lien** : quiconque détient un lien de vérification ou
+  d'invitation, ou un code d'inscription, transmis par courriel ou à la main.
 - **Agent compromis** : un hôte ou l'agent dépôt dont le jeton est volé.
 - **Contenu hostile** : dépôt analysé, SBOM envoyé, fichier de l'hôte scanné (injection
   d'instructions pour l'IA au lot 2, bombe de décompression, JSON profond, liens
@@ -59,6 +63,10 @@ dans les Journaux de T11 et de T18 (ADR 0051).
    droits, inscription des agents (T16, T18).
 10. Agent dépôt ↔ fournisseur de modèle : ce qui sort (prompt, extraits, noms de
     fichiers), borné par les exclusions et le réglage par dépôt (T12, T18).
+11. Visiteur anonyme ↔ création de compte et d'organisation : inscription, liens de
+    vérification et d'invitation (T28).
+12. Serveur ↔ serveur SMTP et boîtes des destinataires : courriels porteurs de liens
+    secrets (T28).
 
 ## Menaces et parades
 
@@ -94,6 +102,21 @@ dans les Journaux de T11 et de T18 (ADR 0051).
 | Compte administrateur unique perdu | procédure de secours auditée, une fois par ticket ; avertissement s'il n'y a qu'un administrateur | T03 |
 | Variable de secours oubliée en configuration | sans effet après application (ticket déjà journalisé), rappel à chaque démarrage | T03 |
 | Administrateur d'instance qui lit une organisation | non membre : 404 ; il ne voit que les métadonnées (liste, administrateurs) et chaque réinitialisation est auditée — rôle privilégié assumé | T03 |
+
+### Serveur — inscription et courriels transactionnels (T28, ADR 0056)
+
+| Menace | Parade | Lot |
+| --- | --- | --- |
+| Création massive de comptes et d'organisations sur une instance ouverte | privée par défaut ; mode public réservé à une instance qui envoie des courriels, adresse vérifiée avant toute création, domaines restreignables ; mode invitation : code d'instance à usage unique, échéance de 1 à 365 jours, révocable ; `POST` de l'inscription bornés par la limitation par IP de la connexion (/64 en IPv6) ; chaque étape au journal d'audit. Pas de captcha ni de validation par un administrateur — risque résiduel accepté (le mode public ouvre l'instance à qui le choisit) | T28 |
+| Énumération des comptes par l'inscription | avec envoi : même réponse et même page, qu'un compte existe ou non ; l'adresse inscrite reçoit « vous avez déjà un compte » au lieu du lien ; sans envoi (mode invitation) : une adresse prise donne le même refus qu'un code faux, et le code n'est pas consommé (retour arrière) — seul le porteur d'un code valide l'apprend, ce qu'il pourrait tenter de toute façon en s'inscrivant | T28 |
+| Boîte de courriels inondée par des demandes au nom d'un tiers | trois liens au plus par adresse sur 24 h (au-delà : même réponse, rien n'est envoyé), plus la limitation par IP | T28 |
+| Lien ou code deviné, volé dans un journal ou rejoué | format commun des jetons (identifiant public de 128 bits, secret de 256 bits), empreinte SHA-256 seule en base, comparaison en temps constant ; lien de vérification 24 h et consommé avec tous ceux de l'adresse, lien d'invitation remplacé à chaque nouvelle invitation et consommé à l'acceptation, code à usage unique sous verrou ; jamais dans un journal ; destinataire, lien et code chiffrés par `secrets.keys` dans la file `mail.send`, erreur SMTP réduite à sa clé ; pages à jeton en `Cache-Control: no-store`, `Referrer-Policy: same-origin` | T28 |
+| Deux inscriptions simultanées avec un même code, ou état partiel après un échec | une seule transaction `InOrg` (nouvelle organisation) crée le compte, consomme le code et les liens, crée l'organisation, l'adhésion et l'équipe ; code consommé par `UPDATE … WHERE used_at IS NULL` ; test de concurrence et test d'échec simulé | T28 |
+| Compte d'un tiers créé à son insu, ou adresse usurpée par un lien d'invitation | la vérification prouve la possession de l'adresse (mode public, et invitation avec envoi) ; le lien d'une invitation crée le compte **à l'adresse invitée**, imposée ; un compte connecté d'une autre adresse est arrêté ; sans envoi, l'adresse d'une inscription sur code n'est pas vérifiée — assumé (l'exploitant a choisi de transmettre les codes à la main) | T28 |
+| Titulaire d'un lien qui lit une autre organisation | `lotor_invitation_by_token` ne renvoie que l'invitation non expirée d'une organisation active désignée par l'identifiant public du lien ; le secret est comparé puis revérifié sous verrou dans `InOrg` ; l'inscrit n'a accès qu'à l'organisation qu'il rejoint ou crée | T28 |
+| Session ouverte sans second facteur après une inscription | la création n'ouvre qu'une session de configuration (`authx.PurposeSetup`), qui ne mène qu'à l'enrôlement du TOTP, obligatoire ; aucun mot de passe temporaire | T28 |
+| Adresse saisie par un administrateur pour l'envoi d'un code conservée ou divulguée | envoi sur-le-champ, adresse absente des tables, du journal d'audit, de la file et des journaux (test) | T28 |
+| Courriel piégé ou contenu externe chargé à l'ouverture | gabarit commun, textes traduits échappés par `html/template`, logo joint au message (`cid:`), aucune image ni police externe, aucun script | T28 |
 
 ### Serveur — politiques et notifications
 

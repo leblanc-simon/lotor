@@ -9,7 +9,7 @@ Sommaire : installation ([développement](#installation-de-développement),
 [production](#installation-de-production)), [configuration](#configuration),
 [base de données](#base-de-données), [TLS](#tls-et-mandataire-inverse),
 [sondes](#gestion--sondes-et-métriques), [traitements](#traitements),
-[comptes](#comptes-et-connexion), [agents](#agents-et-jetons) ([serveur](#agent-serveur),
+[comptes](#comptes-et-connexion), [inscription](#inscription), [agents](#agents-et-jetons) ([serveur](#agent-serveur),
 [dépôt](#agent-dépôt)), [ingestion](#ingestion),
 [base de vulnérabilités](#base-de-vulnérabilités), [recherche](#recherche-et-api-utilisateur),
 [tableau de bord](#tableau-de-bord), [clés](#clés-de-chiffrement-des-secrets),
@@ -491,8 +491,10 @@ analyste, administrateur d'équipe), selon la matrice
 [`security/permissions.md`](security/permissions.md). Un administrateur d'organisation
 **invite** une adresse (page des membres) : la réponse est la même que l'adresse ait un
 compte ou non, et le compte ne devient membre qu'en acceptant l'invitation
-(`/account/invitations`, 30 jours). Un compte qui n'existe pas encore peut être créé par
-l'administration de l'instance tant que l'invitation court. L'administration de
+(`/account/invitations`, 30 jours). Chaque invitation porte aussi un lien secret (T28) :
+envoyé par courriel quand l'envoi est configuré, montré une seule fois sur la page des
+membres sinon ; il permet de créer son compte à l'adresse invitée, ou de se connecter pour
+accepter (voir [Inscription](#inscription)). L'administration de
 l'instance ajoute aussi directement un administrateur à une organisation. **À la mise à
 jour vers la version des équipes**, la migration crée dans chaque organisation une équipe
 « Général » (« General » en anglais) qui reçoit tous les projets, jetons d'inscription et
@@ -503,6 +505,51 @@ d'accès ; les agents dépôt deviennent des agents d'organisation.
 **Jetons personnels.** Leur création exige un code TOTP ; changer de mot de passe propose
 (case cochée) de les révoquer tous. Les sessions et défis expirés sont purgés toutes les
 heures (job `auth.purge`, instances à workers).
+
+## Inscription
+
+Par défaut, l'instance est **privée** : seuls les administrateurs d'instance créent des
+comptes (T28, ADR 0056). `signup.mode` (`LOTOR_SIGNUP_MODE`) en ouvre deux autres :
+
+| Mode | Qui s'inscrit | Adresse vérifiée | Exige |
+| --- | --- | --- | --- |
+| `private` (défaut) | personne (`/signup` répond 404) | — | — |
+| `invitation` | le porteur d'un code d'inscription | si l'envoi est configuré | — |
+| `public` | toute adresse des domaines acceptés | toujours | SMTP et `web.public_url` |
+
+**Envoi de courriels.** Il est « configuré » quand `smtp.host`, `smtp.from` et
+`web.public_url` (`LOTOR_PUBLIC_URL`, `https://sbom.example.org`) sont renseignés. Le mode
+public ne démarre pas sans lui. Sans lui, en mode invitation, codes et liens d'invitation
+sont montrés une seule fois à l'administrateur, à transmettre à la main, et l'adresse de
+l'inscription n'est pas vérifiée. Les courriels partent par le job `mail.send` (instance à
+workers, réessais de la file) ; destinataire et lien sont chiffrés dans la file par
+`secrets.keys` et ne sont jamais journalisés.
+
+**Parcours.** La personne choisit son mot de passe (aucun mot de passe temporaire) et le
+nom de son organisation, dont elle devient administratrice ; elle enrôle aussitôt son TOTP,
+obligatoire, puis reçoit ses codes de secours. Avec envoi, elle reçoit d'abord un lien de
+vérification valable 24 heures (trois liens au plus par adresse sur 24 heures). La réponse
+ne dit jamais si une adresse a déjà un compte : une adresse inscrite reçoit un courriel qui
+l'invite à se connecter ; sans envoi, elle reçoit le même refus qu'un code faux, et le code
+reste utilisable. Les `POST` de l'inscription sont bornés par `login.rate_limit`, comme la
+connexion ; chaque étape entre au journal d'audit.
+
+**Codes d'inscription** (mode invitation). **Administration → Inscription** crée un code
+(libellé, validité de 1 à 365 jours, 30 par défaut), montré une seule fois et, si l'envoi
+est configuré, envoyé à une adresse saisie, qui n'est conservée nulle part ; l'inscription
+peut se faire à une autre adresse. Un code sert une seule fois ; la page liste les codes
+(état, auteur, compte inscrit) et permet de révoquer un code actif.
+
+**Domaines** (mode public). `signup.allowed_domains`
+(`LOTOR_SIGNUP_ALLOWED_DOMAINS=example.org,example.com`) restreint les adresses acceptées ;
+vide, toute adresse l'est. Sans effet dans les autres modes.
+
+**Invitations d'organisation.** Dans tous les modes, le lien d'une invitation
+(`/invitation/…`, 30 jours, remplacé par chaque nouvelle invitation de la même adresse) crée
+le compte **à l'adresse invitée**, avec le rôle de l'invitation. Avec envoi, le courriel
+part dans la langue de l'invitant. Un compte déjà inscrit se connecte puis accepte ; un
+autre compte connecté est arrêté. Les vérifications d'adresse expirées sont purgées toutes
+les heures (job `signup.purge`).
 
 ## Agents et jetons
 
@@ -977,8 +1024,9 @@ workers. Format des messages et du webhook : [`notifications.md`](notifications.
 
 Configuration (`config.example.yaml`) :
 
-- `notify.public_url` : URL publique du serveur, pour les liens des messages et des
-  verdicts de commit (`https://sbom.example.org`). Vide : messages sans lien.
+- `web.public_url` : URL publique du serveur, pour les liens des messages, des verdicts de
+  commit et des courriels de l'inscription (`https://sbom.example.org`). Vide : messages
+  sans lien.
 - `notify.timeout` (30 s) : durée maximale d'un envoi.
 - `notify.allow_private_networks` (`false`) : les canaux saisis par les administrateurs
   d'organisation ne peuvent joindre **aucune adresse de bouclage, privée, de lien local,
@@ -1153,7 +1201,7 @@ et l'ADR 0047. Désactivé par défaut, car il demande un droit de plus :
 - **GitLab** : portée `api` (au lieu de `read_api`) et rôle **Developer** sur les projets
   suivis pour le compte de service.
 
-Le serveur doit avoir `notify.public_url` pour que le statut porte un lien. Pendant
+Le serveur doit avoir `web.public_url` pour que le statut porte un lien. Pendant
 l'attente, le commit suivant de la même référence attend son tour ; un verdict non rendu
 dans le délai laisse le statut « en attente » (journal : `verdict non rendu dans le
 délai`). Un refus de la forge est journalisé et n'empêche pas l'envoi du SBOM.
@@ -1418,6 +1466,16 @@ conditionnel, rattrapage de l'agent dépôt).
 
 Retour arrière : restaurer la sauvegarde prise avant la mise à jour et réinstaller
 l'ancien binaire (un ancien binaire refuse une base migrée par une version plus récente).
+
+**Vers la version suivante** (inscription, T28) :
+
+- `notify.public_url` devient `web.public_url` (`LOTOR_PUBLIC_URL`) : **déplacer la clé**
+  sous `web:` ; l'ancienne, restée sous `notify:`, est ignorée (messages sans lien). Le paquet
+  deb écrit la nouvelle clé pour une installation neuve ;
+- la migration 024 ajoute les tables de l'inscription et un lien secret aux invitations
+  d'organisation ; l'instance reste privée (`signup.mode: private`) ;
+- les notifications par courriel ont désormais une version HTML (gabarit commun, logo joint
+  au message), en plus du texte.
 
 **De 0.1.0 à 0.2.0** (lot 2), à décider **avant** la mise à jour :
 

@@ -328,10 +328,21 @@ setup_site() {
     esac
 }
 
+# web.public_url est réécrite dans la section web: seule (ajoutée si elle y manque) : une
+# configuration d'avant T28 la portait sous notify:, où elle est désormais ignorée.
 public_url_update() {
     [ -n "${DEBCONF_RECONFIGURE:-}" ] || return 0
     [ -w "$CONFIG_FILE" ] || return 0
-    sed -i "s|^  public_url: .*|  public_url: $(site_url)|" "$CONFIG_FILE"
+    awk -v url="$(site_url)" '
+        function flush() { if (inweb && !done) { print "  public_url: " url; done = 1 } }
+        /^[^ #]/ { flush(); inweb = ($0 == "web:"); if (inweb) sawweb = 1 }
+        inweb && /^  public_url:/ { print "  public_url: " url; done = 1; next }
+        { print }
+        END { flush(); if (!sawweb) { print "web:"; print "  public_url: " url } }
+    ' "$CONFIG_FILE" >"$CONFIG_FILE.new"
+    # cat garde le propriétaire et les droits du fichier.
+    cat "$CONFIG_FILE.new" >"$CONFIG_FILE"
+    rm -f "$CONFIG_FILE.new"
 }
 
 install -d -m 0755 "$ETC"

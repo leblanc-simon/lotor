@@ -12,7 +12,8 @@ and alerts. Installing the server (deb package or by hand) and the agents is cov
 
 1. The operator gives you the instance address (for example `https://sbom.example.org`),
    your sign-in e-mail and a **temporary password**, shown only once when the account is
-   created.
+   created. If the instance is open to sign-up, or if you received an invitation, create
+   your account yourself instead (see below).
 2. Open the address and sign in. At the first sign-in, the **Set up your second factor**
    screen shows a QR code: scan it with an authenticator app (FreeOTP, Aegis, Google
    Authenticator, 1Password…), or type the key shown, then enter the six-digit code. The
@@ -28,6 +29,15 @@ administrator resets your second factor and gives you a new temporary password. 
 account** (top right) sets the language (English or French) and the theme, changes the
 password, manages your recovery codes and your access tokens.
 
+**Creating your own account.** Depending on the instance's setting, the sign-in page offers
+**Create an account** (public sign-up) or **Have a sign-up code?** (a code handed over by an
+instance administrator). Enter your address: you receive a link to confirm it (unless the
+instance sends no e-mail), then choose the name of your organization, of which you become
+the administrator, and your password. The **link of an organization invitation** (e-mail,
+or a link handed over by its administrator) likewise creates your account at the invited
+address or, if you already have an account, has you sign in to accept. Either way, you set
+up your second factor right away (steps 2 and 3); there is no temporary password to change.
+
 ## 2. Create the organization (instance administrator)
 
 An **organization** groups projects and their members; nothing crosses from one
@@ -38,9 +48,11 @@ organization to another.
    administrator: the interface reminds you as long as there is only one.
 2. **Administration › Organizations**: create the organization (short identifier such as
    `infra`, name, language) and appoint its first administrator.
-3. In the organization, **Members**: **invite** each account by its address, as a
-   **member** or an **administrator** of the organization; the account accepts from **My
-   account › Invitations** (30 days).
+3. In the organization, **Members**: **invite** each person by their address, as a
+   **member** or an **administrator** of the organization; they accept from **My account ›
+   Invitations** (30 days), or through the invitation link, which creates their account if
+   it does not exist: e-mailed if the instance sends e-mail, otherwise shown only once, for
+   you to hand over.
 4. **Teams**: every project belongs to a team (“General” exists from the start); a member
    only sees the projects of their teams. Create the teams you need, then, on each team
    page, add members with their **team role** — **reader** (reads), **analyst** (reads,
