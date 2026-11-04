@@ -233,3 +233,31 @@ func TestExampleConfig(t *testing.T) {
 		t.Fatalf("%+v", c.Forges)
 	}
 }
+
+func TestDependencyTrackConfig(t *testing.T) {
+	d := DTConfig{URL: "https://dtrack.example.org", APIKeyFile: "credential:dependency-track-api-key",
+		ProjectName: "{name} ({slug})", ProjectVersion: "{ref}", AutoCreate: true}
+	if got := d.Target("Portail", "portail", "main"); got.ProjectName != "Portail (portail)" || got.ProjectVersion != "main" || !got.AutoCreate {
+		t.Errorf("gabarits : %+v", got)
+	}
+	c := validConfig()
+	c.DependencyTrack = d
+	if err := c.Validate(); err != nil {
+		t.Errorf("configuration valide refusée : %v", err)
+	}
+	for name, bad := range map[string]DTConfig{
+		"http":         {URL: "http://dtrack", APIKeyFile: "credential:x", ProjectName: "{name}", ProjectVersion: "{ref}"},
+		"sans clé":     {URL: "https://dtrack", ProjectName: "{name}", ProjectVersion: "{ref}"},
+		"gabarit vide": {URL: "https://dtrack", APIKeyFile: "credential:x", ProjectName: " ", ProjectVersion: "{ref}"},
+		"identifiants": {URL: "https://u:p@dtrack", APIKeyFile: "credential:x", ProjectName: "{name}", ProjectVersion: "{ref}"},
+	} {
+		c.DependencyTrack = bad
+		if err := c.Validate(); err == nil || !strings.Contains(err.Error(), "dependency_track") {
+			t.Errorf("%s : %v", name, err)
+		}
+	}
+	// Sortie désactivée : rien n'est lu ni construit.
+	if s, err := NewDTSender(DTConfig{}, ServerConfig{}, ServerOptions{}); s != nil || err != nil {
+		t.Errorf("sortie désactivée : %v %v", s, err)
+	}
+}

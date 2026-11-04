@@ -187,13 +187,14 @@ type projectForm struct {
 	ForgeURL    string
 	Branches    string
 	Tags        string
+	Versions    string
 	HostRef     string
 }
 
 func formOf(p project.Project) projectForm {
 	return projectForm{Kind: p.Kind, Slug: p.Slug, Name: p.Name, Description: p.Description, Labels: p.Labels.String(),
 		ForgeURL: p.ForgeURL, Branches: joinLines(p.RefNames(project.RefBranch)), Tags: joinLines(p.RefNames(project.RefTag)),
-		HostRef: p.HostRef()}
+		Versions: joinLines(p.RefNames(project.RefVersion)), HostRef: p.HostRef()}
 }
 
 func joinLines(s []string) string {
@@ -211,7 +212,7 @@ func readProjectForm(r *http.Request) projectForm {
 	f := r.PostForm
 	return projectForm{Kind: project.Kind(f.Get("kind")), Team: f.Get("team"), Slug: f.Get("slug"), Name: f.Get("name"),
 		Description: f.Get("description"), Labels: f.Get("labels"), ForgeURL: f.Get("forge_url"),
-		Branches: f.Get("branches"), Tags: f.Get("tags"), HostRef: f.Get("host_ref")}
+		Branches: f.Get("branches"), Tags: f.Get("tags"), Versions: f.Get("versions"), HostRef: f.Get("host_ref")}
 }
 
 // input lit la saisie ; une erreur de lecture (étiquettes, références) est une erreur de
@@ -228,6 +229,9 @@ func (f projectForm) input() (project.Input, error) {
 			return project.Input{}, err
 		}
 		if in.Tags, err = project.ParseRefNames(f.Tags, "tags"); err != nil {
+			return project.Input{}, err
+		}
+		if in.Versions, err = project.ParseVersionNames(f.Versions); err != nil {
 			return project.Input{}, err
 		}
 	}
@@ -339,12 +343,15 @@ func projectTabs(acc tenant.Access, p project.Project, current string) []project
 
 type projectView struct {
 	render.Page
-	Base       string
-	CanAdmin   bool
-	Project    projectRow
-	Tabs       []projectTab
-	Branches   []string
-	Tags       []string
+	Base     string
+	CanAdmin bool
+	Project  projectRow
+	Tabs     []projectTab
+	Branches []string
+	Tags     []string
+	// Versions : références de nature « version » ; leur identifiant est celui qu'un
+	// client Dependency-Track passe en « project » (ADR 0057).
+	Versions   []project.Ref
 	HostRef    string
 	Created    *stamp
 	RepoAgents []option
@@ -467,7 +474,7 @@ func (id *identity) renderProject(w http.ResponseWriter, r *http.Request, status
 		Page: render.Page{TitleKey: "project.title", TitleArgs: map[string]any{"Name": p.Name}, Nav: orgNav(acc, "projects")},
 		Base: orgBase(acc), CanAdmin: acc.Can(tenant.PermProjectManage, p.TeamID), Project: id.projectRow(p, id.Agents.Now()),
 		Tabs: projectTabs(acc, p, "overview"), Branches: p.RefNames(project.RefBranch), Tags: p.RefNames(project.RefTag),
-		HostRef: p.HostRef(), Created: stampAt(p.CreatedAt), FlashKey: flashKey(r), Error: fe,
+		Versions: p.RefsOf(project.RefVersion), HostRef: p.HostRef(), Created: stampAt(p.CreatedAt), FlashKey: flashKey(r), Error: fe,
 	}
 	period := dashboard.ParsePeriod(r.URL.Query().Get("period"))
 	summary, err := id.Dashboard.Project(r.Context(), acc.Org, p.ID, period)

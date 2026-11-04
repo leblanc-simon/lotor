@@ -34,3 +34,27 @@ func NewClient(cfg Config, version string, logger *slog.Logger) (*agentclient.Cl
 		Logger:    logger,
 	})
 }
+
+// NewDTClient construit le client de Dependency-Track depuis la configuration ; nil si la
+// sortie n'est pas configurée. La clé d'API est lue dans son fichier (0600) ou dans le
+// credential systemd « dependency-track-api-key ».
+func NewDTClient(cfg Config, version string, logger *slog.Logger) (*agentclient.DTClient, error) {
+	d := cfg.DependencyTrack
+	if !d.Enabled() {
+		return nil, nil
+	}
+	path := resolveSecret(d.APIKeyFile, CredentialDTAPIKey, "")
+	if path == "" {
+		return nil, fmt.Errorf("hostagent: dependency_track.api_key_file absent et aucun credential %q", CredentialDTAPIKey)
+	}
+	key, err := readSecret(path)
+	if err != nil {
+		return nil, err
+	}
+	return agentclient.NewDT(agentclient.DTOptions{
+		URL: d.URL, APIKey: key, UserAgent: "lotor-host-agent/" + version,
+		TLS: agentclient.TLSOptions{CAFile: d.CAFile}, Proxy: d.Proxy, Timeout: cfg.Server.Timeout,
+		Retry:  agentclient.Retry{Attempts: cfg.Server.Retries, Base: 2 * time.Second, Max: 5 * time.Minute},
+		Logger: logger,
+	})
+}

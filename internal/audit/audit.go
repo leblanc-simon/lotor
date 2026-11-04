@@ -75,6 +75,9 @@ const (
 	ProjectPurged           Action = "project.purged"
 	ProjectAgentChanged     Action = "project.agent_changed"
 	ProjectAIModeChanged    Action = "project.ai_mode_changed"
+	ProjectVersionAdded     Action = "project.version_added"
+	AgentDTAutoCreateOn     Action = "agent.dt_auto_create_enabled"
+	AgentDTAutoCreateOff    Action = "agent.dt_auto_create_disabled"
 	AgentCreated            Action = "agent.created"
 	AgentEnrolled           Action = "agent.enrolled"
 	AgentDisabled           Action = "agent.disabled"
@@ -118,6 +121,7 @@ func Actions() []Action {
 		MemberInvited, InvitationRevoked, InvitationAccepted, InvitationDeclined,
 		TeamCreated, TeamRenamed, TeamDeleted, TeamMemberAdded, TeamMemberRoleChanged, TeamMemberRemoved, ProjectTeamChanged,
 		ProjectCreated, ProjectUpdated, ProjectArchived, ProjectUnarchived, ProjectPurged, ProjectAgentChanged, ProjectAIModeChanged,
+		ProjectVersionAdded, AgentDTAutoCreateOn, AgentDTAutoCreateOff,
 		AgentCreated, AgentEnrolled, AgentDisabled, AgentScanRequested, AgentTokenCreated, AgentTokenRevoked,
 		EnrollmentTokenCreated, EnrollmentTokenRevoked, PersonalTokenCreated, PersonalTokenRevoked,
 		JobRetried, JobDiscarded, VulnDBImportRequested, VulnDBImported, VulnDBImportFailed, VulnDBArchivesPurged,

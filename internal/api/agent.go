@@ -75,8 +75,27 @@ type AgentOptions struct {
 // MountAgent monte les opérations de l'API des agents sur r, routeur de /api/v1 : corps
 // borné, authentification par jeton, limitation par jeton, puis le serveur strict généré.
 func MountAgent(r chi.Router, o AgentOptions) error {
+	h, err := newAgentAPI(o)
+	if err != nil {
+		return err
+	}
+	strict := gen.NewStrictHandlerWithOptions(h, []gen.StrictMiddlewareFunc{h.requireKind},
+		gen.StrictHTTPServerOptions{RequestErrorHandlerFunc: h.badRequest, ResponseErrorHandlerFunc: h.responseError})
+	r.Group(func(r chi.Router) {
+		if o.RequireClientCert {
+			r.Use(h.requireClientCert)
+		}
+		r.Use(limitBody(o.Ingest.Limits().MaxUpload+multipartOverhead), h.authenticate(bearer), h.perToken)
+		gen.HandlerWithOptions(strict, gen.ChiServerOptions{BaseRouter: r, ErrorHandlerFunc: h.badRequest})
+	})
+	return nil
+}
+
+// newAgentAPI construit les handlers communs à l'API des agents et au point compatible
+// Dependency-Track : mêmes limiteurs, même authentification, mêmes refus.
+func newAgentAPI(o AgentOptions) (*agentAPI, error) {
 	if o.Agents == nil || o.Ingest == nil || o.Verdicts == nil || o.Catalog == nil || o.Logger == nil || o.ClientIP == nil {
-		return errors.New("api: dépendances de l'API des agents incomplètes")
+		return nil, errors.New("api: dépendances de l'API des agents incomplètes")
 	}
 	h := &agentAPI{AgentOptions: o}
 	tooMany := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -90,31 +109,23 @@ func MountAgent(r chi.Router, o AgentOptions) error {
 			return ""
 		}))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	failures, err := ratelimit.New(o.FailureRateLimit, o.TrustedProxies, ratelimit.WithLimitHandler(tooMany))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// Un refus passe par le limiteur par IP : un client qui enchaîne les jetons refusés
 	// reçoit 429, sans gêner les agents authentifiés derrière la même IP.
 	h.refuse = failures.Middleware(http.HandlerFunc(h.writeRefusal))
-
-	strict := gen.NewStrictHandlerWithOptions(h, []gen.StrictMiddlewareFunc{h.requireKind},
-		gen.StrictHTTPServerOptions{RequestErrorHandlerFunc: h.badRequest, ResponseErrorHandlerFunc: h.responseError})
-	r.Group(func(r chi.Router) {
-		if o.RequireClientCert {
-			r.Use(h.requireClientCert)
-		}
-		r.Use(limitBody(o.Ingest.Limits().MaxUpload+multipartOverhead), h.authenticate, perToken.Middleware)
-		gen.HandlerWithOptions(strict, gen.ChiServerOptions{BaseRouter: r, ErrorHandlerFunc: h.badRequest})
-	})
-	return nil
+	h.perToken = perToken.Middleware
+	return h, nil
 }
 
 type agentAPI struct {
 	AgentOptions
-	refuse http.Handler
+	refuse   http.Handler
+	perToken func(http.Handler) http.Handler
 }
 
 var _ gen.StrictServerInterface = (*agentAPI)(nil)
@@ -156,11 +167,18 @@ func bearer(r *http.Request) string {
 	return strings.TrimSpace(token)
 }
 
-// authenticate vérifie le jeton (d'agent ou d'inscription) et place le principal dans le
-// contexte ; un refus répond 401 avec une clé traduisible, jamais avec le jeton.
-func (h *agentAPI) authenticate(next http.Handler) http.Handler {
+// authenticate vérifie le jeton (d'agent ou d'inscription) lu par read et place le
+// principal dans le contexte ; un refus répond 401 avec une clé traduisible, jamais avec
+// le jeton.
+func (h *agentAPI) authenticate(read func(*http.Request) string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return h.authenticated(read, next)
+	}
+}
+
+func (h *agentAPI) authenticated(read func(*http.Request) string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		p, err := h.Agents.Authenticate(r.Context(), bearer(r))
+		p, err := h.Agents.Authenticate(r.Context(), read(r))
 		if err != nil {
 			var ae *agent.AuthError
 			if !errors.As(err, &ae) {
@@ -200,7 +218,9 @@ func (h *agentAPI) writeRefusal(w http.ResponseWriter, r *http.Request) {
 	if key == "" {
 		key = agent.KeyTokenInvalid
 	}
-	w.Header().Set("WWW-Authenticate", `Bearer realm="lotor"`)
+	if !strings.HasPrefix(r.URL.Path, dtPrefix+"/") {
+		w.Header().Set("WWW-Authenticate", `Bearer realm="lotor"`)
+	}
 	problem.Write(w, r, h.Catalog, http.StatusUnauthorized, key, nil)
 }
 
@@ -240,6 +260,9 @@ func (h *agentAPI) internal(w http.ResponseWriter, r *http.Request, err error) {
 
 // responseError traduit l'erreur d'un handler en problème.
 func (h *agentAPI) responseError(w http.ResponseWriter, r *http.Request, err error) {
+	if h.dtProblem(w, r, err) {
+		return
+	}
 	var ae *agent.AuthError
 	var ce *agent.ConflictError
 	switch {
@@ -372,6 +395,11 @@ func (h *agentAPI) ListAgentProjects(ctx context.Context, req gen.ListAgentProje
 			ap.ForgeUrl = &pr.ForgeURL
 		}
 		for _, ref := range pr.Refs {
+			if ref.Kind == project.RefVersion {
+				// Les versions ne reçoivent que des envois du point compatible
+				// Dependency-Track : aucun agent ne les analyse.
+				continue
+			}
 			tr := gen.TrackedRef{Id: ref.ID, Kind: gen.TrackedRefKind(ref.Kind), Name: ref.Name}
 			if c, ok := current[ref.ID]; ok {
 				tr.LastSnapshot = &gen.SnapshotRef{Id: c.SnapshotID, ScannedAt: c.ScannedAt}

@@ -25,13 +25,20 @@ const (
 	OutcomeSent Outcome = "sent"
 	// OutcomeConfirmed : inventaire inchangé, confirmé par un signal de vie.
 	OutcomeConfirmed Outcome = "confirmed"
+	// OutcomeUnchanged : inventaire inchangé depuis le dernier envoi à Dependency-Track
+	// (sortie seule vers Dependency-Track).
+	OutcomeUnchanged Outcome = "unchanged"
 )
 
 // Options réunit les dépendances d'un agent.
 type Options struct {
 	Config  Config
 	Version string
-	Client  *agentclient.Client // sans jeton : l'agent pose le sien
+	// Client parle au serveur lotor (sans jeton : l'agent pose le sien) ; nil seulement
+	// avec la sortie seule vers Dependency-Track (dependency_track.only).
+	Client *agentclient.Client
+	// DT envoie aussi le SBOM à Dependency-Track (nil : sortie désactivée).
+	DT      DTSender
 	Scanner Scanner
 	// Engines sont les moteurs de conteneurs interrogés (Engines(cfg.Containers)) : vide,
 	// l'inventaire des conteneurs est désactivé et aucune socket n'est ouverte.
@@ -59,7 +66,9 @@ type Agent struct {
 
 // New construit un agent.
 func New(o Options) (*Agent, error) {
-	if o.Client == nil || o.Scanner == nil || o.Store == nil || o.Logger == nil || (len(o.Engines) > 0 && o.ImageScanner == nil) {
+	only := o.Config.DependencyTrack.Only
+	if (o.Client == nil && !only) || (only && o.DT == nil) || o.Scanner == nil || o.Store == nil || o.Logger == nil ||
+		(len(o.Engines) > 0 && (o.ImageScanner == nil || only)) {
 		return nil, errors.New("hostagent: dépendances incomplètes")
 	}
 	if o.Now == nil {
@@ -111,6 +120,8 @@ type Result struct {
 	ScanRequested bool
 	// Containers résume l'inventaire des conteneurs (nil s'il est désactivé).
 	Containers *ContainersResult
+	// DTSent : le SBOM est aussi parti vers Dependency-Track pendant ce cycle.
+	DTSent bool
 }
 
 // hostname renvoie le nom annoncé, tel que le serveur le range (minuscules).
@@ -181,6 +192,9 @@ func hostRef(projects []gen.AgentProject) (gen.AgentProject, gen.TrackedRef, boo
 // empreinte a changé depuis le dernier envoi rangé, ou confirme l'inventaire par un
 // signal de vie sinon (le serveur peut alors réclamer le SBOM).
 func (a *Agent) Cycle(ctx context.Context) (Result, error) {
+	if a.o.Config.DependencyTrack.Only {
+		return a.dtOnlyCycle(ctx)
+	}
 	c, err := a.authenticated(ctx)
 	if err != nil {
 		return Result{}, err
@@ -221,6 +235,7 @@ func (a *Agent) Cycle(ctx context.Context) (Result, error) {
 			if err := a.o.Store.Save(st); err != nil {
 				return res, err
 			}
+			a.alsoDT(ctx, inv, &res)
 			return a.withContainers(ctx, c, res), nil
 		}
 		a.o.Logger.InfoContext(ctx, "inventaire inchangé mais inconnu du serveur : envoi du SBOM")
@@ -234,6 +249,7 @@ func (a *Agent) Cycle(ctx context.Context) (Result, error) {
 	if err := a.o.Store.Save(st); err != nil {
 		return res, err
 	}
+	a.alsoDT(ctx, inv, &res)
 	return a.withContainers(ctx, c, res), nil
 }
 
@@ -376,7 +392,7 @@ func (a *Agent) Run(ctx context.Context) error {
 		if err := a.o.Sleep(ctx, wait); err != nil {
 			return nil
 		}
-		if a.o.Now().Before(next) {
+		if a.o.Now().Before(next) && !a.o.Config.DependencyTrack.Only {
 			var err error
 			if requested, err = a.Heartbeat(ctx); err != nil && ctx.Err() == nil {
 				a.o.Logger.WarnContext(ctx, "signal de vie en échec", "err", err.Error())

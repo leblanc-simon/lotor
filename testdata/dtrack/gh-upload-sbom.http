@@ -1,0 +1,518 @@
+POST /api/v1/bom HTTP/1.1
+Host: lotor.example.org
+Connection: keep-alive
+X-API-Key: $API_KEY
+content-type: multipart/form-data; boundary=----formdata-undici-012345678901
+accept: */*
+accept-language: *
+sec-fetch-mode: cors
+user-agent: node
+accept-encoding: gzip, deflate
+content-length: 13848
+
+------formdata-undici-012345678901
+Content-Disposition: form-data; name="bom"; filename="bom"
+Content-Type: application/octet-stream
+
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:b452e6ba-33c6-4848-97b5-5d31dc39b742",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-10-31T05:40:54Z",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "author": "anchore",
+          "name": "syft",
+          "version": "1.55.0"
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "af63bd4c8601b7f0",
+      "type": "file",
+      "name": "portail-client"
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:npm/%40babel/runtime@7.24.7?package-id=182727f57a800de5",
+      "type": "library",
+      "name": "@babel/runtime",
+      "version": "7.24.7",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "cpe": "cpe:2.3:a:\\@babel\\/runtime:\\@babel\\/runtime:7.24.7:*:*:*:*:*:*:*",
+      "purl": "pkg:npm/%40babel/runtime@7.24.7",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "javascript-lock-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "javascript"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "npm"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "javascript-npm-package-lock-entry"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "/package-lock.json"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:pypi/django@4.2.11?package-id=5657a5d4793d9262",
+      "type": "library",
+      "name": "django",
+      "version": "4.2.11",
+      "cpe": "cpe:2.3:a:python-django:python-django:4.2.11:*:*:*:*:*:*:*",
+      "purl": "pkg:pypi/django@4.2.11",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "python-package-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "python"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "python"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "python-pip-requirements-entry"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:python-django:python_django:4.2.11:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:python_django:python-django:4.2.11:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:python_django:python_django:4.2.11:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:django:python-django:4.2.11:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:django:python_django:4.2.11:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:python-django:django:4.2.11:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:python:python-django:4.2.11:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:python:python_django:4.2.11:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:python_django:django:4.2.11:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:django:django:4.2.11:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:python:django:4.2.11:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "/requirements.txt"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:npm/express@4.19.2?package-id=13448365c46180f3",
+      "type": "library",
+      "name": "express",
+      "version": "4.19.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "cpe": "cpe:2.3:a:openjsf:express:4.19.2:*:*:*:*:node.js:*:*",
+      "purl": "pkg:npm/express@4.19.2",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "javascript-lock-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "javascript"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "npm"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "javascript-npm-package-lock-entry"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "/package-lock.json"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/burntsushi/toml@v1.3.2?package-id=9c7fbb949f92a1db",
+      "type": "library",
+      "name": "github.com/BurntSushi/toml",
+      "version": "v1.3.2",
+      "cpe": "cpe:2.3:a:BurntSushi:toml:v1.3.2:*:*:*:*:*:*:*",
+      "purl": "pkg:golang/github.com/BurntSushi/toml@v1.3.2",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "go-module-file-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "go"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "go-module"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "go-module-entry"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "/go.mod"
+        },
+        {
+          "name": "syft:metadata:h1Digest",
+          "value": "h1:o7IhLm0Msx3BaB+n3Ag7L8EVlByGnpq14C4YWiu/gL8="
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:golang/golang.org/x/text@v0.14.0?package-id=c70ce8df32c6f44e",
+      "type": "library",
+      "name": "golang.org/x/text",
+      "version": "v0.14.0",
+      "cpe": "cpe:2.3:a:golang:text:v0.14.0:*:*:*:*:*:*:*",
+      "purl": "pkg:golang/golang.org/x/text@v0.14.0",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "go-module-file-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "go"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "go-module"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "go-module-entry"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "/go.mod"
+        },
+        {
+          "name": "syft:metadata:h1Digest",
+          "value": "h1:ScX5w1eTa3QqT8oi6+ziP7dTV1S2+ALU0bI+0zXKWiQ="
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:npm/lodash@4.17.21?package-id=42055b8ceebbeac4",
+      "type": "library",
+      "name": "lodash",
+      "version": "4.17.21",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "cpe": "cpe:2.3:a:lodash:lodash:4.17.21:*:*:*:*:node.js:*:*",
+      "purl": "pkg:npm/lodash@4.17.21",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "javascript-lock-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "javascript"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "npm"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "javascript-npm-package-lock-entry"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "/package-lock.json"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:npm/portail-client@2.3.0?package-id=ab5127519169caf3",
+      "type": "library",
+      "name": "portail-client",
+      "version": "2.3.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "cpe": "cpe:2.3:a:portail-client:portail-client:2.3.0:*:*:*:*:*:*:*",
+      "purl": "pkg:npm/portail-client@2.3.0",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "javascript-lock-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "javascript"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "npm"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "javascript-npm-package-lock-entry"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:portail-client:portail_client:2.3.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:portail_client:portail-client:2.3.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:portail_client:portail_client:2.3.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:portail:portail-client:2.3.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:portail:portail_client:2.3.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "/package-lock.json"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:pypi/pyyaml@6.0.1?package-id=52186525f2f8cf3c",
+      "type": "library",
+      "name": "pyyaml",
+      "version": "6.0.1",
+      "cpe": "cpe:2.3:a:python-pyyaml:python-pyyaml:6.0.1:*:*:*:*:*:*:*",
+      "purl": "pkg:pypi/pyyaml@6.0.1",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "python-package-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "python"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "python"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "python-pip-requirements-entry"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:python-pyyaml:python_pyyaml:6.0.1:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:python_pyyaml:python-pyyaml:6.0.1:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:python_pyyaml:python_pyyaml:6.0.1:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:python-pyyaml:pyyaml:6.0.1:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:python:python-pyyaml:6.0.1:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:python:python_pyyaml:6.0.1:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:python_pyyaml:pyyaml:6.0.1:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:pyyaml:python-pyyaml:6.0.1:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:pyyaml:python_pyyaml:6.0.1:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:python:pyyaml:6.0.1:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:pyyaml:pyyaml:6.0.1:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "/requirements.txt"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:pypi/requests@2.31.0?package-id=21ce5e236ab6b5c2",
+      "type": "library",
+      "name": "requests",
+      "version": "2.31.0",
+      "cpe": "cpe:2.3:a:python:requests:2.31.0:*:*:*:*:*:*:*",
+      "purl": "pkg:pypi/requests@2.31.0",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "python-package-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "python"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "python"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "python-pip-requirements-entry"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "/requirements.txt"
+        }
+      ]
+    },
+    {
+      "bom-ref": "3fc5a8d3d86e9790",
+      "type": "file",
+      "name": "/go.mod",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7550f19dfbc7a720b7160887295141644bce16beb378fc011b830b8e513a2e2e"
+        }
+      ]
+    },
+    {
+      "bom-ref": "fd71c2238fc07657",
+      "type": "file",
+      "name": "/package-lock.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "69cb0177fb15fbf63f4873778a9e34c99a28c293751855bdcf2ad1017e5f6349"
+        }
+      ]
+    },
+    {
+      "bom-ref": "26ca2b7dc025d550",
+      "type": "file",
+      "name": "/requirements.txt",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "22d52a7dee9a391a97467620288dd714bc32396c52fcdfa70bfcc1a8a43ee4e0"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:npm/portail-client@2.3.0?package-id=ab5127519169caf3",
+      "dependsOn": [
+        "pkg:npm/%40babel/runtime@7.24.7?package-id=182727f57a800de5",
+        "pkg:npm/express@4.19.2?package-id=13448365c46180f3",
+        "pkg:npm/lodash@4.17.21?package-id=42055b8ceebbeac4"
+      ]
+    }
+  ]
+}
+
+------formdata-undici-012345678901
+Content-Disposition: form-data; name="projectName"
+
+Portail client
+------formdata-undici-012345678901
+Content-Disposition: form-data; name="projectVersion"
+
+2.0.0
+------formdata-undici-012345678901
+Content-Disposition: form-data; name="autoCreate"
+
+true
+------formdata-undici-012345678901
+Content-Disposition: form-data; name="projectTags"
+
+web,ci
+------formdata-undici-012345678901--

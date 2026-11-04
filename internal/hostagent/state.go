@@ -42,6 +42,11 @@ type State struct {
 	// ImagesVersion de l'agent seulement.
 	Images        map[string]ImageRecord `json:"images,omitempty"`
 	ImagesVersion string                 `json:"images_version,omitempty"`
+	// DTFingerprint est l'empreinte du dernier inventaire accepté par Dependency-Track,
+	// pour le projet et la version DTTarget (nom et version séparés par un octet nul).
+	DTFingerprint string    `json:"dt_fingerprint,omitempty"`
+	DTTarget      string    `json:"dt_target,omitempty"`
+	DTLastSent    time.Time `json:"dt_last_sent,omitzero"`
 }
 
 // fingerprint renvoie l'empreinte retenue, si elle est lisible.

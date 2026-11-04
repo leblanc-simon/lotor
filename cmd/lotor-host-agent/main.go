@@ -14,6 +14,7 @@ import (
 
 	"leblanc.io/open-go-base/logx"
 
+	"leblanc.io/lotor/internal/agentclient"
 	"leblanc.io/lotor/internal/hostagent"
 )
 
@@ -49,7 +50,13 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	client, err := hostagent.NewClient(cfg, version, logger)
+	var client *agentclient.Client
+	if !cfg.DependencyTrack.Only {
+		if client, err = hostagent.NewClient(cfg, version, logger); err != nil {
+			return err
+		}
+	}
+	dt, err := hostagent.NewDTClient(cfg, version, logger)
 	if err != nil {
 		return err
 	}
@@ -58,7 +65,7 @@ func run() error {
 		return err
 	}
 	agent, err := hostagent.New(hostagent.Options{
-		Config: cfg, Version: version, Client: client, Store: store, Logger: logger,
+		Config: cfg, Version: version, Client: client, DT: hostagent.DTSenderOf(dt), Store: store, Logger: logger,
 		Scanner: hostagent.SyftScanner{Root: cfg.Scan.Root, Hostname: cfg.Hostname, Exclude: cfg.Scan.Exclude,
 			Parallelism: cfg.Resources.MaxProcs, Version: version},
 		// Aucun moteur, donc aucune socket ouverte, sans containers.enabled.
@@ -68,7 +75,8 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	logger.Info("agent démarré", "version", version, "mode", cfg.Mode, "server", cfg.Server.URL, "containers", cfg.Containers.Enabled)
+	logger.Info("agent démarré", "version", version, "mode", cfg.Mode, "server", cfg.Server.URL, "containers", cfg.Containers.Enabled,
+		"dependency_track", cfg.DependencyTrack.URL, "dependency_track_only", cfg.DependencyTrack.Only)
 	if cfg.Mode == hostagent.ModeOneshot {
 		return agent.RunOnce(ctx)
 	}

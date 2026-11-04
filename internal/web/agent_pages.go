@@ -236,7 +236,23 @@ type agentView struct {
 	Error     formError
 	// Host : contexte de l'hôte d'un agent serveur.
 	Host *hostAgentView
+	// DT : point compatible Dependency-Track d'un agent dépôt (ADR 0057).
+	DT *agentDTView
 }
+
+// agentDTView décrit la création automatique d'un agent dépôt par le point compatible
+// Dependency-Track ; Toggle est la valeur que le bouton envoie.
+type agentDTView struct {
+	Enabled  bool
+	Possible bool // agent d'équipe
+	Toggle   string
+}
+
+// Valeurs du formulaire de création automatique.
+const (
+	dtAutoCreateOn  = "on"
+	dtAutoCreateOff = "off"
+)
 
 func (id *identity) agentFromPath(w http.ResponseWriter, r *http.Request) (agent.Agent, bool) {
 	aid, err := uuid.Parse(chi.URLParam(r, "agentID"))
@@ -275,6 +291,12 @@ func (id *identity) renderAgent(w http.ResponseWriter, r *http.Request, status i
 	}
 	if a.Kind == agent.KindHost {
 		view.Host = newHostAgentView(a, false)
+	}
+	if a.Kind == agent.KindRepo {
+		view.DT = &agentDTView{Enabled: a.DTAutoCreate && a.TeamID != nil, Possible: a.TeamID != nil, Toggle: dtAutoCreateOn}
+		if a.DTAutoCreate {
+			view.DT.Toggle = dtAutoCreateOff
+		}
 	}
 	for _, t := range a.Tokens {
 		view.Tokens = append(view.Tokens, tokenRow{Token: t, Active: t.ActiveAt(now) && a.DisabledAt == nil,
@@ -331,6 +353,30 @@ func (id *identity) revokeAgentToken(w http.ResponseWriter, r *http.Request) {
 	}
 	err = id.Agents.RevokeToken(r.Context(), id.actor(r), access(r).Org, a.ID, tid)
 	id.agentResult(w, r, a, err, "token_revoked")
+}
+
+// setAgentDTAutoCreate autorise ou retire la création automatique de projets et de
+// versions par le point compatible Dependency-Track.
+func (id *identity) setAgentDTAutoCreate(w http.ResponseWriter, r *http.Request) {
+	a, ok := id.agentFromPath(w, r)
+	if !ok || !id.parseForm(w, r) {
+		return
+	}
+	var allowed bool
+	switch r.PostForm.Get("dt_auto_create") {
+	case dtAutoCreateOn:
+		allowed = true
+	case dtAutoCreateOff:
+	default:
+		id.rd.Error(w, r, http.StatusBadRequest)
+		return
+	}
+	err := id.Agents.SetDTAutoCreate(r.Context(), id.actor(r), access(r).Org, a.ID, allowed)
+	done := "dt_auto_create_off"
+	if allowed {
+		done = "dt_auto_create_on"
+	}
+	id.agentResult(w, r, a, err, done)
 }
 
 func (id *identity) disableAgent(w http.ResponseWriter, r *http.Request) {

@@ -10,7 +10,7 @@ appliquées automatiquement, sans retour arrière.
 
 **Mise à jour** : `notify.public_url` devient **`web.public_url`** (`LOTOR_PUBLIC_URL`) ;
 déplacer la clé sous `web:` avant de redémarrer : l'ancienne est ignorée (messages sans
-lien). La migration 024 s'applique au démarrage ; l'instance reste privée.
+lien). Les migrations 024 et 025 s'appliquent au démarrage ; l'instance reste privée.
 
 ### Ajouté
 
@@ -26,6 +26,18 @@ lien). La migration 024 s'applique au démarrage ; l'instance reste privée.
 - Page **Administration › Inscription** (mode, envoi de courriels, codes).
 - Courriels en HTML (notifications et inscription) : gabarit commun vérifié dans
   Thunderbird en clair et en sombre, logo joint au message, version texte conservée.
+- Point compatible Dependency-Track (T19, ADR 0057) : les outils configurés pour
+  Dependency-Track envoient à `https://<serveur>/dt` (`PUT`/`POST /api/v1/bom`, suivi par
+  `/api/v1/event/token/{uuid}`), avec le jeton d'un agent dépôt comme clé d'API ; le nom
+  du projet désigne un dépôt confié à l'agent, la version une **version** du dépôt
+  (nouvelle nature de référence, sans commit, saisissable dans les réglages du projet).
+  Création automatique (`autoCreate`) autorisée par agent d'équipe, sur sa fiche, et
+  auditée. Guide : `docs/dependency-track.md`.
+- Sortie vers Dependency-Track des agents (`dependency_track.*`, désactivée par défaut) :
+  l'agent serveur envoie le SBOM de l'hôte en CycloneDX 1.6 quand son inventaire change,
+  en plus de lotor ou à sa place (`only: true`) ; l'agent dépôt envoie le SBOM du commit de
+  tête de chaque référence après lotor. Clé d'API en fichier `0600` ou credential systemd
+  `dependency-track-api-key`. `make test-dtrack` : recette contre un vrai Dependency-Track 5.
 
 ### Modifié
 

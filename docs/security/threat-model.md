@@ -142,6 +142,8 @@ dans les Journaux de T11 et de T18 (ADR 0051).
 | Contenu de SBOM dans les journaux ou les erreurs | seuls l'identifiant d'ingestion, la clé d'erreur et des compteurs sont journalisés ; le détail d'une violation de schéma est un pointeur JSON, jamais une valeur | T05 |
 | Injection SQL | requêtes paramétrées uniquement (ADR 0004) | tous |
 | Saturation de l'API par un hôte | limitation par jeton (`agent_api.rate_limit`), sans gêner les autres hôtes de la même IP | T04 |
+| Point compatible Dependency-Track (`/dt`) comme contournement | mêmes middlewares que l'API des agents (limiteurs, refus uniformes, mTLS), jeton d'agent dépôt seul (agent serveur refusé), envoi passé par `ingest.Authorize` et `ingest.Receive` ; corps borné (SBOM admis × 4/3 en JSON base64) ; jeton de suivi d'un autre agent répondu comme inconnu (ADR 0057) | T19 |
+| Agent dépôt compromis qui crée des projets à volonté (`autoCreate`) | création refusée par défaut, autorisée par agent par qui gère les agents, seulement pour un agent d'équipe (projet dans son équipe), auditée ; 200 versions actives au plus par dépôt ; verrou par agent contre les doublons simultanés | T19 |
 
 ### Serveur — recherche et API utilisateur
 
@@ -197,6 +199,7 @@ dans les Journaux de T11 et de T18 (ADR 0051).
 | Conteneur visible d'une autre équipe | l'équipe d'un conteneur est celle de son hôte, imposée par une clé étrangère en cascade (ADR 0040) ; elle ne protège que si l'hôte lui-même ne peut pas être pris par une autre équipe : inscription bornée à l'équipe du jeton (SEC2-02) | T13, T18 |
 | Déni de service par création de conteneurs (jeton d'agent volé, hôte compromis) | projets enfants d'un hôte, actifs ou archivés, bornés (`containers.max_per_host`, 1 000) : un signalement qui en créerait davantage est refusé sans rien créer ni journaliser ; seule la purge supprime un enfant, la borne totale borne donc les créations dans le temps ; 500 identités par signalement, limitation par jeton (SEC2-05, ADR 0051) | T18 |
 | Serveur usurpé | TLS vérifié (autorité privée possible) ; mTLS facultatif, exigé alors sur toute l'API des agents avant la lecture du jeton | T07 |
+| Clé d'API de Dependency-Track volée ou envoyée à un tiers | sortie désactivée par défaut ; clé en fichier `0600` ou credential systemd, jamais en configuration ni dans les journaux ; HTTPS seulement, aucune redirection suivie (ADR 0057) | T19 |
 
 ### Agent dépôt
 
@@ -216,6 +219,7 @@ dans les Journaux de T11 et de T18 (ADR 0051).
 | Fuite de code vers un fournisseur externe non autorisé | IA désactivée par défaut ; fournisseur externe autorisé projet par projet par un administrateur d'organisation, audité ; **l'autorisation vaut pour un dépôt : changer l'URL du dépôt sans le droit `ai.external` la retire** (réglage ramené à « désactivé », journalisé, SEC2-03) ; `ai.forbid_external` sur l'instance ; réglage effectif transmis à l'agent ; client Anthropic sans aucune valeur lue dans l'environnement (ADR 0042, 0043) | T12 |
 | Coût ou durée d'analyse incontrôlés (dépôt piège, boucle du modèle) | budget de tours, de jetons, d'octets lus et de durée ; délai vérifié entre deux appels d'outils et pendant une recherche, chaque recherche décomptée du budget de lecture, 20 appels d'outils au plus par réponse du modèle (SEC2-09) ; au-delà, SBOM Syft seul marqué incomplet ; analyse incrémentale ; commits intermédiaires sans appel au modèle | T12, T18 |
 | Clé d'API du modèle volée | credential systemd ou fichier `0600`, jamais en configuration ni dans les journaux ; erreurs du fournisseur résumées sans corps de réponse | T12 |
+| Clé d'API de Dependency-Track volée | même traitement que les autres secrets de l'agent (credential ou `0600`), HTTPS seulement, aucune redirection suivie ; sortie désactivée par défaut (ADR 0057) | T19 |
 
 ### Chaîne d'approvisionnement du projet
 

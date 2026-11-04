@@ -1023,3 +1023,28 @@ les pièges découverts, pour ne pas les reproduire. Une entrée = le constat, p
 - **Clé de configuration déplacée** : une clé inconnue est ignorée sans message par le
   chargement ; un script de paquet qui réécrit une clé par `sed` peut écrire l'ancienne
   position. Réécrire dans la bonne section (awk par section) et le dire dans le CHANGELOG.
+
+## Compatibilité Dependency-Track (T19)
+
+- **Code téléchargé d'un client tiers** : lancer le `dist/index.js` d'une action GitHub
+  récupérée sur le réseau est refusé dans la session (code externe). Règle : lire son code
+  pour reconstituer la requête (ordre des champs, en-têtes, format du multipart de la
+  bibliothèque HTTP), valider la requête reconstituée contre le vrai serveur tiers, et
+  laisser l'enregistrement d'une exécution réelle à l'utilisateur.
+- **Un client qui ne garde pas le chemin de l'adresse** : `new URL("/api/v1/bom", base)`
+  remplace tout chemin de `base` ; l'action `gh-upload-sbom` ne peut donc pas viser un
+  préfixe comme `/dt`. Règle : pour tout point « compatible » sous un préfixe, vérifier
+  dans le code de chaque client visé comment il compose l'URL, et documenter le mandataire
+  qui préfixe quand le client n'accepte qu'un nom d'hôte.
+- **Dependency-Track 5 en conteneur** : l'image `dependencytrack/apiserver:5.x` ne demande
+  que PostgreSQL (`DT_DATASOURCE_URL`, `_USERNAME`, `_PASSWORD`, réseau de l'hôte) ; les
+  erreurs TLS des miroirs de vulnérabilités au démarrage sont sans effet sur l'API. Compte
+  `admin`/`admin` : `POST /api/v1/user/forceChangePassword`, puis `login`, puis `PUT
+  /api/v1/team/{uuid}/key` ; le contrat OpenAPI exact est dans le jar
+  (`org/dependencytrack/api/v1/openapi.yaml`).
+- **Réponse d'un tiers plus riche que sa documentation** : `event/token` renvoie aussi
+  `status` en 5.x, absent des pages consultées. Règle : relever les réponses réelles
+  (fichiers de `testdata/`) plutôt que de s'en tenir à la documentation.
+- **Nom déjà pris dans un paquet** : `writeJSON` existait dans `internal/api` (API
+  utilisateur) avec une autre signature. Règle : chercher le nom (`grep -n "func nom"`)
+  avant d'ajouter un assistant à un paquet partagé.

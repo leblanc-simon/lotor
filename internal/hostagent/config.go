@@ -40,6 +40,7 @@ type Config struct {
 	Server              Server            `yaml:"server"`
 	Scan                Scan              `yaml:"scan"`
 	Containers          Containers        `yaml:"containers"`
+	DependencyTrack     DependencyTrack   `yaml:"dependency_track"`
 	Resources           Resources         `yaml:"resources"`
 	Logging             appconf.Logging   `yaml:"logging" env-prefix:"LOTOR_HOST_AGENT_"`
 }
@@ -87,6 +88,27 @@ type Containers struct {
 	Timeout     time.Duration `yaml:"timeout"       env:"LOTOR_HOST_AGENT_CONTAINERS_TIMEOUT"       env-default:"30s"  env-description:"Timeout of one engine API call (image exports excepted)"`
 }
 
+// DependencyTrack règle la sortie vers Dependency-Track (T19, ADR 0057) : le SBOM de
+// l'hôte, en CycloneDX 1.6, part aussi (ou seulement, avec Only) vers un
+// Dependency-Track, quand son inventaire a changé depuis le dernier envoi accepté. Les
+// conteneurs n'y sont pas envoyés.
+type DependencyTrack struct {
+	// URL : adresse de base (https://dtrack.example.org) ; vide, la sortie est désactivée.
+	URL string `yaml:"url" env:"LOTOR_HOST_AGENT_DT_URL" env-description:"Dependency-Track base address (https://…); empty: no Dependency-Track output"`
+	// APIKeyFile : vide, le credential systemd « dependency-track-api-key ».
+	APIKeyFile     string `yaml:"api_key_file"    env:"LOTOR_HOST_AGENT_DT_API_KEY_FILE"    env-description:"File holding the Dependency-Track API key (0600); default: the dependency-track-api-key systemd credential"`
+	CAFile         string `yaml:"ca_file"         env:"LOTOR_HOST_AGENT_DT_CA_FILE"         env-description:"PEM bundle of a private certificate authority for Dependency-Track"`
+	Proxy          string `yaml:"proxy"           env:"LOTOR_HOST_AGENT_DT_PROXY"           env-description:"HTTP(S) proxy URL for Dependency-Track (default: HTTPS_PROXY and NO_PROXY)"`
+	ProjectName    string `yaml:"project_name"    env:"LOTOR_HOST_AGENT_DT_PROJECT_NAME"    env-description:"Dependency-Track project name (default: the host name)"`
+	ProjectVersion string `yaml:"project_version" env:"LOTOR_HOST_AGENT_DT_PROJECT_VERSION" env-default:"host" env-description:"Dependency-Track project version"`
+	AutoCreate     bool   `yaml:"auto_create"     env:"LOTOR_HOST_AGENT_DT_AUTO_CREATE"     env-description:"Create the project in Dependency-Track if it does not exist (PROJECT_CREATION_UPLOAD permission)"`
+	// Only : la sortie remplace l'envoi au serveur lotor (ni inscription ni signal de vie).
+	Only bool `yaml:"only" env:"LOTOR_HOST_AGENT_DT_ONLY" env-description:"Send to Dependency-Track only, instead of the lotor server (no enrollment, no heartbeat)"`
+}
+
+// Enabled dit si la sortie vers Dependency-Track est configurée.
+func (d DependencyTrack) Enabled() bool { return d.URL != "" }
+
 // ImagesDir renvoie le répertoire des archives d'images.
 func (c Config) ImagesDir() string {
 	if c.Containers.WorkDir != "" {
@@ -128,8 +150,27 @@ func (c Config) Validate() error {
 	if !slices.Contains([]string{ModeDaemon, ModeOneshot}, c.Mode) {
 		fail("mode", "%q invalide (daemon ou oneshot)", c.Mode)
 	}
-	if u, err := url.Parse(c.Server.URL); err != nil || u.Scheme != "https" || u.Host == "" || u.RawQuery != "" || u.User != nil {
-		fail("server.url", "adresse https://hôte attendue")
+	if !c.DependencyTrack.Only {
+		if u, err := url.Parse(c.Server.URL); err != nil || u.Scheme != "https" || u.Host == "" || u.RawQuery != "" || u.User != nil {
+			fail("server.url", "adresse https://hôte attendue")
+		}
+	}
+	if d := c.DependencyTrack; d.Enabled() || d.Only {
+		if u, err := url.Parse(d.URL); err != nil || u.Scheme != "https" || u.Host == "" || u.RawQuery != "" || u.User != nil {
+			fail("dependency_track.url", "adresse https://hôte attendue")
+		}
+		if d.APIKeyFile != "" && !filepath.IsAbs(d.APIKeyFile) {
+			fail("dependency_track.api_key_file", "chemin absolu attendu")
+		}
+		if strings.TrimSpace(d.ProjectVersion) == "" || len(d.ProjectVersion) > 255 {
+			fail("dependency_track.project_version", "1 à 255 caractères")
+		}
+		if len(d.ProjectName) > 255 {
+			fail("dependency_track.project_name", "255 caractères au plus")
+		}
+		if d.Only && c.Containers.Enabled {
+			fail("containers.enabled", "sans effet avec dependency_track.only : les conteneurs ne vont qu'au serveur lotor")
+		}
 	}
 	if c.Server.ClientKeyFile != "" && c.Server.ClientCertFile == "" {
 		fail("server.client_cert_file", "obligatoire avec server.client_key_file")

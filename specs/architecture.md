@@ -292,7 +292,7 @@ Données **par organisation** (toutes portent `org_id`) :
 | `organizations`, `org_memberships` | organisation (slug, nom, langue par défaut) ; compte × organisation × rôle (`member`, `admin`) |
 | `teams`, `team_members`, `org_invitations` | équipes ; membre de l'organisation × équipe × rôle d'équipe (`reader`, `analyst`, `admin`) ; invitations à rejoindre l'organisation, avec leur lien secret haché (T16, ADR 0034 ; T28, ADR 0056) |
 | `projects` | type (`repo`, `host`, `container`), nom, slug, étiquettes, équipe (obligatoire, T16), archivage, réglage de l'enrichissement IA `ai_mode` (`disabled` par défaut, `local`, `external` ; T12, ADR 0043) ; pour un conteneur, `parent_id` (l'hôte, dont il garde l'équipe par clé étrangère en cascade), identité dans l'hôte, contexte, dernier signalement, archivage pour absence (T13, ADR 0040) |
-| `tracked_refs` | référence suivie (branche, tag, l'hôte, ou le conteneur nommé par son identité) |
+| `tracked_refs` | référence suivie (branche, tag, version reçue par le point compatible Dependency-Track, l'hôte, ou le conteneur nommé par son identité) |
 | `agents`, `agent_tokens`, `enrollment_tokens` | agents (équipe facultative : sans équipe, agent d'organisation) et jetons hachés ; jeton d'inscription rattaché à une équipe, dont héritent projet et agent inscrits ; pour un agent serveur, demande de scan en attente et dernier contexte d'hôte (T07) |
 | `components` | composant de l'organisation : purl canonique (unique par organisation), `purl_base`, type, nom, version, CPE, empreintes |
 | `component_sets`, `component_set_items` | ensemble d'inventaire adressé par son empreinte ; ses composants avec origine (`syft`, `ia`), confiance, modèle, preuve, portée, licences, identification faible |
@@ -530,9 +530,9 @@ grandes tables par `org_id` donnerait la même séparation physique en gardant l
      rien ranger.
 3. Règle d'instantané : pour un dépôt, un instantané par (référence, commit), même si
    l'inventaire n'a pas changé (il réutilise alors l'ensemble existant) ; le même commit
-   renvoyé avec un autre inventaire remplace l'ensemble de son instantané. Pour un hôte ou
-   un conteneur, un inventaire identique au courant met seulement à jour la date de
-   dernière analyse. L'instantané courant est le plus récent par date de scan.
+   renvoyé avec un autre inventaire remplace l'ensemble de son instantané. Pour un hôte, un
+   conteneur ou une version reçue par le point compatible Dependency-Track (sans commit),
+   un inventaire identique au courant met seulement à jour la date de dernière analyse. L'instantané courant est le plus récent par date de scan.
 4. Si l'ensemble courant de la référence a changé, job `analysis.ref` (charge
    `{"ref_id"}`, clé `ref:<id>`, priorité haute) mis en file dans la même transaction.
 5. `GET /api/v1/agent/ingestions/{id}` expose le statut (`queued`, `processing`, `done`,
@@ -737,8 +737,12 @@ qu'aucune mesure ne la justifie (ADR 0015).
   jour.
 - Préfixe `/api/v1`. Routes des agents sous `/api/v1/agent/` (dont le verdict des
   politiques sur un instantané, `GET /api/v1/agent/snapshots/{id}/verdict`, T15), routes utilisateur sous
-  `/api/v1/orgs/{org}/`. Le point compatible Dependency-Track (T19) vit sous `/dt/` pour ne
-  pas mêler son espace d'URL au nôtre. L'API utilisateur exporte le VEX d'un projet
+  `/api/v1/orgs/{org}/`. Le point compatible Dependency-Track (T19, ADR 0057) vit sous `/dt/`
+  pour ne pas mêler son espace d'URL au nôtre : `PUT`/`POST /dt/api/v1/bom` et
+  `GET /dt/api/v1/event/token/{uuid}` (et `bom/token`, chemin de la 4.x), écrits à la main
+  (contrat de Dependency-Track, pas le nôtre), mêmes middlewares que l'API des agents, clé
+  `X-Api-Key` = jeton d'agent dépôt, nom de projet = dépôt confié à l'agent, version =
+  référence de nature `version`, création automatique autorisée par agent d'équipe. L'API utilisateur exporte le VEX d'un projet
   (`GET /api/v1/orgs/{org}/projects/{project}/vex`, T14).
 - Erreurs au format RFC 9457 (`application/problem+json`) : `type` porte une clé stable
   (`error.ingest.too_large`), `title` et `detail` les messages traduits de
@@ -786,7 +790,9 @@ qu'aucune mesure ne la justifie (ADR 0015).
   gigue ; `Retry-After` respecté, abandon s'il dépasse la politique), d'erreurs RFC 9457
   exposées par leur clé (`agentclient.Error`, `IsKey`), de l'envoi multipart d'un SBOM
   (contexte, puis SBOM en gzip, corps rejoué à chaque tentative) et du suivi d'une
-  ingestion jusqu'à son état final (T07, `doc.go`).
+  ingestion jusqu'à son état final (T07, `doc.go`) ; client de Dependency-Track
+  `DTClient` (T19 : `PUT /api/v1/bom` en JSON, suivi par `event/token`, mêmes transport et
+  réessais).
 - Inscription : jeton d'inscription → jeton d'agent stocké dans le répertoire d'état
   (droits `0600`).
 - Secrets des agents (jeton, clés de forge, clés d'API des modèles) : jamais dans le fichier
@@ -811,7 +817,10 @@ qu'aucune mesure ne la justifie (ADR 0015).
   conteneur (`hostagent.Identity`), signalement `POST /api/v1/agent/containers` (le
   serveur crée les projets enfants sous l'hôte de l'agent seul), image exportée
   (`docker save`) et scannée hors ligne une fois par image, empreintes d'images gardées
-  et confirmées par le serveur. Suite : T22 (Windows, containerd), T23 (hors ligne).
+  et confirmées par le serveur. Sortie vers Dependency-Track (T19, ADR 0057) : SBOM réencodé
+  en CycloneDX 1.6 et envoyé quand l'empreinte diffère du dernier envoi accepté, en plus de
+  lotor ou à sa place (`dependency_track.only`). Suite : T22 (Windows, containerd), T23
+  (hors ligne).
 - `lotor-repo-agent` : service externe qui détient seul les secrets des forges. Il reçoit les
   webhooks, clone, analyse, envoie, puis attend le verdict du serveur pour publier le statut
   de commit (T15, ADR 0047 : attente bornée par `status.timeout`, statut « en attente »
@@ -845,7 +854,8 @@ qu'aucune mesure ne la justifie (ADR 0015).
   `testdata/ai-pilot` (`make eval-ai`) ; chaque composant accepté est revérifié hors du
   vérificateur (`checkProof`, en CI sur le corpus). Un composant IA est toujours de type
   CycloneDX `library`, image comprise : le décodeur du serveur ignore le type
-  `container` (T18).
+  `container` (T18). Sortie vers Dependency-Track (T19, ADR 0057) : SBOM du commit de tête
+  de chaque référence, après lotor, projet et version par gabarits.
 
 ## 18. Internationalisation
 

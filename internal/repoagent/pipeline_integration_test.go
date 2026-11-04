@@ -3,6 +3,7 @@
 package repoagent
 
 import (
+	"bytes"
 	"context"
 	"crypto/hmac"
 	"crypto/rand"
@@ -24,6 +25,7 @@ import (
 	"testing"
 	"time"
 
+	"leblanc.io/lotor/internal/agentclient"
 	"leblanc.io/lotor/internal/forge"
 	"leblanc.io/lotor/internal/sbom"
 	"leblanc.io/lotor/internal/sbom/schema"
@@ -463,11 +465,15 @@ func TestPipelineGitHub(t *testing.T) {
 	gitBin, argLog := recordingGit(t)
 
 	srv := &fakeServer{projects: []Project{{
-		ID: "p1", Slug: "app", ForgeURL: gh.srv.URL + "/acme/app",
+		ID: "p1", Slug: "app", Name: "Application", ForgeURL: gh.srv.URL + "/acme/app",
 		Refs: []TrackedRef{{Ref: mainRef, LastCommit: r.commits[0]}},
 	}}}
 	logs := &syncBuffer{}
-	a := newTestAgent(t, srv, provider, logs, func(o *Options) { o.Work.Git = gitBin })
+	dt := &recordingDT{}
+	a := newTestAgent(t, srv, provider, logs, func(o *Options) {
+		o.Work.Git = gitBin
+		o.DT, o.DTConfig = dt, DTConfig{ProjectName: "{name}", ProjectVersion: "{ref}", AutoCreate: true}
+	})
 	rc, err := NewReceiver([]forge.Provider{provider}, a.OnPush, 1<<20, 0, nil, testLogger(logs))
 	if err != nil {
 		t.Fatal(err)
@@ -494,6 +500,11 @@ func TestPipelineGitHub(t *testing.T) {
 	if _, ok := names(decodeSBOM(t, u.SBOM))["golang.org/x/text"]; !ok {
 		t.Fatal("dépendance du dernier commit absente")
 	}
+	// Dependency-Track ne reçoit que le commit de tête du rattrapage, même SBOM que lotor.
+	if got := dt.all(); len(got) != 1 || got[0].target != (agentclient.DTTarget{ProjectName: "Application", ProjectVersion: "main", AutoCreate: true}) ||
+		!bytes.Equal(got[0].bom, u.SBOM) {
+		t.Fatalf("envois à Dependency-Track : %+v", got)
+	}
 
 	// Push mal signé : refusé, rien n'est analysé.
 	head := r.push("package.json", `{"name":"app","version":"1.0.0"}`)
@@ -505,6 +516,7 @@ func TestPipelineGitHub(t *testing.T) {
 		t.Fatalf("push : %d", resp.StatusCode)
 	}
 	waitFor(t, "push", func() bool { return len(srv.commits()) == 3 })
+	waitFor(t, "push vers Dependency-Track", func() bool { return len(dt.all()) == 2 })
 	if got := srv.commits()[2]; got != head {
 		t.Fatalf("commit envoyé %s, attendu %s", got, head)
 	}

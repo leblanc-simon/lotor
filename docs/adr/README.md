@@ -61,3 +61,4 @@ décision contraire fait l'objet d'un nouvel ADR qui le remplace.
 | [0054](0054-page-de-presentation-publique.md) | Page de présentation publique sur « / » | Accepté |
 | [0055](0055-index-compact-agent-serveur.md) | Agent serveur : index compact de l'arborescence au lieu de la source « répertoire » de Syft, répertoires de données exclus | Accepté |
 | [0056](0056-inscription.md) | Inscription : modes privé, sur code et public, liens d'invitation d'organisation, courriels transactionnels et gabarit HTML commun | Accepté |
+| [0057](0057-point-compatible-dependency-track.md) | Compatibilité Dependency-Track : point `/dt` (clé = jeton d'agent dépôt, version = référence « version »), création automatique par agent d'équipe, sortie des agents | Accepté |

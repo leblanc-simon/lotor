@@ -62,6 +62,18 @@ status:
   timeout: 15m           # attente maximale du verdict (le commit suivant attend)
   poll: 5s               # premier intervalle d'interrogation, doublé jusqu'à 30 s
 
+# Sortie vers Dependency-Track (docs/dependency-track.md) : le SBOM du commit de tête de
+# chaque référence part aussi vers un Dependency-Track, après lotor. Gabarits : {name}
+# (nom du projet lotor), {slug}, {ref}.
+dependency_track:
+  url: ""                                         # https://dtrack.example.org ; vide : désactivé
+  api_key_file: credential:dependency-track-api-key
+  ca_file: ""
+  proxy: ""
+  project_name: "{name}"
+  project_version: "{ref}"
+  auto_create: false
+
 # Forges. Le nom (minuscules, chiffres, tirets) termine l'URL du webhook ; l'URL web est
 # comparée à l'« URL de forge » de chaque projet confié. allowed_namespaces (obligatoire)
 # borne les dépôts analysés : propriétaires GitHub ou groupes GitLab (sous-groupes

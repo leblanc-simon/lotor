@@ -58,6 +58,7 @@ MemoryMax=1536M
 # Secrets en credentials chiffrés (systemd-creds encrypt), au lieu de fichiers en 0600 :
 #LoadCredentialEncrypted=enrollment-token:/etc/lotor-host-agent/enrollment-token.cred
 #LoadCredentialEncrypted=client-key:/etc/lotor-host-agent/client-key.cred
+#LoadCredentialEncrypted=dependency-track-api-key:/etc/lotor-host-agent/dependency-track-api-key.cred
 
 [Install]
 WantedBy=multi-user.target

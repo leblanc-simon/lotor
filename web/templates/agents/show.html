@@ -52,6 +52,22 @@
         </div>
       </section>
       {{- end}}
+      {{- with .DT}}
+      <section class="panel" aria-labelledby="agent-dt">
+        <div class="panel__head"><h2 class="panel__title" id="agent-dt">{{T "agent.dt_title"}}</h2></div>
+        <div class="panel__body stack stack--sm">
+          <p>{{T "agent.dt_text"}}</p>
+          <p>{{if .Enabled}}<span class="status status--active">{{T "agent.dt_auto_create_on"}}</span>{{else}}<span class="status">{{T "agent.dt_auto_create_off"}}</span>{{end}}</p>
+          {{- if not .Possible}}<p class="muted">{{T "agent.dt_team_required"}}</p>{{end}}
+          {{- if and $.CanAdmin (not $a.DisabledAt) (or .Possible .Enabled)}}
+          <form method="post" action="{{$.Base}}/agents/{{$a.ID}}/dt-auto-create">
+            {{csrfField $.Page.CSRFToken}}
+            <button class="btn" type="submit" name="dt_auto_create" value="{{.Toggle}}">{{if .Enabled}}{{T "agent.dt_disable"}}{{else}}{{T "agent.dt_enable"}}{{end}}</button>
+          </form>
+          {{- end}}
+        </div>
+      </section>
+      {{- end}}
       <section class="panel" aria-labelledby="agent-tokens">
         <div class="panel__head">
           <h2 class="panel__title" id="agent-tokens">{{T "agent.tokens_title" "Name" $a.Name}}</h2>

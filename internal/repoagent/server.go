@@ -12,6 +12,7 @@ import (
 type Project struct {
 	ID       string
 	Slug     string
+	Name     string
 	ForgeURL string
 	// AIMode est le réglage d'enrichissement IA transmis par le serveur ; vide vaut
 	// AIDisabled.

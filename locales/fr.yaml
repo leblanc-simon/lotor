@@ -111,6 +111,8 @@ flash:
   project_agent_saved: L'agent du projet est enregistré.
   project_ai_saved: "Le réglage de l'enrichissement IA est enregistré."
   token_revoked: Le jeton est révoqué ; la prochaine requête qui le présente sera refusée.
+  dt_auto_create_on: "L'agent peut créer projets et versions par le point Dependency-Track."
+  dt_auto_create_off: "L'agent ne peut plus créer de projets ni de versions par le point Dependency-Track."
   agent_disabled: L'agent est désactivé ; ses jetons sont révoqués et ses projets lui sont retirés.
   enrollment_revoked: Le jeton d'inscription est révoqué.
   job_retried: Le traitement est remis en file ; un worker le reprendra sous peu.
@@ -137,6 +139,11 @@ pagination:
   next: Page suivante
 
 validation:
+  dt:
+    target_missing: "Désignez la cible : l'identifiant d'une version (project), ou le nom du projet et sa version (projectName et projectVersion)."
+    version_invalid: La version compte de 1 à 255 caractères, sans caractère de contrôle ni espace en tête ou en fin.
+    team_missing: "La création automatique n'est possible que pour un agent rattaché à une équipe : le projet créé appartient à son équipe."
+    base64: Le champ bom doit contenir le SBOM encodé en base64.
   signup_code_label: "Donnez un libellé au code (100 caractères au plus)."
   signup_code_days: "La validité est de 1 à 365 jours."
   policy_expression_required: "Saisissez la règle (expression CEL)."
@@ -529,6 +536,9 @@ audit:
     project_purged: "Conteneur {{.Target}} de l'hôte {{.D_host}} supprimé avec son historique, archivé pour absence depuis le {{.D_archived_at}}"
     project_agent_changed: "Agent du projet {{.Target}} : {{.D_agent}}"
     project_ai_mode_changed: "Enrichissement IA du projet {{.Target}} : {{.D_from}} → {{.D_to}}"
+    project_version_added: "Version {{.D_version}} ajoutée au projet {{.Target}} (point Dependency-Track)"
+    agent_dt_auto_create_enabled: "L'agent {{.Target}} peut désormais créer projets et versions par le point Dependency-Track"
+    agent_dt_auto_create_disabled: "L'agent {{.Target}} ne peut plus créer de projets ni de versions par le point Dependency-Track"
     agent_created: "Agent {{.Target}} créé"
     agent_enrolled: "Agent serveur {{.Target}} inscrit (projet {{.D_project}}, jeton {{.D_token}})"
     agent_disabled: "Agent {{.Target}} désactivé"
@@ -642,6 +652,22 @@ admin_org:
   unarchive: Réactiver
 
 error:
+  dt:
+    agent_kind:
+      title: Clé d'API d'un agent serveur
+      text: Le point compatible Dependency-Track n'accepte que le jeton d'un agent dépôt.
+    project_unknown:
+      title: Projet ou version inconnus
+      text: "Aucun dépôt confié à cet agent ne porte ce nom, ou il ne suit pas cette version. Ajoutez la version au projet, ou envoyez avec autoCreate=true si l'agent y est autorisé."
+    project_ambiguous:
+      title: Nom de projet ambigu
+      text: Plusieurs dépôts confiés à cet agent portent ce nom. Renommez-en un, ou désignez la version par son identifiant (project).
+    auto_create_forbidden:
+      title: Création automatique refusée
+      text: "Cet agent n'est pas autorisé à créer des projets ou des versions : un administrateur peut l'autoriser sur la fiche de l'agent, s'il est rattaché à une équipe."
+    versions_limit:
+      title: Trop de versions suivies
+      text: Le projet suit déjà le nombre maximal de versions. Retirez des versions anciennes dans ses réglages.
   notify:
     failed: "L'envoi a échoué."
     unreachable: "Le destinataire est injoignable (réseau, nom ou délai)."
@@ -889,6 +915,8 @@ projects:
   container_of: sur
 
 project:
+  versions: Versions (point Dependency-Track)
+  version_id: identifiant
   tab_vex: "VEX"
   tab_findings: Constats
   title: "{{.Name}}"
@@ -980,6 +1008,8 @@ project_form:
   branches: Branches suivies
   tags: Étiquettes git suivies
   refs_hint: Une par ligne, ou séparées par des virgules.
+  versions: Versions (point Dependency-Track)
+  versions_hint: Une par ligne. Une version reçoit les envois des outils configurés pour Dependency-Track ; un envoi avec création automatique en ajoute une.
   host_legend: Serveur
   host_ref: Nom de l'hôte
   host_ref_hint: Le nom que l'agent annonce à l'inscription ; il identifie l'hôte dans l'organisation.
@@ -1024,6 +1054,13 @@ agents:
   org_wide: "Organisation (toutes les équipes)"
 
 agent:
+  dt_title: Point Dependency-Track
+  dt_text: "Les outils configurés pour Dependency-Track envoient leurs SBOM à l'adresse de base …/dt de ce serveur, avec un jeton de cet agent comme clé d'API. Le nom du projet désigne un dépôt confié à l'agent, la version une de ses versions."
+  dt_auto_create_on: Création automatique autorisée
+  dt_auto_create_off: Création automatique refusée
+  dt_team_required: "La création automatique demande un agent rattaché à une équipe : le projet créé appartient à son équipe."
+  dt_enable: Autoriser la création automatique
+  dt_disable: Refuser la création automatique
   title: "Agent {{.Name}}"
   version_value: "Version {{.Version}}"
   projects_title: Projets couverts
@@ -1104,6 +1141,7 @@ ref_kind:
   tag: Étiquette
   host: Hôte
   container: Conteneur
+  version: Version
 
 origin:
   syft: Syft

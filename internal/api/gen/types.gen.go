@@ -330,6 +330,7 @@ const (
 	SearchRefKindContainer SearchRefKind = "container"
 	SearchRefKindHost      SearchRefKind = "host"
 	SearchRefKindTag       SearchRefKind = "tag"
+	SearchRefKindVersion   SearchRefKind = "version"
 )
 
 // Valid indicates whether the value is a known member of the SearchRefKind enum.
@@ -342,6 +343,8 @@ func (e SearchRefKind) Valid() bool {
 	case SearchRefKindHost:
 		return true
 	case SearchRefKindTag:
+		return true
+	case SearchRefKindVersion:
 		return true
 	default:
 		return false
@@ -1336,12 +1339,14 @@ type SearchProjectKind string
 
 // SearchRef defines model for SearchRef.
 type SearchRef struct {
-	Id   openapi_types.UUID `json:"id"`
-	Kind SearchRefKind      `json:"kind"`
-	Name string             `json:"name"`
+	Id openapi_types.UUID `json:"id"`
+
+	// Kind Nature de la référence : `version` pour une version reçue par le point compatible Dependency-Track (sans commit).
+	Kind SearchRefKind `json:"kind"`
+	Name string        `json:"name"`
 }
 
-// SearchRefKind defines model for SearchRef.Kind.
+// SearchRefKind Nature de la référence : `version` pour une version reçue par le point compatible Dependency-Track (sans commit).
 type SearchRefKind string
 
 // SearchResult defines model for SearchResult.

@@ -147,7 +147,8 @@ type Context struct {
 	RefKind   project.RefKind
 	RefName   string
 	// Commit (SHA-1 ou SHA-256 en hexadécimal minuscule) est exigé pour une branche ou
-	// une étiquette, interdit pour un hôte ou un conteneur.
+	// une étiquette, interdit pour un hôte, un conteneur ou une version (point compatible
+	// Dependency-Track).
 	Commit       string
 	AgentVersion string
 	ScannedAt    time.Time
@@ -155,7 +156,7 @@ type Context struct {
 
 // machine dit si l'envoi vise un hôte ou un conteneur (sans commit).
 func (c Context) machine() bool {
-	return c.RefKind == project.RefHost || c.RefKind == project.RefContainer
+	return c.RefKind == project.RefHost || c.RefKind == project.RefContainer || c.RefKind == project.RefVersion
 }
 
 var commitPattern = regexp.MustCompile(`^[0-9a-f]{40}([0-9a-f]{24})?$`)
@@ -171,7 +172,7 @@ func (s *Service) validate(c *Context) error {
 	case c.ProjectID == uuid.Nil || c.RefName == "" || len(c.RefName) > 255:
 		return invalid("ref", KeyRefInvalid)
 	case c.RefKind != project.RefBranch && c.RefKind != project.RefTag && c.RefKind != project.RefHost &&
-		c.RefKind != project.RefContainer:
+		c.RefKind != project.RefContainer && c.RefKind != project.RefVersion:
 		return invalid("ref", KeyRefInvalid)
 	case c.machine() && c.Commit != "":
 		return invalid("commit", KeyCommitForbid)

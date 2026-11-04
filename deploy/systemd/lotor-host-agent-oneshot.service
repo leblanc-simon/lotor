@@ -49,3 +49,4 @@ TimeoutStartSec=2h
 
 #LoadCredentialEncrypted=enrollment-token:/etc/lotor-host-agent/enrollment-token.cred
 #LoadCredentialEncrypted=client-key:/etc/lotor-host-agent/client-key.cred
+#LoadCredentialEncrypted=dependency-track-api-key:/etc/lotor-host-agent/dependency-track-api-key.cred

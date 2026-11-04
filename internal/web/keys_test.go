@@ -57,6 +57,12 @@ func TestDynamicKeysExist(t *testing.T) {
 	for _, k := range agent.ErrorKeys() {
 		want = append(want, k+".title", k+".text")
 	}
+	// Point compatible Dependency-Track (T19).
+	want = append(want, agent.DTValidationKeys()...)
+	want = append(want, apiv1.KeyDTBase64)
+	for _, k := range agent.DTErrorKeys() {
+		want = append(want, k+".title", k+".text")
+	}
 	want = append(want, ingest.ValidationKeys()...)
 	for _, k := range append(sbom.ErrorKeys(), ingest.ErrorKeys()...) {
 		want = append(want, k+".title", k+".text")
@@ -76,7 +82,7 @@ func TestDynamicKeysExist(t *testing.T) {
 	for _, f := range []sbom.Format{sbom.FormatCycloneDX, sbom.FormatSPDX, sbom.FormatSyft} {
 		want = append(want, "format.sbom_"+string(f))
 	}
-	for _, k := range []project.RefKind{project.RefBranch, project.RefTag, project.RefHost, project.RefContainer} {
+	for _, k := range []project.RefKind{project.RefBranch, project.RefTag, project.RefHost, project.RefContainer, project.RefVersion} {
 		want = append(want, "ref_kind."+string(k))
 	}
 	for _, k := range append(project.Kinds(), project.KindContainer) {

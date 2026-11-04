@@ -96,8 +96,11 @@ type Agent struct {
 	HostAt *time.Time
 	// TeamID est l'équipe de l'agent ; nil : agent d'organisation, géré par ses seuls
 	// administrateurs, qui peut servir les projets de toutes les équipes.
-	TeamID       *uuid.UUID
-	TeamName     string
+	TeamID   *uuid.UUID
+	TeamName string
+	// DTAutoCreate : l'agent dépôt peut créer projets et versions par le point
+	// compatible Dependency-Track (ADR 0057) ; sans effet sans équipe.
+	DTAutoCreate bool
 	ProjectCount int
 	ActiveTokens int
 	Projects     []ProjectRef // Get seulement
@@ -367,7 +370,8 @@ const agentColumns = `a.id, a.kind, a.name, a.version, a.last_seen_at, a.disable
 	(SELECT count(*) FROM projects p WHERE p.org_id = a.org_id AND p.agent_id = a.id AND p.archived_at IS NULL),
 	(SELECT count(*) FROM agent_tokens t WHERE t.org_id = a.org_id AND t.agent_id = a.id AND t.revoked_at IS NULL
 	    AND (t.expires_at IS NULL OR t.expires_at > $1)),
-	a.team_id, coalesce((SELECT tm.name FROM teams tm WHERE tm.org_id = a.org_id AND tm.id = a.team_id), '')`
+	a.team_id, coalesce((SELECT tm.name FROM teams tm WHERE tm.org_id = a.org_id AND tm.id = a.team_id), ''),
+	a.dt_auto_create`
 
 func scanAgent(row interface{ Scan(...any) error }) (Agent, error) {
 	var a Agent
@@ -376,7 +380,7 @@ func scanAgent(row interface{ Scan(...any) error }) (Agent, error) {
 	var host []byte
 	var team uuid.NullUUID
 	if err := row.Scan(&a.ID, &kind, &a.Name, &a.Version, &seen, &disabled, &a.CreatedAt, &requested, &host, &hostAt,
-		&inventoried, &a.ProjectCount, &a.ActiveTokens, &team, &a.TeamName); err != nil {
+		&inventoried, &a.ProjectCount, &a.ActiveTokens, &team, &a.TeamName, &a.DTAutoCreate); err != nil {
 		return Agent{}, err
 	}
 	if team.Valid {

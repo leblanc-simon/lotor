@@ -111,6 +111,8 @@ flash:
   project_agent_saved: The project's agent is saved.
   project_ai_saved: "The AI enrichment setting is saved."
   token_revoked: The token is revoked; the next request that presents it will be refused.
+  dt_auto_create_on: The agent may create projects and versions through the Dependency-Track endpoint.
+  dt_auto_create_off: The agent may no longer create projects or versions through the Dependency-Track endpoint.
   agent_disabled: The agent is disabled; its tokens are revoked and its projects taken away.
   enrollment_revoked: The enrollment token is revoked.
   job_retried: The job is queued again; a worker will pick it up shortly.
@@ -137,6 +139,11 @@ pagination:
   next: Next page
 
 validation:
+  dt:
+    target_missing: "Name the target: the identifier of a version (project), or the project name and its version (projectName and projectVersion)."
+    version_invalid: The version has 1 to 255 characters, without control characters or leading or trailing spaces.
+    team_missing: "Automatic creation is only possible for an agent attached to a team: the created project belongs to its team."
+    base64: The bom field must hold the base64-encoded SBOM.
   signup_code_label: "Give the code a label (100 characters at most)."
   signup_code_days: "Validity is 1 to 365 days."
   policy_expression_required: "Enter the rule (CEL expression)."
@@ -529,6 +536,9 @@ audit:
     project_purged: "Container {{.Target}} of host {{.D_host}} deleted with its history, archived for absence since {{.D_archived_at}}"
     project_agent_changed: "Agent of project {{.Target}}: {{.D_agent}}"
     project_ai_mode_changed: "AI enrichment of project {{.Target}}: {{.D_from}} → {{.D_to}}"
+    project_version_added: "Version {{.D_version}} added to project {{.Target}} (Dependency-Track endpoint)"
+    agent_dt_auto_create_enabled: "Agent {{.Target}} may now create projects and versions through the Dependency-Track endpoint"
+    agent_dt_auto_create_disabled: "Agent {{.Target}} may no longer create projects and versions through the Dependency-Track endpoint"
     agent_created: "Agent {{.Target}} created"
     agent_enrolled: "Server agent {{.Target}} enrolled (project {{.D_project}}, token {{.D_token}})"
     agent_disabled: "Agent {{.Target}} disabled"
@@ -642,6 +652,22 @@ admin_org:
   unarchive: Reactivate
 
 error:
+  dt:
+    agent_kind:
+      title: API key of a host agent
+      text: The Dependency-Track endpoint only accepts the token of a repository agent.
+    project_unknown:
+      title: Unknown project or version
+      text: "No repository entrusted to this agent has this name, or it does not track this version. Add the version to the project, or upload with autoCreate=true if the agent is allowed to."
+    project_ambiguous:
+      title: Ambiguous project name
+      text: Several repositories entrusted to this agent have this name. Rename one, or name the version by its identifier (project).
+    auto_create_forbidden:
+      title: Automatic creation refused
+      text: "This agent is not allowed to create projects or versions: an administrator can allow it on the agent page, if it is attached to a team."
+    versions_limit:
+      title: Too many tracked versions
+      text: The project already tracks the maximum number of versions. Remove old versions in its settings.
   notify:
     failed: "Sending failed."
     unreachable: "The recipient is unreachable (network, name or timeout)."
@@ -889,6 +915,8 @@ projects:
   container_of: on
 
 project:
+  versions: Versions (Dependency-Track endpoint)
+  version_id: identifier
   tab_vex: "VEX"
   tab_findings: Findings
   title: "{{.Name}}"
@@ -980,6 +1008,8 @@ project_form:
   branches: Tracked branches
   tags: Tracked git tags
   refs_hint: One per line, or separated by commas.
+  versions: Versions (Dependency-Track endpoint)
+  versions_hint: One per line. A version receives the uploads of tools configured for Dependency-Track; an upload with automatic creation adds one.
   host_legend: Server
   host_ref: Host name
   host_ref_hint: The name the agent announces when enrolling; it identifies the host within the organization.
@@ -1024,6 +1054,13 @@ agents:
   org_wide: "Organization (all teams)"
 
 agent:
+  dt_title: Dependency-Track endpoint
+  dt_text: "Tools configured for Dependency-Track upload their SBOMs to the …/dt base address of this server, with a token of this agent as API key. The project name designates a repository entrusted to the agent, the version one of its versions."
+  dt_auto_create_on: Automatic creation allowed
+  dt_auto_create_off: Automatic creation refused
+  dt_team_required: "Automatic creation requires an agent attached to a team: the created project belongs to its team."
+  dt_enable: Allow automatic creation
+  dt_disable: Refuse automatic creation
   title: "Agent {{.Name}}"
   version_value: "Version {{.Version}}"
   projects_title: Covered projects
@@ -1104,6 +1141,7 @@ ref_kind:
   tag: Tag
   host: Host
   container: Container
+  version: Version
 
 origin:
   syft: Syft

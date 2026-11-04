@@ -61,6 +61,8 @@ var flashes = map[string]string{
 	"project_unarchived":  "flash.project_unarchived",
 	"project_agent_saved": "flash.project_agent_saved",
 	"token_revoked":       "flash.token_revoked",
+	"dt_auto_create_on":   "flash.dt_auto_create_on",
+	"dt_auto_create_off":  "flash.dt_auto_create_off",
 	"agent_disabled":      "flash.agent_disabled",
 	"enrollment_revoked":  "flash.enrollment_revoked",
 

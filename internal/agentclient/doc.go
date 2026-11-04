@@ -19,7 +19,10 @@
 //   - envoi d'un SBOM (Upload) : corps multipart construit une fois, partie context (JSON)
 //     puis partie sbom compressée en gzip (application/gzip), rejoué à l'identique à
 //     chaque tentative ; suivi de l'ingestion jusqu'à son état final (Wait) ;
-//   - pagination des projets confiés parcourue en entier (Projects).
+//   - pagination des projets confiés parcourue en entier (Projects) ;
+//   - client de Dependency-Track (DTClient, T19, ADR 0057) : PUT /api/v1/bom en JSON (SBOM
+//     CycloneDX en base64, clé dans X-Api-Key), suivi par GET /api/v1/event/token/{uuid}
+//     (ErrDTFailed sur un statut FAILED), mêmes transport, réessais et bornes.
 //
 // Le jeton (d'agent ou d'inscription) n'est jamais journalisé ; les journaux des réessais
 // ne portent que l'opération, la tentative, le statut et le délai. Les réponses sont

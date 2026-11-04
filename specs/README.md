@@ -61,7 +61,7 @@ sur les choix techniques ; une fiche de lot précise le quoi et le comment d'une
 | [T15](lots/T15-politiques-alertes.md) | Politiques, alertes et statuts de commit | 2 | T14 | Terminé |
 | [T17](lots/T17-differences-instantanes.md) | Différences d'instantanés | 2 | T16 | Terminé |
 | [T18](lots/T18-recette-lot-2.md) | Recette du lot 2 | 2 | T12 à T17 | Terminé (v0.2.0 publiée le 4 novembre 2026 ; mesure de l'IA avec une clé : action de l'utilisateur) |
-| [T19](lots/T19-dependency-track.md) | Compatibilité Dependency-Track | 3 | T18 | À faire |
+| [T19](lots/T19-dependency-track.md) | Compatibilité Dependency-Track | 3 | T18 | Terminé (exécution de l'action GitHub réelle : action de l'utilisateur) |
 | [T20](lots/T20-licences.md) | Licences avec Grant | 3 | T18 | À faire |
 | [T21](lots/T21-recherche-historique.md) | Recherche à une date passée | 3 | T18 | À faire |
 | [T22](lots/T22-agent-windows.md) | Agent serveur Windows | 3 | T18 | À faire |

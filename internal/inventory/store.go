@@ -405,7 +405,8 @@ func newer(scannedAt time.Time, id uuid.UUID, cur current) bool {
 	return strings.Compare(id.String(), cur.snapshotID.String()) > 0
 }
 
-// machineRef dit si une référence suit une machine (un hôte ou un conteneur) plutôt
-// qu'un dépôt : pas de commit, et un inventaire identique au courant ne fait qu'avancer
-// la date de dernière analyse.
-func machineRef(kind string) bool { return kind == "host" || kind == "container" }
+// machineRef dit si une référence suit une machine (un hôte ou un conteneur) ou une
+// version reçue par le point compatible Dependency-Track, plutôt qu'un commit de dépôt :
+// pas de commit, et un inventaire identique au courant ne fait qu'avancer la date de
+// dernière analyse.
+func machineRef(kind string) bool { return kind == "host" || kind == "container" || kind == "version" }

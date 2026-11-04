@@ -1443,7 +1443,8 @@ components:
           format: uuid
         kind:
           type: string
-          enum: [branch, tag, host, container]
+          description: "Nature de la référence : `version` pour une version reçue par le point compatible Dependency-Track (sans commit)."
+          enum: [branch, tag, version, host, container]
         name:
           type: string
     SearchComponent:
