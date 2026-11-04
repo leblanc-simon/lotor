@@ -323,7 +323,7 @@ Le mandataire git de la session refuse les pushs d'étiquettes (HTTP 403). Dans 
    critère s'ils tiennent (faux positifs ≤ 5 %, rappel ≥ 80 %) ; **confirmer ou changer le
    modèle par défaut** `claude-sonnet-5-5` ; sinon ajuster le prompt (nouvelle version)
    avant d'activer l'IA sur des projets. Facultatif : la même mesure avec Ollama.
-4. **Publier la préversion `v0.2.0`**, après les étapes 1 et 2 (et 3 si le résultat doit
+4. **Fait** (4 novembre 2026, étiquette sur `78fca4e`, puis `v0.2.1`) : **publier la préversion `v0.2.0`**, après les étapes 1 et 2 (et 3 si le résultat doit
    figurer dans les notes) :
    1. vérifier la section `## [0.2.0] - 2026-11-04` de `CHANGELOG.md` (date du jour de la
       pose ; ajouter le résultat de l'IA s'il y a lieu) et la CI de `main` ;

@@ -53,9 +53,8 @@ un taux de faux positifs mesuré et tenu, et publier une préversion `v0.2.0` du
       après).
 - [x] Un utilisateur peut se connecter avec un code de secours, à usage unique
       (partie 1, `TestRecoveryCodes`).
-- [ ] `v0.2.0` publiée. (Prête : `CHANGELOG.md` section `[0.2.0] - 2026-11-04`,
-      `make release VERSION=v0.2.0` vérifié ; la pose de l'étiquette est refusée dans la
-      session, action de l'utilisateur décrite dans `specs/avancement.md`.)
+- [x] `v0.2.0` publiée le 4 novembre 2026 (étiquette `v0.2.0` sur `78fca4e`, posée par
+      l'utilisateur ; corrective `v0.2.1` le même jour).
 
 ## Décisions
 
