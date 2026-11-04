@@ -39,9 +39,9 @@ var anchoreImporters = map[string][]string{
 var domainPackages = []string{
 	"internal/account", "internal/agent", "internal/audit", "internal/benchdata", "internal/dashboard",
 	"internal/db", "internal/finding", "internal/ingest", "internal/inventory",
-	"internal/jobs", "internal/license", "internal/locale", "internal/notify", "internal/org",
+	"internal/jobs", "internal/license", "internal/locale", "internal/mailer", "internal/notify", "internal/org",
 	"internal/pagination", "internal/policy", "internal/project", "internal/sbom", "internal/search",
-	"internal/secret", "internal/team", "internal/tenant", "internal/token", "internal/triage",
+	"internal/secret", "internal/signup", "internal/team", "internal/tenant", "internal/token", "internal/triage",
 	"internal/version", "internal/vuln",
 }
 
@@ -58,9 +58,9 @@ var agentPackages = []string{
 var serverPackages = []string{
 	"internal/account", "internal/agent", "internal/api", "internal/audit", "internal/benchdata", "internal/config",
 	"internal/dashboard", "internal/db", "internal/delivery", "internal/download", "internal/finding", "internal/ingest",
-	"internal/inventory", "internal/jobs", "internal/locale", "internal/notify", "internal/org",
+	"internal/inventory", "internal/jobs", "internal/locale", "internal/mailer", "internal/notify", "internal/org",
 	"internal/pagination", "internal/policy", "internal/project", "internal/render",
-	"internal/search", "internal/secret", "internal/team", "internal/tenant", "internal/token",
+	"internal/search", "internal/secret", "internal/signup", "internal/team", "internal/tenant", "internal/token",
 	"internal/triage", "internal/version", "internal/vuln", "internal/web", "web",
 }
 

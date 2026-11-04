@@ -202,7 +202,7 @@ func TestValidate(t *testing.T) {
 		t.Fatalf("configuration valide refusée : %v", err)
 	}
 	for name, mutate := range map[string]func(*Config){
-		"notify.public_url":  func(c *Config) { c.Notify.PublicURL = "ftp://x" },
+		"web.public_url":     func(c *Config) { c.Web.PublicURL = "ftp://x" },
 		"notify.timeout":     func(c *Config) { c.Notify.Timeout = time.Hour },
 		"notify.digest_hour": func(c *Config) { c.Notify.DigestHour = 24 },
 		"smtp.tls":           func(c *Config) { c.SMTP.Host, c.SMTP.From, c.SMTP.TLS = "smtp", "a@example.org", "ssl" },
@@ -219,11 +219,18 @@ func TestValidate(t *testing.T) {
 		}
 	}
 	ok := valid()
-	ok.Notify.PublicURL = "https://sbom.example.org"
+	ok.Web.PublicURL = "https://sbom.example.org"
 	ok.SMTP = SMTP{Host: "smtp.example.org", Port: 465, TLS: "tls", Username: "u", Password: "p", From: "lotor@example.org"}
 	if err := ok.Validate(); err != nil {
 		t.Errorf("notifications valides refusées : %v", err)
 	}
+	if !ok.MailConfigured() {
+		t.Error("SMTP et URL publique : envoi de courriels attendu")
+	}
+	if c := valid(); c.MailConfigured() {
+		t.Error("sans SMTP : aucun envoi de courriel attendu")
+	}
+	testValidateSignup(t, ok)
 	dir := t.TempDir()
 	certFile := filepath.Join(dir, "cert.pem")
 	if err := os.WriteFile(certFile, []byte("x"), 0o600); err != nil {
@@ -436,4 +443,46 @@ func hasPath(tree map[string]any, path []string) bool {
 	}
 	sub, ok := v.(map[string]any)
 	return ok && hasPath(sub, path[1:])
+}
+
+// testValidateSignup couvre l'inscription (T28) : modes, domaines, et refus du mode public
+// sans SMTP ou sans URL publique. mail est une configuration valide qui peut envoyer.
+func testValidateSignup(t *testing.T, mail Config) {
+	t.Helper()
+	if d := Defaults(); d.Signup.Mode != SignupPrivate {
+		t.Errorf("mode par défaut %q, attendu private", d.Signup.Mode)
+	}
+	for name, c := range map[string]Config{
+		"invitation sans SMTP": func() Config { c := valid(); c.Signup.Mode = SignupInvitation; return c }(),
+		"public avec SMTP":     func() Config { c := mail; c.Signup.Mode = SignupPublic; return c }(),
+		"domaines": func() Config {
+			c := mail
+			c.Signup = Signup{Mode: SignupPublic, AllowedDomains: []string{"acme.fr", "Sub.Example.CO.uk"}}
+			return c
+		}(),
+	} {
+		if err := c.Validate(); err != nil {
+			t.Errorf("%s refusé : %v", name, err)
+		}
+	}
+	for name, tc := range map[string]struct {
+		c    Config
+		want string
+	}{
+		"mode inconnu": {func() Config { c := valid(); c.Signup.Mode = "open"; return c }(), "signup.mode"},
+		"public sans SMTP": {func() Config {
+			c := valid()
+			c.Web.PublicURL = "https://x.example.org"
+			c.Signup.Mode = SignupPublic
+			return c
+		}(), "smtp.host et smtp.from"},
+		"public sans URL":    {func() Config { c := mail; c.Web.PublicURL = ""; c.Signup.Mode = SignupPublic; return c }(), "web.public_url obligatoire"},
+		"domaine avec @":     {func() Config { c := mail; c.Signup.AllowedDomains = []string{"@acme.fr"}; return c }(), "signup.allowed_domains"},
+		"domaine sans point": {func() Config { c := mail; c.Signup.AllowedDomains = []string{"localhost"}; return c }(), "signup.allowed_domains"},
+		"motif":              {func() Config { c := mail; c.Signup.AllowedDomains = []string{"*.acme.fr"}; return c }(), "signup.allowed_domains"},
+	} {
+		if err := tc.c.Validate(); err == nil || !strings.Contains(err.Error(), tc.want) {
+			t.Errorf("%s : %v, attendu %q", name, err, tc.want)
+		}
+	}
 }

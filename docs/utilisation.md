@@ -166,8 +166,13 @@ une équipe : les serveurs qu'il inscrit, et leurs agents, entrent dans cette é
 **Invitations.** Pour rejoindre une organisation, un compte doit être **invité** par un de
 ses administrateurs, puis **accepter** l'invitation depuis « Mon compte » → « Invitations »
 (elle vaut 30 jours ; la décliner la supprime). L'administrateur ne sait pas, en invitant,
-si l'adresse a déjà un compte : un compte créé plus tard par l'administration de
-l'instance peut encore accepter l'invitation tant qu'elle court.
+si l'adresse a déjà un compte. Chaque invitation porte un **lien** : envoyé par courriel,
+dans la langue de l'administrateur qui invite, si l'instance envoie des courriels, ou
+affiché une seule fois sur la page des membres, à transmettre. Ce lien crée le compte de
+l'adresse invitée (mot de passe choisi, second facteur aussitôt configuré), ou mène à la
+connexion pour accepter ; une nouvelle invitation de la même adresse le remplace. Un compte
+créé plus tard par l'administration de l'instance peut aussi accepter l'invitation tant
+qu'elle court.
 
 ## Triage des constats et VEX
 

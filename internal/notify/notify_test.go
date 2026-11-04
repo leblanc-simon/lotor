@@ -78,6 +78,22 @@ func TestDeliverEveryKind(t *testing.T) {
 		!strings.Contains(mail.Text, "https://sbom.example.org/o/acme/violations") || !strings.Contains(mail.Text, "agent srv-01") {
 		t.Fatalf("courriel %+v", mail)
 	}
+	// Version HTML (ADR 0056) : champs traduits, sévérité brute pour les couleurs, lien des
+	// canaux ; le métier ne met rien en forme, il ne fait que traduire.
+	h := mail.HTML
+	if h == nil || h.Lang != "en" || h.Org != "Acme" || h.Title != "New policy violations" || h.CTALabel != "View violations" ||
+		h.URL != "https://sbom.example.org/o/acme/violations" || h.ChannelsURL != "https://sbom.example.org/o/acme/channels" ||
+		len(h.Items) != 2 {
+		t.Fatalf("HTML %+v", h)
+	}
+	if it := h.Items[0]; it.Severity != "critical" || it.SeverityLabel != "Critical" || !it.KEV || it.KEVLabel != "KEV" ||
+		!it.Blocking || it.BlockingLabel != "Blocking" || it.Headline != "CVE-2021-44228 in pkg:maven/log4j-core@2.14.1" ||
+		it.Detail != "Project API <b>, reference main" || it.Policy != "Policy: KEV en production" {
+		t.Errorf("violation %+v", it)
+	}
+	if it := h.Items[1]; it.Severity != "" || it.Headline != "Agent srv-01" || it.Detail != "" {
+		t.Errorf("agent %+v", it)
+	}
 
 	wh := target{Channel: Channel{Kind: KindWebhook, Settings: Settings{URL: "https://hooks.example.org/x"}}, secret: "0123456789abcdef"}
 	if err := s.deliver(ctx, wh, m); err != nil {

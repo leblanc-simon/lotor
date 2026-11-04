@@ -16,6 +16,7 @@ func (id *identity) root(w http.ResponseWriter, r *http.Request) {
 		id.rd.Render(w, r, http.StatusOK, "landing/index", &landingView{
 			Page:           render.Page{TitleKey: "landing.title"},
 			PackageVersion: packageVersion(id.rd.Version()),
+			Signup:         id.signupLinks(),
 		})
 		return
 	}
@@ -28,6 +29,8 @@ func (id *identity) root(w http.ResponseWriter, r *http.Request) {
 type landingView struct {
 	render.Page
 	PackageVersion string
+	// Signup : inscription ouverte, "public" ou "invitation" (T28) ; vide sinon.
+	Signup string
 }
 
 // releaseVersion est la version d'un binaire publié (scripts/release.sh : vX.Y.Z, suffixe de

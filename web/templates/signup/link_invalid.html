@@ -1,0 +1,15 @@
+{{define "content" -}}
+<div class="auth">
+  <section class="auth__card" aria-labelledby="link-invalid-title">
+    <h1 class="auth__title" id="link-invalid-title">{{T "signup.link_invalid_heading"}}</h1>
+    <div class="callout callout--warning" role="alert">
+      <div class="callout__body">
+        <p class="callout__title">{{T "signup.link_invalid_status"}}</p>
+        <p class="callout__text">{{T "signup.error.link_invalid"}}</p>
+      </div>
+    </div>
+    <p class="muted">{{T "signup.link_invalid_help"}}</p>
+    <p><a class="btn" href="/login">{{T "signup.login"}}</a></p>
+  </section>
+</div>
+{{- end}}

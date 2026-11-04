@@ -29,7 +29,11 @@ Un canal appartient à une organisation ; ses administrateurs le créent dans
   l'issue ; l'essai est journalisé (`channel.tested`).
 - Les messages sont rédigés dans la **langue de l'organisation** (paramètres de
   l'organisation), avec un lien vers la page des violations si l'URL publique du serveur
-  est configurée.
+  (`web.public_url`) est configurée.
+- Un courriel porte une version texte et une version HTML (gabarit commun aux courriels de
+  lotor, ADR 0056) : une carte par violation, étiquette de sévérité, marques KEV et
+  « bloquante », bouton vers les violations. Le logo est joint au message (aucune image
+  externe n'est chargée) ; le rendu a été vérifié dans Thunderbird, en clair et en sombre.
 - Une politique en **envoi immédiat** fait partir ses nouvelles violations dès
   l'évaluation (regroupées, 100 au plus par message) ; en **résumé quotidien**, elles
   partent une fois par jour (`notify.digest_hour`, 7 h UTC par défaut).

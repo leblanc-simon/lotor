@@ -21,6 +21,7 @@ func adminNav(current string) []render.NavItem {
 	return []render.NavItem{
 		{LabelKey: "nav.admin_users", Href: "/admin/users", Current: current == "users"},
 		{LabelKey: "nav.admin_orgs", Href: "/admin/orgs", Current: current == "orgs"},
+		{LabelKey: "nav.admin_signup", Href: "/admin/signup", Current: current == "signup"},
 		{LabelKey: "nav.admin_vulndb", Href: "/admin/vulndb", Current: current == "vulndb"},
 		{LabelKey: "nav.admin_jobs", Href: "/admin/jobs", Current: current == "jobs"},
 		{LabelKey: "nav.audit", Href: "/admin/audit", Current: current == "audit"},

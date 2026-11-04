@@ -13,7 +13,7 @@ const EnvPrefix = "LOTOR_"
 // CORS, base de données, Auth et MFA) et fragments propres au projet. Workers arrive avec
 // la file (T02), Ingest et VulnDB avec leurs lots.
 type Config struct {
-	Web        appconf.Web     `yaml:"web"        env-prefix:"LOTOR_"`
+	Web        Web             `yaml:"web"        env-prefix:"LOTOR_"`
 	HTTP       HTTP            `yaml:"http"       env-prefix:"LOTOR_"`
 	TLS        TLS             `yaml:"tls"        env-prefix:"LOTOR_"`
 	Management Management      `yaml:"management" env-prefix:"LOTOR_"`
@@ -37,12 +37,35 @@ type Config struct {
 	Notify     Notify          `yaml:"notify"     env-prefix:"LOTOR_"`
 	SMTP       SMTP            `yaml:"smtp"       env-prefix:"LOTOR_"`
 	Containers Containers      `yaml:"containers" env-prefix:"LOTOR_"`
+	Signup     Signup          `yaml:"signup"     env-prefix:"LOTOR_"`
 }
 
-// Notify règle les notifications des politiques et les liens des verdicts (T15,
-// ADR 0046).
+// Web complète le fragment d'appconf de l'URL publique du serveur (T28) : liens des
+// notifications, des verdicts de commit et des courriels de l'inscription.
+type Web struct {
+	appconf.Web `yaml:",inline"`
+
+	PublicURL string `yaml:"public_url" env:"PUBLIC_URL" env-description:"Public URL of the server (https://sbom.example.org), for links in notifications, commit verdicts and sign-up e-mails; empty: no link, and no sign-up e-mail"`
+}
+
+// Modes d'inscription (T28, ADR 0056).
+const (
+	SignupPrivate    = "private"
+	SignupInvitation = "invitation"
+	SignupPublic     = "public"
+)
+
+// Signup règle l'inscription des comptes locaux (T28, ADR 0056) : privée (seules les
+// invitations d'organisation ouvrent un compte), sur code d'inscription, ou publique.
+type Signup struct {
+	Mode string `yaml:"mode" env:"SIGNUP_MODE" env-default:"private" env-description:"Sign-up mode: private (organization invitations only), invitation (sign-up codes created by instance administrators) or public (anyone, e-mail verified; requires SMTP and web.public_url)"`
+	// AllowedDomains restreint l'inscription publique aux adresses de ces domaines (vide :
+	// aucune restriction).
+	AllowedDomains []string `yaml:"allowed_domains" env:"SIGNUP_ALLOWED_DOMAINS" env-separator:"," env-description:"Public sign-up only: e-mail domains allowed to sign up, separated by commas (empty: any domain)"`
+}
+
+// Notify règle les notifications des politiques (T15, ADR 0046).
 type Notify struct {
-	PublicURL            string        `yaml:"public_url"             env:"NOTIFY_PUBLIC_URL"             env-description:"Public URL of the server (https://sbom.example.org), for links in notifications and commit verdicts; empty: no link"`
 	Timeout              time.Duration `yaml:"timeout"                env:"NOTIFY_TIMEOUT"                env-default:"30s" env-description:"Maximum duration of one notification sent (HTTP request or SMTP session)"`
 	AllowPrivateNetworks bool          `yaml:"allow_private_networks" env:"NOTIFY_ALLOW_PRIVATE_NETWORKS" env-description:"Allow notification channels to reach loopback, private and link-local addresses (default false: refused, against SSRF)"`
 	DigestHour           int           `yaml:"digest_hour"            env:"NOTIFY_DIGEST_HOUR"            env-default:"7"   env-description:"Hour (UTC, 0 to 23) of the daily digest of violations"`
@@ -241,6 +264,7 @@ func Defaults() Config {
 	c.MFA.Issuer = "lotor"
 	c.Workers.Enabled = true
 	c.Retention.Enabled, c.Retention.Monthly = true, true
+	c.Signup.Mode = SignupPrivate
 	return c
 }
 

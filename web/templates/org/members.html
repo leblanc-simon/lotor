@@ -6,6 +6,21 @@
   </div>
   {{template "flash" .FlashKey}}
   {{template "form_error" .Error}}
+  {{- with .InviteLink}}
+  <section class="panel" aria-labelledby="members-link">
+    <div class="panel__head"><h2 class="panel__title" id="members-link">{{T "members.link_title"}}</h2></div>
+    <div class="panel__body stack stack--sm">
+      <div class="callout callout--warning" role="status">
+        <div class="callout__body">
+          <p class="callout__title">{{T "members.link_once_title"}}</p>
+          <p class="callout__text">{{T "members.link_once_text" "Email" .Email}}</p>
+        </div>
+      </div>
+      <p><code class="secret-once">{{.URL}}</code></p>
+      <p class="muted">{{T "members.link_expires"}} {{template "stamp" .Expires}}</p>
+    </div>
+  </section>
+  {{- end}}
   {{- if .CanAdmin}}
   <section class="panel" aria-labelledby="members-add">
     <div class="panel__head"><h2 class="panel__title" id="members-add">{{T "members.invite_title"}}</h2></div>

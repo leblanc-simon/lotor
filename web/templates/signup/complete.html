@@ -1,0 +1,17 @@
+{{define "content" -}}
+<div class="auth">
+  <section class="auth__card auth__card--wide" aria-labelledby="signup-complete-title">
+    <h1 class="auth__title" id="signup-complete-title">{{T "signup.complete_heading"}}</h1>
+    <p class="auth__lead">{{T "signup.complete_lead" "Email" .Email}}</p>
+    {{template "form_error" .Error}}
+    <form class="form" method="post" action="{{.Action}}">
+      {{csrfField .Page.CSRFToken}}
+      <input type="hidden" name="username" value="{{.Email}}" autocomplete="username">
+      {{template "signup_org_field" .}}
+      {{template "signup_password_fields" .}}
+      <p><button type="submit" class="btn btn--primary">{{T "signup.create"}}</button></p>
+    </form>
+    {{template "signup_next_steps"}}
+  </section>
+</div>
+{{- end}}

@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"mime"
-	"mime/quotedprintable"
 	"net"
 	"net/mail"
 	"net/smtp"
@@ -148,7 +147,8 @@ func headerSafe(s string) string {
 	}, s)
 }
 
-// buildMail compose un courriel texte en UTF-8, corps en quoted-printable.
+// buildMail compose un courriel en UTF-8 : texte en quoted-printable, et version HTML
+// avec le logo joint quand m.HTML est posé (mailhtml.go).
 func buildMail(from *mail.Address, m notify.Mail, now time.Time) ([]byte, error) {
 	if len(m.To) == 0 {
 		return nil, errors.New("aucun destinataire")
@@ -173,16 +173,19 @@ func buildMail(from *mail.Address, m notify.Mail, now time.Time) ([]byte, error)
 	hdr("Date", now.UTC().Format(time.RFC1123Z))
 	hdr("Message-ID", "<"+headerSafe(m.MessageID)+"@"+domain+">")
 	hdr("MIME-Version", "1.0")
-	hdr("Content-Type", "text/plain; charset=utf-8")
-	hdr("Content-Transfer-Encoding", "quoted-printable")
 	hdr("Auto-Submitted", "auto-generated")
-	b.WriteString("\r\n")
-	qp := quotedprintable.NewWriter(&b)
-	if _, err := qp.Write([]byte(strings.ReplaceAll(m.Text, "\n", "\r\n"))); err != nil {
-		return nil, err
-	}
-	if err := qp.Close(); err != nil {
+	if err := writeBody(&b, hdr, m); err != nil {
 		return nil, err
 	}
 	return b.Bytes(), nil
+}
+
+// Compose renvoie le courriel m tel qu'il serait envoyé par from (en-têtes et corps MIME),
+// pour les exemples de courriels et les recettes.
+func Compose(from string, m notify.Mail, now time.Time) ([]byte, error) {
+	a, err := mail.ParseAddress(from)
+	if err != nil {
+		return nil, err
+	}
+	return buildMail(a, m, now)
 }

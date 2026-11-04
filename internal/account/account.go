@@ -205,26 +205,11 @@ func (s *Service) create(ctx context.Context, actor audit.Actor, email, password
 	if err != nil {
 		return User{}, fmt.Errorf("account: hachage : %w", err)
 	}
-	role := ""
-	if admin {
-		role = string(RoleAdmin)
-	}
 	var u User
 	err = s.pool.InTx(ctx, func(tx *db.Tx) error {
-		var id int64
-		err := tx.QueryRowContext(ctx,
-			`INSERT INTO users (email, password_hash, role, must_change_pwd) VALUES ($1, $2, $3, 1) RETURNING id`,
-			email, hash, role).Scan(&id)
-		if isUniqueViolation(err) {
-			return &ValidationError{Field: "email", Key: KeyEmailTaken}
-		}
-		if err != nil {
-			return err
-		}
-		if u, err = getUser(ctx, tx, id, false); err != nil {
-			return err
-		}
-		return audit.RecordInstance(ctx, tx, actor, event(action, u, map[string]string{"admin": strconv.FormatBool(admin)}))
+		var err error
+		u, err = insertUser(ctx, tx, actor, email, hash, admin, true, action, map[string]string{"admin": strconv.FormatBool(admin)})
+		return err
 	})
 	if err != nil {
 		if _, ok := IsValidation(err); ok {
@@ -233,6 +218,73 @@ func (s *Service) create(ctx context.Context, actor audit.Actor, email, password
 		return User{}, fmt.Errorf("account: création de %s : %w", email, err)
 	}
 	return u, nil
+}
+
+// insertUser crée le compte dans tx et journalise action ; une adresse déjà prise donne
+// KeyEmailTaken. mustChange impose le changement de mot de passe à la première connexion
+// (mot de passe temporaire).
+func insertUser(ctx context.Context, tx *db.Tx, actor audit.Actor, email, hash string, admin, mustChange bool,
+	action audit.Action, details map[string]string) (User, error) {
+	role := ""
+	if admin {
+		role = string(RoleAdmin)
+	}
+	change := 0
+	if mustChange {
+		change = 1
+	}
+	var id int64
+	err := tx.QueryRowContext(ctx,
+		`INSERT INTO users (email, password_hash, role, must_change_pwd) VALUES ($1, $2, $3, $4) RETURNING id`,
+		email, hash, role, change).Scan(&id)
+	if isUniqueViolation(err) {
+		return User{}, &ValidationError{Field: "email", Key: KeyEmailTaken}
+	}
+	if err != nil {
+		return User{}, err
+	}
+	u, err := getUser(ctx, tx, id, false)
+	if err != nil {
+		return User{}, err
+	}
+	return u, audit.RecordInstance(ctx, tx, actor, event(action, u, details))
+}
+
+// Registration est un compte à créer par son titulaire (inscription, T28) : adresse
+// normalisée, mot de passe choisi et déjà haché.
+type Registration struct {
+	Email string
+	hash  string
+}
+
+// PrepareRegistration vérifie l'adresse et le mot de passe choisi (politique, confirmation)
+// et hache ce dernier, hors de toute transaction : le hachage bcrypt est lent.
+func (s *Service) PrepareRegistration(email, password, confirm string) (Registration, error) {
+	e, err := NormalizeEmail(email)
+	if err != nil {
+		return Registration{}, err
+	}
+	if password != confirm {
+		return Registration{}, &ValidationError{Field: "confirm", Key: KeyPasswordMismatch}
+	}
+	if err := ValidatePassword(password, e); err != nil {
+		return Registration{}, err
+	}
+	hash, err := authx.HashPassword(password, s.bcryptCost)
+	if err != nil {
+		return Registration{}, fmt.Errorf("account: hachage : %w", err)
+	}
+	return Registration{Email: e, hash: hash}, nil
+}
+
+// Register crée dans tx le compte r, sans mot de passe temporaire (le titulaire l'a
+// choisi) et sans rôle d'instance, et journalise AccountSignedUp avec details. L'appelant
+// fait de la même transaction la création de l'organisation ou l'adhésion (T28).
+func Register(ctx context.Context, tx *db.Tx, actor audit.Actor, r Registration, details map[string]string) (User, error) {
+	if r.Email == "" || len(r.hash) == 0 {
+		return User{}, errors.New("account: inscription non préparée")
+	}
+	return insertUser(ctx, tx, actor, r.Email, r.hash, false, false, audit.AccountSignedUp, details)
 }
 
 func isUniqueViolation(err error) bool {

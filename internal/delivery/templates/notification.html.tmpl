@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="{{.Lang}}" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{{.Subject}}</title>
+<!-- Gabarit des courriels de lotor (notifications, inscription, invitations ; ADR 0056).
+     Validé dans Thunderbird 153, mode sombre compris ; Gmail, Outlook et Apple Mail non
+     testés. Contraintes (internal/delivery/mailhtml.go) : couleurs en styles en ligne (le mode
+     sombre de Thunderbird les réécrit, et une règle @media ne les protège pas) ; fond retiré
+     par Thunderbird si sa luminance dépasse 200 ou si son contraste avec le texte est
+     inférieur à 3,5 ; logo joint au message (cid:), ni image externe, ni SVG, ni data: ;
+     aucun texte en dur hormis le nom « lotor » ; CSS à plat (exception au CSS imbriqué).
+     Couleurs des étiquettes : sevStyle (internal/delivery/mailhtml.go). -->
+<!-- Règles à plat : les messageries ne comprennent pas le CSS imbriqué. Tout le rendu de base
+     est en ligne ; ce bloc n'ajoute que l'adaptation au mobile et au thème sombre. -->
+<style>
+body { margin: 0; padding: 0; }
+a { color: #0E6B68; }
+@media (max-width: 480px) {
+  .mail-outer { padding: 0 !important; }
+  .mail-card { border-radius: 0 !important; border-width: 0 !important; }
+  .mail-pad { padding-left: 20px !important; padding-right: 20px !important; }
+  .mail-cta { display: block !important; text-align: center !important; }
+  .mail-title { font-size: 21px !important; }
+}
+@media (prefers-color-scheme: dark) {
+  .mail-bg { background-color: #13161B !important; }
+  .mail-card { background-color: #1A1E25 !important; border-color: #313844 !important; }
+  .mail-rule { border-color: #313844 !important; }
+  .mail-text { color: #E6E8EC !important; }
+  .mail-text-2 { color: #B3BAC5 !important; }
+  .mail-text-3 { color: #8F98A6 !important; }
+  .mail-link { color: #4FC1B8 !important; }
+  .mail-cta { background-color: #4FC1B8 !important; border-color: #4FC1B8 !important; color: #0B1F1E !important; }
+}
+</style>
+</head>
+<body class="mail-bg" style="margin:0;padding:0;background-color:#F3F4F6;">
+<div style="display:none;max-height:0;max-width:0;overflow:hidden;opacity:0;color:transparent;font-size:1px;line-height:1px;">{{.Preheader}}</div>
+<table role="presentation" class="mail-bg" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;background-color:#F3F4F6;">
+<tr>
+<td class="mail-outer" align="center" style="padding:32px 16px;">
+<table role="presentation" class="mail-card" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;border-collapse:separate;background-color:#FFFFFF;border:1px solid #D5DAE1;border-radius:10px;">
+
+<!-- En-tête : queue transparente et nom en texte, qui suit la couleur du contenu sur tout thème. -->
+<tr>
+<td class="mail-pad mail-rule" style="padding:20px 32px 18px;border-bottom:1px solid #D5DAE1;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+<tr>
+<td style="padding:0 10px 0 0;vertical-align:middle;"><img src="cid:{{.LogoCID}}" width="17" height="40" alt="" style="display:block;width:17px;height:40px;border:0;"></td>
+<td class="mail-text" style="vertical-align:middle;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:22px;line-height:28px;font-weight:400;color:#161B26;">lotor</td>
+</tr>
+</table>
+</td>
+</tr>
+
+<tr>
+<td class="mail-pad" style="padding:28px 32px 8px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+{{with .Org}}<p class="mail-text-3" style="margin:0 0 6px;font-size:13px;line-height:18px;color:#5B6474;">{{.}}</p>{{end}}
+<h1 class="mail-title mail-text" style="margin:0 0 12px;font-size:24px;line-height:30px;font-weight:700;color:#161B26;">{{.Title}}</h1>
+<p class="mail-text-2" style="margin:0;font-size:15px;line-height:23px;color:#434B5A;">{{.Intro}}</p>
+</td>
+</tr>
+
+{{with .Code}}
+<!-- Code à recopier : bordure seule, sans fond, pour rester lisible sur tout thème. -->
+<tr>
+<td class="mail-pad" style="padding:16px 32px 4px;">
+<p class="mail-text mail-rule" style="margin:0;padding:12px 14px;border:1px solid #D5DAE1;border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;font-size:14px;line-height:21px;color:#161B26;word-break:break-all;">{{.}}</p>
+</td>
+</tr>
+{{end}}
+
+{{if .Items}}
+<tr>
+<td class="mail-pad" style="padding:16px 32px 4px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+{{range .Items}}
+<tr>
+<td class="mail-rule" style="padding:16px 0;border-top:1px solid #D5DAE1;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+{{if or .Severity .KEV .Blocking}}<p style="margin:0 0 8px;font-size:12px;line-height:20px;">
+{{- if .Severity}}<span style="{{sevStyle .Severity}}display:inline-block;padding:0 8px;border-radius:3px;font-weight:700;white-space:nowrap;">{{.SeverityLabel}}</span> {{end -}}
+{{- if .KEV}}<span style="background-color:#F5C518;color:#161B26;display:inline-block;padding:0 8px;border-radius:3px;font-weight:700;">{{.KEVLabel}}</span> {{end -}}
+{{- if .Blocking}}<span class="mail-text-2" style="display:inline-block;padding:0 7px;border:1px solid #838C9A;border-radius:3px;color:#434B5A;font-weight:700;white-space:nowrap;line-height:18px;">{{.BlockingLabel}}</span>{{end -}}
+</p>{{end}}
+<p class="mail-text" style="margin:0 0 3px;font-size:15px;line-height:22px;font-weight:700;color:#161B26;word-break:break-word;">{{.Headline}}</p>
+{{with .Detail}}<p class="mail-text-2" style="margin:0 0 3px;font-size:14px;line-height:21px;color:#434B5A;word-break:break-word;">{{.}}</p>{{end}}
+<p class="mail-text-3" style="margin:0;font-size:13px;line-height:19px;color:#5B6474;">{{.Policy}}</p>
+</td>
+</tr>
+{{end}}
+{{with .MoreLine}}
+<tr>
+<td class="mail-rule mail-text-3" style="padding:14px 0 2px;border-top:1px solid #D5DAE1;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#5B6474;">{{.}}</td>
+</tr>
+{{end}}
+</table>
+</td>
+</tr>
+{{end}}
+
+{{with .URL}}
+<tr>
+<td class="mail-pad" style="padding:16px 32px 32px;">
+<a class="mail-cta" href="{{.}}" style="display:inline-block;background-color:#0A5452;border-style:solid;border-color:#0A5452;border-width:12px 24px;border-radius:6px;color:#FFFFFF;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;font-weight:700;text-decoration:none;">{{$.CTALabel}}</a>
+</td>
+</tr>
+{{else}}
+<tr><td style="padding:0 0 24px;font-size:0;line-height:0;">&nbsp;</td></tr>
+{{end}}
+
+<tr>
+<td class="mail-pad mail-rule" style="padding:20px 32px 24px;border-top:1px solid #D5DAE1;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<p class="mail-text-3" style="margin:0;font-size:12px;line-height:18px;color:#5B6474;">{{.Footer}}{{with .ChannelsURL}} <a class="mail-link" href="{{.}}" style="color:#0E6B68;">{{$.ChannelsLabel}}</a>{{end}}</p>
+</td>
+</tr>
+
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>

@@ -9,6 +9,7 @@ layout:
   home_link: Accueil
 
 nav:
+  admin_signup: "Inscription"
   violations: "Violations"
   policies: "Politiques"
   channels: "Canaux"
@@ -80,6 +81,8 @@ form:
   save: Enregistrer
 
 flash:
+  invitation_mailed: "Invitation envoyée par courriel."
+  signup_code_revoked: "Code d'inscription révoqué."
   policy_saved: "Politique enregistrée ; son évaluation est en file."
   policy_deleted: "Politique supprimée avec ses violations."
   channel_saved: "Canal enregistré."
@@ -134,6 +137,8 @@ pagination:
   next: Page suivante
 
 validation:
+  signup_code_label: "Donnez un libellé au code (100 caractères au plus)."
+  signup_code_days: "La validité est de 1 à 365 jours."
   policy_expression_required: "Saisissez la règle (expression CEL)."
   policy_expression_too_long: "La règle dépasse 4 000 caractères."
   policy_syntax: "Erreur de syntaxe ligne {{.Line}}, colonne {{.Column}}."
@@ -266,6 +271,10 @@ home:
   invitations: "Voir mes invitations"
 
 login:
+  no_account: "Pas encore de compte ?"
+  signup: "Créer un compte"
+  have_code: "Vous avez un code d'inscription ?"
+  signup_code: "Créer votre compte"
   title: Connexion
   heading: Connexion
   lead: Connectez-vous avec votre adresse e-mail et votre mot de passe. Un code TOTP vous sera ensuite demandé.
@@ -422,6 +431,10 @@ dashboard:
     other: "+{{.Count}} autres"
 
 members:
+  link_title: "Lien d'invitation"
+  link_once_title: "Lien affiché une seule fois"
+  link_once_text: "Transmettez ce lien à {{.Email}} : il permet de créer son compte, ou de se connecter pour accepter. Il ne sera plus affiché ; une nouvelle invitation en crée un autre et annule celui-ci."
+  link_expires: "Valable jusqu'au"
   title: Membres
   heading: Membres de l'organisation
   lead: Les membres voient les projets de leurs équipes, selon leur rôle d'équipe ; les administrateurs de l'organisation voient et gèrent tout.
@@ -497,6 +510,10 @@ audit:
     account_bootstrapped: "Premier administrateur {{.Target}} créé au démarrage"
     account_rescue_totp_reset: "Procédure de secours : TOTP de {{.Target}} réinitialisé (ticket {{.D_ticket}})"
     account_locked: "Compte {{.Target}} verrouillé après trop de codes TOTP incorrects (jusqu'à {{.D_until}})"
+    account_signed_up: "Compte {{.Target}} créé par son titulaire (inscription)"
+    signup_requested: "Inscription demandée pour {{.Target}}, lien de vérification envoyé"
+    signup_code_created: "Code d'inscription « {{.Target}} » créé, valable jusqu'au {{.D_expires_at}}"
+    signup_code_revoked: "Code d'inscription « {{.Target}} » révoqué"
     org_created: "Organisation {{.Target}} créée"
     org_renamed: "Organisation renommée de « {{.D_from}} » en « {{.D_to}} »"
     org_language_changed: "Langue par défaut de l'organisation : {{.D_from}} → {{.D_to}}"
@@ -1660,6 +1677,9 @@ sitemap:
   admin: "Administration de l'instance"
 
 confirm:
+  signup_code_heading: "Révoquer le code « {{.Label}} » ?"
+  signup_code_text: "Le code ne permettra plus de s'inscrire, y compris aux liens de vérification déjà envoyés pour lui. L'action est journalisée."
+  signup_code_submit: "Révoquer le code"
   policy_heading: "Supprimer la politique « {{.Name}} » ?"
   policy_text: "La politique, ses {{.Count}} violations ouvertes et leur historique sont supprimés ; les notifications en attente ne partiront pas. L'action est journalisée."
   policy_submit: "Supprimer la politique"
@@ -2186,6 +2206,20 @@ notify:
   line_agent: "{{.Policy}} : agent {{.Agent}}"
   kev: "[KEV]"
   blocking: "[bloquante]"
+  # Version HTML des courriels de notification (internal/delivery, ADR 0056).
+  mail:
+    title_opened: "Nouvelles violations de politiques"
+    title_digest: "Résumé quotidien des violations"
+    title_test: "Message de test"
+    cta: "Voir les violations"
+    footer: "Ce canal reçoit les alertes des politiques de l'organisation {{.Org}}."
+    channels: "Gérer les canaux"
+    finding_headline: "{{.Vuln}} dans {{.Component}}"
+    finding_detail: "Projet {{.Project}}, référence {{.Ref}}"
+    agent_headline: "Agent {{.Agent}}"
+    policy: "Politique : {{.Policy}}"
+    kev: "KEV"
+    blocking: "Bloquante"
 verdict:
   pending: "Analyse et politiques en cours"
   pass: "Conforme aux politiques"
@@ -2194,6 +2228,8 @@ verdict:
 
 # Page de présentation, servie sur « / » au visiteur anonyme (ADR 0054).
 landing:
+  signup: "Créer un compte"
+  signup_code: "J'ai un code d'inscription"
   title: "Inventaire logiciel et vulnérabilités de tout votre parc"
   eyebrow: "SBOM · vulnérabilités · open source"
   heading: "Une CVE tombe."
@@ -2417,3 +2453,142 @@ landing:
     title: "Libre, vraiment."
     text: "lotor est publié sous licence WTFPL : utilisez-le, modifiez-le, redistribuez-le, sans condition."
     source: "Code source sur GitHub"
+
+# Courriels de l'inscription et des invitations (internal/mailer, T28, ADR 0056).
+mail:
+  footer: >-
+    Vous recevez ce message à la suite d'une demande faite sur {{.Instance}}. Si vous n'en
+    êtes pas à l'origine, ignorez-le : rien ne sera créé.
+  signup_verify:
+    subject: "Confirmez votre adresse pour créer votre compte lotor"
+    title: "Confirmez votre adresse"
+    intro: >-
+      Pour terminer votre inscription sur {{.Instance}}, ouvrez le lien ci-dessous. Il est
+      valable 24 heures et ne sert qu'une fois.
+    cta: "Terminer mon inscription"
+  signup_existing:
+    subject: "Votre compte lotor"
+    title: "Vous avez déjà un compte"
+    intro: >-
+      Une inscription a été demandée sur {{.Instance}} avec cette adresse, qui a déjà un
+      compte. Connectez-vous ; si vous avez perdu votre mot de passe, adressez-vous à un
+      administrateur de l'instance.
+    cta: "Se connecter"
+  signup_code:
+    subject: "Votre code d'inscription lotor"
+    title: "Votre code d'inscription"
+    intro: >-
+      Vous êtes invité à créer un compte et une organisation sur {{.Instance}}. Ouvrez le
+      lien ci-dessous et saisissez ce code ; il est valable jusqu'au {{.Expires}} et ne sert
+      qu'une fois.
+    cta: "Créer mon compte"
+  org_invitation:
+    subject: "Invitation à rejoindre {{.Org}} sur lotor"
+    title: "Rejoignez {{.Org}}"
+    intro: >-
+      {{.Inviter}} vous invite à rejoindre l'organisation {{.Org}} sur {{.Instance}}, avec
+      le rôle {{.Role}}. L'invitation est valable jusqu'au {{.Expires}}.
+    cta: "Voir l'invitation"
+signup:
+  title: "Inscription"
+  heading: "Créer un compte"
+  lead_public: "Indiquez votre adresse e-mail : vous recevrez un lien pour la confirmer, puis vous choisirez votre mot de passe et le nom de votre organisation."
+  lead_code: "Saisissez le code d'inscription reçu et votre adresse e-mail : vous recevrez un lien pour la confirmer, puis vous choisirez votre mot de passe et le nom de votre organisation."
+  lead_direct: "Saisissez le code d'inscription reçu, puis choisissez votre adresse, le nom de votre organisation et votre mot de passe. Vous serez administrateur de cette organisation."
+  code: "Code d'inscription"
+  code_hint: "Il commence par lotor_sgn_ et ne sert qu'une fois."
+  email: "Adresse e-mail"
+  domains: "Adresses acceptées : {{.Domains}}."
+  org_name: "Nom de votre organisation"
+  org_hint: "Vous en serez administrateur ; vous pourrez le modifier et inviter d'autres personnes."
+  password: "Mot de passe"
+  confirm: "Confirmez le mot de passe"
+  create: "Créer mon compte"
+  send_link: "Recevoir le lien"
+  have_account: "Déjà un compte ?"
+  login: "Se connecter"
+  next_title: "Étape suivante"
+  next_text: "Vous configurerez ensuite une application d'authentification (TOTP), obligatoire, puis recevrez vos codes de secours."
+  sent_title: "Vérifiez votre messagerie"
+  sent_heading: "Vérifiez votre messagerie"
+  sent_status: "Demande enregistrée"
+  sent_text: "Si l'inscription est possible pour cette adresse, un courriel vient d'y être envoyé. Suivez son lien, valable 24 heures, pour continuer."
+  sent_help: "Rien reçu ? Vérifiez le dossier des indésirables, puis recommencez dans quelques minutes."
+  back_home: "Retour à l'accueil"
+  link_invalid_title: "Lien invalide"
+  link_invalid_heading: "Ce lien n'est plus valable"
+  link_invalid_status: "Lien refusé"
+  link_invalid_help: "Demandez un nouveau lien ou une nouvelle invitation ; si vous avez déjà un compte, connectez-vous."
+  complete_title: "Terminer l'inscription"
+  complete_heading: "Terminer l'inscription"
+  complete_lead: "Adresse vérifiée : {{.Email}}. Choisissez le nom de votre organisation et votre mot de passe."
+  mode:
+    private: "Privée : pas d'inscription"
+    invitation: "Sur code d'inscription"
+    public: "Publique"
+  code_status:
+    active: "Actif"
+    used: "Utilisé"
+    expired: "Expiré"
+    revoked: "Révoqué"
+  error:
+    closed: "L'inscription n'est pas ouverte sur cette instance."
+    code_invalid: "Code d'inscription refusé : il est inconnu, expiré, révoqué ou déjà utilisé, ou l'adresse ne peut pas être inscrite."
+    domain: "Cette adresse n'appartient pas à un domaine accepté par l'instance."
+    link_invalid: "Le lien est inconnu, expiré ou déjà utilisé."
+    account_exists: "Un compte existe déjà pour cette adresse : connectez-vous."
+    other_account: "Cette invitation est adressée à une autre adresse que celle du compte connecté. Déconnectez-vous, puis rouvrez le lien."
+    code_not_revocable: "Ce code est déjà utilisé, expiré ou révoqué."
+link_invitation:
+  title: "Invitation"
+  heading: "Rejoindre {{.Org}}"
+  lead: "L'adresse {{.Email}} est invitée à rejoindre l'organisation {{.Org}} avec le rôle {{.Role}}."
+  expires: "Invitation valable jusqu'au"
+  other_title: "Autre compte connecté"
+  logout: "Se déconnecter"
+  accept: "Accepter l'invitation"
+  create_title: "Créer votre compte"
+  have_account: "Vous avez déjà un compte à cette adresse ?"
+  login: "Connectez-vous pour accepter"
+admin_signup:
+  title: "Inscription"
+  heading: "Inscription"
+  lead: "Mode d'inscription de l'instance et codes d'inscription. Le mode se règle dans la configuration (signup.mode)."
+  mode_title: "Mode"
+  mode: "Inscription"
+  mail: "Envoi de courriels"
+  mail_on: "Configuré : les adresses sont vérifiées par un lien"
+  mail_off: "Non configuré : codes et liens à transmettre à la main"
+  domains: "Domaines acceptés"
+  mode_hint: "Dans tous les modes, une invitation d'organisation permet de créer son compte à l'adresse invitée."
+  create_title: "Nouveau code"
+  label: "Libellé"
+  label_hint: "Pour qui, ou pour quoi : visible des seuls administrateurs."
+  days: "Validité (jours)"
+  days_hint: "De 1 à {{.Max}} jours."
+  recipient: "Envoyer à (facultatif)"
+  recipient_hint: "Le code part par courriel à cette adresse, qui n'est pas conservée ; l'inscription peut se faire à une autre adresse."
+  create: "Créer le code"
+  list_title: "Codes"
+  prefix: "Début"
+  status: "État"
+  created: "Créé"
+  expires: "Expire"
+  used_by: "Utilisé par"
+  used_by_deleted: "Compte supprimé"
+  unused: "Pas encore"
+  revoke: "Révoquer"
+  no_codes: "Aucun code pour l'instant."
+  code_title: "Code d'inscription créé"
+  code_heading: "Code d'inscription créé"
+  code_lead: "Code « {{.Label}} » : il permet une seule inscription, qui crée une organisation et son administrateur."
+  mailed_title: "Code envoyé"
+  mailed_text: "Le code a été envoyé à {{.Email}}."
+  send_failed_title: "Envoi en échec"
+  send_failed_text: "Le code est créé, mais le courriel n'est pas parti : transmettez-le à la main, ou révoquez-le."
+  once_title: "Code affiché une seule fois"
+  once_text: "Copiez-le maintenant : il n'est conservé que sous forme d'empreinte et ne sera plus affiché."
+  code: "Code"
+  code_expires: "Valable jusqu'au"
+  code_next: "La personne le saisit sur la page d'inscription (/signup)."
+  back: "Retour à l'inscription"

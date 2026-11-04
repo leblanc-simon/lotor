@@ -100,8 +100,34 @@ func DefaultTeamName(lang string) string {
 // Create crée une organisation, en fait de adminUserID son premier administrateur et lui
 // donne une première équipe (DefaultTeamName), pour que ses premiers projets en aient une.
 func (s *Service) Create(ctx context.Context, actor audit.Actor, slug, name, lang string, adminUserID int64) (Organization, error) {
-	slug = strings.TrimSpace(slug)
-	if !slugPattern.MatchString(slug) {
+	id, err := tenant.NewOrgID()
+	if err != nil {
+		return Organization{}, err
+	}
+	var o Organization
+	err = s.pool.InOrg(ctx, id, func(tx *db.OrgTx) error {
+		var err error
+		o, err = CreateIn(ctx, tx, actor, []string{strings.TrimSpace(slug)}, name, lang, adminUserID)
+		return err
+	})
+	if err != nil {
+		return Organization{}, wrap("création de l'organisation "+slug, err)
+	}
+	return o, nil
+}
+
+// CreateIn crée, dans tx déclarée pour l'organisation à créer (tx.OrgID()), l'organisation
+// name avec le premier des identifiants d'URL slugs qui est libre, fait de adminUserID son
+// premier administrateur et crée son équipe « Général ». Un identifiant pris n'interrompt
+// pas la transaction (ON CONFLICT) : l'inscription (T28) propose ainsi plusieurs candidats
+// dérivés du nom dans la transaction qui crée aussi le compte. Tous pris : KeySlugTaken.
+func CreateIn(ctx context.Context, tx *db.OrgTx, actor audit.Actor, slugs []string, name, lang string, adminUserID int64) (Organization, error) {
+	for _, slug := range slugs {
+		if !slugPattern.MatchString(slug) {
+			return Organization{}, invalid("slug", KeySlugInvalid)
+		}
+	}
+	if len(slugs) == 0 {
 		return Organization{}, invalid("slug", KeySlugInvalid)
 	}
 	name, err := validName(name)
@@ -111,37 +137,38 @@ func (s *Service) Create(ctx context.Context, actor audit.Actor, slug, name, lan
 	if err := validLanguage(lang); err != nil {
 		return Organization{}, err
 	}
-	id, err := tenant.NewOrgID()
-	if err != nil {
-		return Organization{}, err
-	}
 	var o Organization
-	err = s.pool.InOrg(ctx, id, func(tx *db.OrgTx) error {
+	created := false
+	for _, slug := range slugs {
 		err := tx.QueryRowContext(ctx, `
 			INSERT INTO organizations (id, slug, name, default_language) VALUES ($1, $2, $3, $4)
+			ON CONFLICT (slug) DO NOTHING
 			RETURNING id, slug, name, default_language, archived_at, created_at`,
-			id, slug, name, lang).Scan(&o.ID, &o.Slug, &o.Name, &o.DefaultLanguage, new(sql.NullTime), &o.CreatedAt)
-		if isUnique(err) {
-			return invalid("slug", KeySlugTaken)
+			tx.OrgID(), slug, name, lang).Scan(&o.ID, &o.Slug, &o.Name, &o.DefaultLanguage, new(sql.NullTime), &o.CreatedAt)
+		if errors.Is(err, sql.ErrNoRows) {
+			continue
 		}
 		if err != nil {
-			return err
+			return Organization{}, err
 		}
-		ev := orgEvent(audit.OrgCreated, o, map[string]string{"name": name, "language": lang})
-		if err := audit.RecordOrg(ctx, tx, actor, ev); err != nil {
-			return err
-		}
-		if err := audit.RecordInstance(ctx, tx, actor, ev); err != nil {
-			return err
-		}
-		if err := addMember(ctx, tx, actor, adminUserID, tenant.RoleAdmin); err != nil {
-			return err
-		}
-		_, err = insertTeam(ctx, tx, actor, DefaultTeamName(lang))
-		return err
-	})
-	if err != nil {
-		return Organization{}, wrap("création de l'organisation "+slug, err)
+		created = true
+		break
+	}
+	if !created {
+		return Organization{}, invalid("slug", KeySlugTaken)
+	}
+	ev := orgEvent(audit.OrgCreated, o, map[string]string{"name": name, "language": lang})
+	if err := audit.RecordOrg(ctx, tx, actor, ev); err != nil {
+		return Organization{}, err
+	}
+	if err := audit.RecordInstance(ctx, tx, actor, ev); err != nil {
+		return Organization{}, err
+	}
+	if err := addMember(ctx, tx, actor, adminUserID, tenant.RoleAdmin); err != nil {
+		return Organization{}, err
+	}
+	if _, err := insertTeam(ctx, tx, actor, DefaultTeamName(lang)); err != nil {
+		return Organization{}, err
 	}
 	return o, nil
 }

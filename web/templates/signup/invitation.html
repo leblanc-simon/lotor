@@ -1,0 +1,37 @@
+{{define "content" -}}
+<div class="auth">
+  <section class="auth__card auth__card--wide" aria-labelledby="link-invitation-title">
+    <h1 class="auth__title" id="link-invitation-title">{{T "link_invitation.heading" "Org" .Invitation.OrgName}}</h1>
+    <p class="auth__lead">{{T "link_invitation.lead" "Org" .Invitation.OrgName "Email" .Invitation.Email "Role" (T .RoleKey)}}</p>
+    <p class="muted">{{T "link_invitation.expires"}} {{template "stamp" .Expires}}</p>
+    {{template "form_error" .Error}}
+    {{- if .OtherAccount}}
+    <div class="callout callout--warning" role="status">
+      <div class="callout__body">
+        <p class="callout__title">{{T "link_invitation.other_title"}}</p>
+        <p class="callout__text">{{T "signup.error.other_account"}}</p>
+      </div>
+    </div>
+    <form method="post" action="/logout">
+      {{csrfField .Page.CSRFToken}}
+      <button type="submit" class="btn">{{T "link_invitation.logout"}}</button>
+    </form>
+    {{- else if .SignedIn}}
+    <form method="post" action="{{.Action}}">
+      {{csrfField .Page.CSRFToken}}
+      <p><button type="submit" class="btn btn--primary">{{T "link_invitation.accept"}}</button></p>
+    </form>
+    {{- else}}
+    <h2 class="panel__title">{{T "link_invitation.create_title"}}</h2>
+    <form class="form" method="post" action="{{.Action}}">
+      {{csrfField .Page.CSRFToken}}
+      <input type="hidden" name="username" value="{{.Invitation.Email}}" autocomplete="username">
+      {{template "signup_password_fields" .}}
+      <p><button type="submit" class="btn btn--primary">{{T "signup.create"}}</button></p>
+    </form>
+    {{template "signup_next_steps"}}
+    <p class="muted">{{T "link_invitation.have_account"}} <a href="{{.LoginURL}}">{{T "link_invitation.login"}}</a></p>
+    {{- end}}
+  </section>
+</div>
+{{- end}}

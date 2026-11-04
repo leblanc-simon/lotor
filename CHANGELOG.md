@@ -8,6 +8,30 @@ appliquées automatiquement, sans retour arrière.
 
 ## [Non publié]
 
+**Mise à jour** : `notify.public_url` devient **`web.public_url`** (`LOTOR_PUBLIC_URL`) ;
+déplacer la clé sous `web:` avant de redémarrer : l'ancienne est ignorée (messages sans
+lien). La migration 024 s'applique au démarrage ; l'instance reste privée.
+
+### Ajouté
+
+- Inscription (T28, ADR 0056) : `signup.mode` `private` (défaut), `invitation` (codes
+  d'inscription créés par les administrateurs d'instance, usage unique, 30 jours par
+  défaut, révocables, envoyés par courriel ou transmis à la main) ou `public` (adresse
+  vérifiée, `signup.allowed_domains` facultatif ; exige SMTP et `web.public_url`). Chaque
+  inscription crée une organisation dont le compte est administrateur ; mot de passe choisi,
+  TOTP enrôlé aussitôt, codes de secours.
+- Lien secret sur chaque invitation d'organisation, dans tous les modes : envoyé par
+  courriel dans la langue de l'invitant, ou montré une fois sur la page des membres ; il crée
+  le compte à l'adresse invitée ou fait accepter le compte connecté.
+- Page **Administration › Inscription** (mode, envoi de courriels, codes).
+- Courriels en HTML (notifications et inscription) : gabarit commun vérifié dans
+  Thunderbird en clair et en sombre, logo joint au message, version texte conservée.
+
+### Modifié
+
+- `web.public_url` remplace `notify.public_url` (liens des notifications, des verdicts et
+  des courriels) ; le paquet deb écrit la nouvelle clé.
+
 ## [0.2.1] - 2026-11-04
 
 Version corrective : le scan de l'agent serveur tient sur un serveur réel (sur la racine

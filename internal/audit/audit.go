@@ -38,6 +38,12 @@ const (
 	AccountBootstrapped    Action = "account.bootstrapped"
 	AccountRescueTOTPReset Action = "account.rescue_totp_reset"
 	AccountLocked          Action = "account.locked"
+	// Inscription (T28) : compte créé par son titulaire, vérification d'adresse demandée,
+	// codes d'inscription.
+	AccountSignedUp   Action = "account.signed_up"
+	SignupRequested   Action = "signup.requested"
+	SignupCodeCreated Action = "signup_code.created"
+	SignupCodeRevoked Action = "signup_code.revoked"
 	// Codes de secours du second facteur (T18).
 	RecoveryCodeUsed        Action = "auth.recovery_code_used"
 	RecoveryCodeFailed      Action = "auth.recovery_code_failed"
@@ -105,6 +111,7 @@ func Actions() []Action {
 		AccountCreated, AccountDeactivated, AccountActivated, AccountPasswordReset,
 		AccountPasswordChanged, AccountTOTPReset, AccountRoleChanged, AccountSettingsChanged,
 		AccountBootstrapped, AccountRescueTOTPReset, AccountLocked,
+		AccountSignedUp, SignupRequested, SignupCodeCreated, SignupCodeRevoked,
 		RecoveryCodeUsed, RecoveryCodeFailed, RecoveryCodesGenerated, AccountTOTPReconfigured,
 		OrgCreated, OrgRenamed, OrgLanguageChanged, OrgArchived, OrgUnarchived,
 		MemberAdded, MemberRoleChanged, MemberRemoved,

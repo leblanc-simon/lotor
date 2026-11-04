@@ -33,6 +33,11 @@
       <p><button type="submit" class="btn btn--primary">{{T "login.submit"}}</button></p>
     </form>
     <p class="muted">{{T "login.help"}}</p>
+    {{- if eq .Signup "public"}}
+    <p class="muted">{{T "login.no_account"}} <a href="/signup">{{T "login.signup"}}</a></p>
+    {{- else if eq .Signup "invitation"}}
+    <p class="muted">{{T "login.have_code"}} <a href="/signup">{{T "login.signup_code"}}</a></p>
+    {{- end}}
   </section>
 </div>
 {{- end}}

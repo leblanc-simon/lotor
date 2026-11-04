@@ -19,6 +19,10 @@ const (
 	Agent      Kind = "agt" // jeton d'agent : routes /api/v1/agent/* hors inscription
 	Enrollment Kind = "enr" // jeton d'inscription d'un agent serveur
 	Personal   Kind = "pat" // jeton d'accès personnel : API utilisateur en lecture (ADR 0025)
+	// Inscription des comptes (T28, ADR 0056).
+	SignupCode   Kind = "sgn" // code d'inscription du mode « invitation », à usage unique
+	Verification Kind = "vrf" // lien de vérification d'une adresse, à usage unique
+	Invitation   Kind = "inv" // lien d'une invitation d'organisation
 )
 
 // Format d'un jeton : lotor_<nature>_<identifiant public>_<secret>. L'identifiant public

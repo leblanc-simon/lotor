@@ -1000,3 +1000,26 @@ les pièges découverts, pour ne pas les reproduire. Une entrée = le constat, p
   coupe celui-ci, et bash exécute la suite comme des commandes (une ligne `sudo apt-get` d'une
   documentation, ici arrêtée par sa redirection). Règle : tout texte libre ou tout script un peu
   long passe par un fichier, avec l'outil d'écriture.
+
+## Inscription (T28)
+
+- **Pages d'une ligne** : `render` exécute `layout` avec `.Page.*` ; passer un `*render.Page`
+  nu fait une erreur 500 (« can't evaluate field Page in type *render.Page »). Toute vue,
+  même sans donnée, embarque `render.Page` (`plainView`).
+- **Tests sur le HTML rendu** : `html/template` écrit l'apostrophe `&#39;` ; comparer un
+  texte traduit au corps de la page à la fois brut et échappé (`html.EscapeString`).
+- **Atomicité inter-tables** : une transaction `InOrg` déclarée pour l'identifiant d'une
+  organisation pas encore créée peut aussi écrire dans les tables globales (`users`) : compte,
+  organisation, code consommé et liens supprimés tiennent ou tombent ensemble. Un
+  identifiant d'URL pris ne doit pas abandonner la transaction : `ON CONFLICT (slug) DO
+  NOTHING` puis candidat suivant, jamais une erreur d'unicité rattrapée.
+- **Réponse neutre sans courriel** : refuser une adresse déjà prise comme un code faux ne
+  suffit pas, il faut aussi annuler la consommation du code (retour arrière de la même
+  transaction) ; un test qui retire la consommation doit échouer (vérifié).
+- **Mode sombre de Thunderbird** : il réécrit les styles en ligne et ignore `@media … !important`
+  ; un fond survit si sa luminance ne dépasse pas 200 et si son contraste avec le texte atteint
+  3,5. Le vérifier par test sur la table des couleurs, et dans un vrai Thunderbird (Xvfb,
+  profil `ui.systemUsesDarkTheme=1`, `mail.dark-reader.enabled=true`).
+- **Clé de configuration déplacée** : une clé inconnue est ignorée sans message par le
+  chargement ; un script de paquet qui réécrit une clé par `sed` peut écrire l'ancienne
+  position. Réécrire dans la bonne section (awk par section) et le dire dans le CHANGELOG.

@@ -16,7 +16,7 @@ offre recherche transverse, triage et tableaux de bord. Multi-organisation, en G
    produit.
 2. [`specs/architecture.md`](specs/architecture.md) — **fait autorité** sur l'architecture,
    les noms et les conventions.
-3. [`specs/README.md`](specs/README.md) — les 28 lots techniques, leur ordre, leur statut,
+3. [`specs/README.md`](specs/README.md) — les 29 lots techniques, leur ordre, leur statut,
    la façon de travailler et la définition de « terminé ».
 4. [`specs/lecons.md`](specs/lecons.md) — erreurs déjà commises et pièges connus : à lire
    avant chaque lot, à compléter à la fin.
@@ -168,6 +168,14 @@ Agent serveur, hors lot (ADR 0055) : index compact de l'arborescence (`hostagent
 fichier ; répertoires de données exclus par défaut ; parité vérifiée par
 `TestIndexSourceMatchesSyftDirectory` (`LOTOR_PARITY_ROOT=/` pour une vraie racine, à refaire
 à chaque montée de version de Syft).
+T28 terminé : inscription (`internal/signup`, ADR 0056). `signup.mode` `private` (défaut),
+`invitation` (codes d'instance à usage unique, `/admin/signup`) ou `public` (adresse
+vérifiée, `signup.allowed_domains`, SMTP et `web.public_url` exigés) ; une organisation par
+inscription, compte administrateur, session de configuration puis TOTP. Lien secret sur
+chaque invitation d'organisation (`/invitation/{jeton}`, tous modes). Courriels
+transactionnels `internal/mailer` (job `mail.send` chiffré) et gabarit HTML commun des
+courriels (`internal/delivery/mailhtml.go`, contraintes du mode sombre de Thunderbird dans
+son commentaire). `web.public_url` remplace `notify.public_url`.
 
 ## Règles de travail
 

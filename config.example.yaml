@@ -11,6 +11,10 @@ web:
   # Mandataires inverses de confiance (CIDR) : seuls eux peuvent déclarer l'IP du client
   # (X-Forwarded-For) et le HTTPS (X-Forwarded-Proto). LOTOR_TRUSTED_PROXIES, séparés par ,
   trusted_proxies: []
+  # URL publique du serveur (https://sbom.example.org), LOTOR_PUBLIC_URL : liens des
+  # notifications, des verdicts de commit et des courriels de l'inscription. Vide : messages
+  # sans lien, et codes ou liens d'invitation affichés pour être transmis à la main.
+  public_url: ""
 
 # Délais des serveurs HTTP et arrêt propre.
 http:
@@ -224,12 +228,12 @@ containers:
 # Notifications des politiques (T15, docs/notifications.md, ADR 0046). Les canaux sont
 # créés par organisation dans l'interface ; leurs secrets sont chiffrés par secrets.keys.
 notify:
-  public_url: ""                 # URL publique du serveur (https://sbom.example.org) : liens des messages et des verdicts
   timeout: 30s                   # durée maximale d'un envoi (requête HTTP ou session SMTP)
   allow_private_networks: false  # true : les canaux peuvent viser une adresse privée ou locale (relais interne) ; sinon refusé (SSRF)
   digest_hour: 7                 # heure UTC du résumé quotidien des violations (0 à 23)
 
-# Serveur d'envoi des courriels (canaux e-mail). Sans hôte, les canaux e-mail échouent.
+# Serveur d'envoi des courriels (canaux e-mail, inscription, invitations). Sans hôte, les
+# canaux e-mail échouent, et codes et liens d'invitation sont transmis à la main.
 smtp:
   host: ""            # serveur SMTP (vide : pas de courriel)
   port: 587           # 587 avec starttls, 465 avec tls
@@ -238,3 +242,12 @@ smtp:
   password: ""        # de préférence par LOTOR_SMTP_PASSWORD plutôt que dans ce fichier
   from: ""            # expéditeur des notifications (lotor@example.org)
   helo: localhost     # nom annoncé par EHLO
+
+# Inscription des comptes locaux (T28, docs/operations.md, « Inscription », ADR 0056).
+# private : aucune inscription libre ; seule une invitation d'organisation ouvre un compte.
+# invitation : un code d'inscription, créé par un administrateur d'instance, ouvre un compte
+# et une organisation dont il est administrateur. public : inscription libre, adresse
+# vérifiée par courriel (smtp.* et web.public_url obligatoires), une organisation par compte.
+signup:
+  mode: private        # LOTOR_SIGNUP_MODE : private | invitation | public
+  allowed_domains: []  # LOTOR_SIGNUP_ALLOWED_DOMAINS, séparés par , : mode public seulement (vide : tous)

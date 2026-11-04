@@ -219,6 +219,8 @@ func (c Config) Validate() error {
 	if c.Retention.Count < 0 || c.Retention.Count > 100000 {
 		v.fail("retention.count", "doit être compris entre 0 et 100000 (reçu %d)", c.Retention.Count)
 	}
+	validPublicURL(&v, c.Web.PublicURL)
+	c.validateSignup(&v)
 	c.Notify.validate(&v)
 	c.SMTP.validate(&v)
 	if c.Containers.PurgeAfter != 0 && c.Containers.PurgeAfter < time.Duration(c.Retention.Days)*24*time.Hour {
@@ -315,14 +317,65 @@ func (b Bootstrap) validate(v *validator) {
 	}
 }
 
-func (n Notify) validate(v *validator) {
-	if n.PublicURL != "" {
-		u, err := url.Parse(n.PublicURL)
-		if err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Host == "" || u.User != nil || u.RawQuery != "" ||
-			u.Fragment != "" {
-			v.fail("notify.public_url", "adresse http(s) sans requête attendue (reçu %q)", n.PublicURL)
+// validPublicURL vérifie l'URL publique du serveur : http(s), sans compte, requête ni
+// fragment.
+func validPublicURL(v *validator, raw string) {
+	if raw == "" {
+		return
+	}
+	u, err := url.Parse(raw)
+	if err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Host == "" || u.User != nil || u.RawQuery != "" ||
+		u.Fragment != "" {
+		v.fail("web.public_url", "adresse http(s) sans requête attendue (reçu %q)", raw)
+	}
+}
+
+// MailConfigured indique si le serveur peut envoyer des courriels porteurs d'un lien :
+// SMTP configuré et URL publique connue. Sans cela, codes et liens d'invitation sont
+// affichés pour être transmis à la main (T28).
+func (c Config) MailConfigured() bool {
+	return c.SMTP.Host != "" && c.SMTP.From != "" && c.Web.PublicURL != ""
+}
+
+func (c Config) validateSignup(v *validator) {
+	s := c.Signup
+	v.oneOf("signup.mode", s.Mode, SignupPrivate, SignupInvitation, SignupPublic)
+	for _, d := range s.AllowedDomains {
+		if !validDomain(d) {
+			v.fail("signup.allowed_domains", "nom de domaine attendu (reçu %q)", d)
 		}
 	}
+	if s.Mode == SignupPublic {
+		if c.SMTP.Host == "" || c.SMTP.From == "" {
+			v.fail("signup.mode", "l'inscription publique vérifie chaque adresse par courriel : smtp.host et smtp.from obligatoires")
+		}
+		if c.Web.PublicURL == "" {
+			v.fail("signup.mode", "l'inscription publique envoie des liens de vérification : web.public_url obligatoire")
+		}
+	}
+}
+
+// validDomain accepte un nom de domaine en minuscules ou majuscules, sans « @ » ni
+// caractère de motif : example.org, sub.example.co.uk.
+func validDomain(d string) bool {
+	d = strings.TrimSpace(d)
+	if d == "" || len(d) > 253 || strings.HasPrefix(d, ".") || strings.HasSuffix(d, ".") || !strings.Contains(d, ".") {
+		return false
+	}
+	for _, label := range strings.Split(d, ".") {
+		if label == "" || len(label) > 63 || strings.HasPrefix(label, "-") || strings.HasSuffix(label, "-") {
+			return false
+		}
+		for _, r := range label {
+			if !(r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '-') {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func (n Notify) validate(v *validator) {
 	if n.Timeout < time.Second || n.Timeout > 5*time.Minute {
 		v.fail("notify.timeout", "doit être compris entre 1s et 5m (reçu %s)", n.Timeout)
 	}
