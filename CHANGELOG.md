@@ -8,12 +8,25 @@ appliquées automatiquement, sans retour arrière.
 
 ## [Non publié]
 
+## [0.2.1] - 2026-11-04
+
+Version corrective : le scan de l'agent serveur tient sur un serveur réel (sur la racine
+d'un hôte, 1 min 32 s et 564 Mio au lieu de 8 min 42 s et 2 034 Mio) ; l'instance présente
+aussi lotor aux visiteurs non connectés. Mêmes fichiers qu'en 0.2.0.
+
+**Mise à jour depuis 0.2.0** : aucune migration ni changement de l'API des agents ; le
+serveur et les agents se mettent à jour séparément, et seul l'agent serveur 0.2.1 apporte
+le nouveau scan. Avec lui, tout logiciel installé sous un répertoire désormais exclu sort
+de l'inventaire (voir « Modifié »). Sur le serveur, `/` ne renvoie plus un visiteur non
+connecté vers `/login` : il affiche une page publique, sans donnée de l'instance hormis son
+numéro de version.
+
 ### Ajouté
 
 - Page de présentation sur l'accueil (`/`) pour un visiteur non connecté (ADR 0054) :
   fonctions, visite guidée par captures d'écran, sécurité, installation, lien « Se connecter » ; en
   français et en anglais. Un compte connecté garde son accueil. README réécrit autour des
-  fonctions et des mêmes captures.
+  fonctions et des mêmes captures ([#35](https://github.com/leblanc-simon/lotor/pull/35)).
 
 ### Modifié
 
@@ -23,10 +36,12 @@ appliquées automatiquement, sans retour arrière.
   MySQL/MariaDB, MongoDB, Redis, Elasticsearch, OpenSearch, ClickHouse, InfluxDB,
   Cassandra, RabbitMQ et Prometheus), ainsi que les systèmes de fichiers virtuels du noyau
   où qu'ils soient montés. Un hôte dont l'inventaire change de ce fait renvoie un SBOM
-  complet à son premier scan après la mise à jour.
+  complet à son premier scan après la mise à jour
+  ([#36](https://github.com/leblanc-simon/lotor/pull/36)).
 - Agent serveur : syntaxe des motifs de `scan.exclude` documentée, avec exemples
   (`/home/*/www`, `/home/**/www`, `/home/*/{www,public_html}`, `/srv/data/**/cache` ;
-  `docs/operations.md`, « Agent serveur ») et couverte par un test.
+  `docs/operations.md`, « Agent serveur ») et couverte par un test
+  ([#36](https://github.com/leblanc-simon/lotor/pull/36)).
 
 ### Corrigé
 
@@ -34,11 +49,13 @@ appliquées automatiquement, sans retour arrière.
   (ADR 0055). La source « répertoire » de Syft ouvrait chaque fichier de l'hôte et en
   gardait un arbre en mémoire ; l'agent parcourt désormais l'arborescence une seule fois,
   sans ouvrir les fichiers, et Syft ne lit que ceux qui l'intéressent. Même inventaire
-  qu'avant, vérifié sur la racine d'un hôte réel.
+  qu'avant, vérifié sur la racine d'un hôte réel
+  ([#36](https://github.com/leblanc-simon/lotor/pull/36)).
 - File de traitements : à l'arrêt d'une instance, un job dont le handler rendait la main
   dès son annulation pouvait garder son bail jusqu'à expiration (repris environ 30 s plus
   tard au lieu de tout de suite) ; `Stop` libère désormais aussi son bail. Cause des échecs
-  intermittents de `TestStopReturnsInTimeAndReleasesLeases` en CI.
+  intermittents de `TestStopReturnsInTimeAndReleasesLeases` en CI
+  ([#37](https://github.com/leblanc-simon/lotor/pull/37)).
 
 ## [0.2.0] - 2026-11-04
 
@@ -317,6 +334,7 @@ arm64), paquets deb et rpm de l'agent serveur, sommes SHA-256. Installation :
   corrections ([grille](https://github.com/leblanc-simon/lotor/blob/main/docs/accessibilite/grille-rgaa-lot1.md),
   [#14](https://github.com/leblanc-simon/lotor/pull/14)).
 
-[Non publié]: https://github.com/leblanc-simon/lotor/compare/v0.2.0...HEAD
+[Non publié]: https://github.com/leblanc-simon/lotor/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/leblanc-simon/lotor/releases/tag/v0.2.1
 [0.2.0]: https://github.com/leblanc-simon/lotor/releases/tag/v0.2.0
 [0.1.0]: https://github.com/leblanc-simon/lotor/releases/tag/v0.1.0
