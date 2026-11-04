@@ -15,6 +15,13 @@ appliquées automatiquement, sans retour arrière.
   français et en anglais. Un compte connecté garde son accueil. README réécrit autour des
   fonctions et des mêmes captures.
 
+### Corrigé
+
+- File de traitements : à l'arrêt d'une instance, un job dont le handler rendait la main
+  dès son annulation pouvait garder son bail jusqu'à expiration (repris environ 30 s plus
+  tard au lieu de tout de suite) ; `Stop` libère désormais aussi son bail. Cause des échecs
+  intermittents de `TestStopReturnsInTimeAndReleasesLeases` en CI.
+
 ## [0.2.0] - 2026-11-04
 
 Préversion du **lot 2 · IA et triage** : équipes et droits, conteneurs des serveurs,
