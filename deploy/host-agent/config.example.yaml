@@ -40,8 +40,10 @@ scan:
   poll_interval: 5m
   max_duration: 1h
   # Chemins absolus exclus, en plus des exclusions par défaut (/proc, /sys, /dev, /run,
-  # stockages de Docker, Podman, containerd, kubelet, LXC/LXD, montages réseau et de
-  # conteneurs). Motifs admis : /srv/data/**/cache.
+  # stockages de Docker, Podman, containerd, kubelet, LXC/LXD, répertoires de données :
+  # /tmp, /var/log, /var/cache, /var/spool, données des bases sous /var/lib…, montages
+  # réseau et de conteneurs). Y ajouter les gros volumes de données (/srv/data, /data) :
+  # aucun logiciel n'y est installé. Motifs admis : /srv/data/**/cache.
   exclude: []
 
 # Conteneurs en cours d'exécution (Docker, Podman), chacun projet enfant de l'hôte.

@@ -26,7 +26,8 @@ ligne illisible
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("montages %+v", got)
 	}
-	if s := skippedMounts(got, "/"); !reflect.DeepEqual(s, []string{"/mnt/partage commun", "/net", "/var/lib/docker/overlay2/abc/merged"}) {
+	// /proc l'est aussi par son type, où qu'il soit monté.
+	if s := skippedMounts(got, "/"); !reflect.DeepEqual(s, []string{"/mnt/partage commun", "/net", "/proc", "/var/lib/docker/overlay2/abc/merged"}) {
 		t.Errorf("montages exclus de / : %v", s)
 	}
 	if s := skippedMounts(got, "/mnt"); !reflect.DeepEqual(s, []string{"/partage commun"}) {

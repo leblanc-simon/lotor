@@ -259,3 +259,35 @@ au lot 1), mémoire au plus 819 Mio (marge 20 %, contre 921 Mio) ; moindre privi
 vérifié à chaque passage. Conteneurs (recette du lot 2, Docker 29.9 et Podman 4.9) : une
 image Alpine ou Redis s'inventorie en 1,5 à 3 s, nginx (64 composants) en 2,4 s ; une
 image partagée par deux projets n'est scannée qu'une fois.
+
+### Agent serveur — index compact de l'arborescence (ADR 0055)
+
+Protocole de T07 (`-tags measure`, binaire réel sous `nobody` avec `CAP_DAC_READ_SEARCH`,
+`max_procs` 1, deux cycles : envoi puis signal de vie), le 4 novembre 2026, dans le
+conteneur de développement de l'assistant (4 cœurs, Ubuntu 24.04, 311 000 fichiers sous
+`/`, système de fichiers en overlay, plus lent que le poste de référence). Version
+précédente (source « répertoire » de Syft) contre version de l'ADR 0055 (index compact et
+répertoires de données exclus), compilées avec `CGO_ENABLED=0` :
+
+| Racine | Version | Cycle | Durée | CPU | Mémoire maximale | SBOM gzip |
+| --- | --- | --- | --- | --- | --- | --- |
+| `/` sans `/root`, `/home`, `/tmp` | précédente | envoi | 2 min 4 s | 1 min 59 s | 946 Mio | 3 536 Kio |
+| | précédente | signal de vie | 1 min 56 s | 1 min 56 s | 883 Mio | 3 536 Kio |
+| | index | envoi | 59 s | 55 s | 512 Mio | 3 534 Kio |
+| | index | signal de vie | 59 s | 58 s | 517 Mio | 3 534 Kio |
+| `/` entière | précédente | envoi | 8 min 42 s | 8 min 33 s | **1 782 Mio** | 5 832 Kio |
+| | précédente | signal de vie | 7 min 42 s | 7 min 39 s | **2 034 Mio** | 5 832 Kio |
+| | index | envoi | 1 min 32 s | 1 min 27 s | 564 Mio | 4 357 Kio |
+| | index | signal de vie | 1 min 21 s | 1 min 21 s | 563 Mio | 4 357 Kio |
+
+Sur la racine entière, la version précédente dépasse `MemoryMax=1536M` de l'unité
+systemd : c'est l'échec constaté sur un serveur réel. Avec l'index, la durée est divisée par
+deux à six et la mémoire ne dépend plus du volume de fichiers de données ; elle reste dominée
+par les catalogueurs de Syft (listes de fichiers des paquets dpkg, classification des
+binaires), autour de `memory_limit_mib` (512 Mio, limite douce du ramasse-miettes). Sur `/`
+entière, l'écart de taille du SBOM vient des nouvelles exclusions (`/tmp`, `~/.cache`) ;
+à exclusions égales, `TestIndexSourceMatchesSyftDirectory` (`LOTOR_PARITY_ROOT=/`) donne les
+mêmes composants et la même empreinte que la source de Syft (4 615 avant les nouvelles
+exclusions, 4 261 avec). Profil CPU du scan avec
+l'index : la recherche dans l'index compte pour 17 % ; le reste est le travail propre des
+catalogueurs, identique avec les deux sources.

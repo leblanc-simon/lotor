@@ -8,6 +8,24 @@ appliquées automatiquement, sans retour arrière.
 
 ## [Non publié]
 
+### Corrigé
+
+- Agent serveur : le scan d'un serveur réel n'échoue plus faute de mémoire ou de temps
+  (ADR 0055). La source « répertoire » de Syft ouvrait chaque fichier de l'hôte et en
+  gardait un arbre en mémoire ; l'agent parcourt désormais l'arborescence une seule fois,
+  sans ouvrir les fichiers, et Syft ne lit que ceux qui l'intéressent. Même inventaire
+  qu'avant, vérifié sur la racine d'un hôte réel.
+
+### Modifié
+
+- Agent serveur : les répertoires de données sont exclus par défaut du scan (`/tmp`,
+  `/var/tmp`, `/var/log`, `/var/cache`, `/var/spool`, `/var/mail`, `/var/backups`,
+  `/var/crash`, `/lost+found`, `/var/lib/apt/lists`, `~/.cache`, données de PostgreSQL,
+  MySQL/MariaDB, MongoDB, Redis, Elasticsearch, OpenSearch, ClickHouse, InfluxDB,
+  Cassandra, RabbitMQ et Prometheus), ainsi que les systèmes de fichiers virtuels du noyau
+  où qu'ils soient montés. Un hôte dont l'inventaire change de ce fait renvoie un SBOM
+  complet à son premier scan après la mise à jour.
+
 ## [0.2.0] - 2026-11-04
 
 Préversion du **lot 2 · IA et triage** : équipes et droits, conteneurs des serveurs,
