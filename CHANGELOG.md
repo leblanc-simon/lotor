@@ -8,6 +8,12 @@ appliquées automatiquement, sans retour arrière.
 
 ## [Non publié]
 
+### Ajouté
+
+- Page de présentation statique (`site/`, publiable telle quelle, par exemple sur GitHub
+  Pages), captures d'écran d'une instance de démonstration (`site/screenshots/`) et
+  README réécrit autour des fonctions et des captures.
+
 ## [0.2.0] - 2026-11-04
 
 Préversion du **lot 2 · IA et triage** : équipes et droits, conteneurs des serveurs,
