@@ -104,8 +104,10 @@ func FuzzNormalize(f *testing.F) {
 	f.Add("pkg:npm/a@1", "a", "1", "ia", "0.5", "pkg:NPM/a@1", "a", "1", "", "")
 	f.Add("", "libfoo", "1.2", "", "", "pkg:generic/libfoo@1.2", "", "", "syft", "1")
 	f.Fuzz(func(t *testing.T, p1, n1, v1, o1, c1, p2, n2, v2, o2, c2 string) {
-		a := RawComponent{PURL: p1, Name: n1, Version: v1, Origin: o1, Confidence: c1, Licenses: []string{n2}}
-		b := RawComponent{PURL: p2, Name: n2, Version: v2, Origin: o2, Confidence: c2, Licenses: []string{v1}}
+		a := RawComponent{PURL: p1, Name: n1, Version: v1, Origin: o1, Confidence: c1, Licenses: []string{n2},
+			Locations: []RawLocation{{Path: n1, AccessPath: v2, Evidence: o2}, {Path: v1, Layer: c2}}}
+		b := RawComponent{PURL: p2, Name: n2, Version: v2, Origin: o2, Confidence: c2, Licenses: []string{v1},
+			Locations: []RawLocation{{Path: v1, Evidence: o1}, {Path: n2, AccessPath: n1}}}
 		x := Normalize(RawDocument{Components: []RawComponent{a, b}})
 		y := Normalize(RawDocument{Components: []RawComponent{b, a}})
 		if Fingerprint(x.Components) != Fingerprint(y.Components) || x.Skipped != y.Skipped {

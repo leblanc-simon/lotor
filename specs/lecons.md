@@ -1024,6 +1024,23 @@ les pièges découverts, pour ne pas les reproduire. Une entrée = le constat, p
   chargement ; un script de paquet qui réécrit une clé par `sed` peut écrire l'ancienne
   position. Réécrire dans la bonne section (awk par section) et le dire dans le CHANGELOG.
 
+## Emplacements des composants (hors lot, ADR 0057)
+
+- **Ce que chaque format transporte des emplacements de Syft** : Syft JSON donne tout
+  (`path`, `accessPath`, `layerID`, annotation `evidence`) ; CycloneDX, par les propriétés
+  `syft:location:N:path` et `syft:location:N:layerID`, ni le chemin d'accès ni l'annotation ;
+  SPDX, rien (`sourceInfo` est un texte). Règle : un emplacement sans annotation est
+  principal ; ne marquer « secondaire » que ce que Syft annote `supporting`.
+- **`LocationSet` de Syft dédoublonne par empreinte, et l'empreinte ignore `AccessPath`**
+  (`hash:"ignore"`) : deux chemins d'accès vers le même fichier réel n'en font qu'un.
+- **Une donnée par élément d'ensemble entre dans l'empreinte d'inventaire** : sinon deux
+  instantanés aux valeurs différentes partagent l'ensemble et l'un montre les valeurs de
+  l'autre. Changer l'empreinte, c'est changer `fingerprintVersion`, et le dire dans le
+  CHANGELOG (un nouvel ensemble par référence au premier scan).
+- **Lecture ajoutée à `rowColumns` des constats** : la requête est réutilisée par
+  `finding/effect.go` (préfixe de colonne) ; une sous-requête scalaire dans les colonnes,
+  plutôt qu'une jointure de plus dans `rowFrom`, ne touche ni aux alias ni aux filtres des
+  autres requêtes.
 ## Compatibilité Dependency-Track (T19)
 
 - **Code téléchargé d'un client tiers** : lancer le `dist/index.js` d'une action GitHub

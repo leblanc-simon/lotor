@@ -10,7 +10,12 @@ appliquées automatiquement, sans retour arrière.
 
 **Mise à jour** : `notify.public_url` devient **`web.public_url`** (`LOTOR_PUBLIC_URL`) ;
 déplacer la clé sous `web:` avant de redémarrer : l'ancienne est ignorée (messages sans
-lien). Les migrations 024 à 028 s'appliquent au démarrage ; l'instance reste privée.
+lien). Les migrations 024 à 028 s'appliquent au démarrage ; l'instance reste privée. Au premier
+scan après la mise à jour, chaque référence reçoit un nouvel ensemble d'inventaire
+(empreinte `lotor-inventory-v2`) : un hôte a un instantané de plus à inventaire identique.
+Mettre à jour **`lotor-host-agent` en même temps** : un agent antérieur calcule l'ancienne
+empreinte, que le serveur ne reconnaît plus, et renverrait son SBOM à chaque cycle au lieu
+d'un simple compte rendu.
 
 ### Ajouté
 
@@ -26,6 +31,11 @@ lien). Les migrations 024 à 028 s'appliquent au démarrage ; l'instance reste p
 - Page **Administration › Inscription** (mode, envoi de courriels, codes).
 - Courriels en HTML (notifications et inscription) : gabarit commun vérifié dans
   Thunderbird en clair et en sombre, logo joint au message, version texte conservée.
+- Emplacements des composants (ADR 0057) : fichiers où Syft a trouvé chaque composant
+  (chemin réel, chemin d'accès, couche, preuve secondaire), montrés dans les listes de
+  constats, la fiche d'un constat, la recherche, les composants d'un instantané et la
+  fiche composant ; champ `locations` de l'API de recherche et de l'export (dernière
+  colonne CSV). Les inventaires antérieurs n'en ont pas : ils apparaissent au scan suivant.
 - Point compatible Dependency-Track (T19, ADR 0058) : les outils configurés pour
   Dependency-Track envoient à `https://<serveur>/dt` (`PUT`/`POST /api/v1/bom`, suivi par
   `/api/v1/event/token/{uuid}`), avec le jeton d'un agent dépôt comme clé d'API ; le nom

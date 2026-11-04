@@ -130,7 +130,7 @@
         <tr>
           <th scope="row"><span class="cell-stack"><a class="mono" href="{{.VulnHref}}">{{.VulnID}}</a>{{if .KEV}}{{template "kev"}}{{end}}</span></th>
           <td>{{template "sev" .Sev}}</td>
-          <td><span class="cell-stack"><a href="{{.ComponentHref}}">{{.Component}}</a><span class="version">{{.Version}}</span></span></td>
+          <td><span class="cell-stack"><a href="{{.ComponentHref}}">{{.Component}}</a><span class="version">{{.Version}}</span>{{template "location_short" .Locations}}</span></td>
           <td>{{template "fixed" .}}</td>
           <td class="num">{{template "risk" .Risk}}</td>
         </tr>

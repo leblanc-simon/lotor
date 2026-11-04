@@ -282,6 +282,15 @@ home:
   create_org: Créer une organisation
   invitations: "Voir mes invitations"
 
+locations:
+  more:
+    one: "+{{.Count}} autre emplacement"
+    other: "+{{.Count}} autres emplacements"
+  none: Non renseigné
+  via: "atteint par {{.Path}}"
+  layer: "couche {{.Layer}}"
+  supporting: Secondaire
+
 login:
   no_account: "Pas encore de compte ?"
   signup: "Créer un compte"
@@ -1280,6 +1289,7 @@ snapshot:
   col_type: Type
   col_purl: purl
   col_licenses: Licences
+  col_location: Emplacement
   confidence: "{{.Percent}} %"
   weak: Identification faible
   no_license: Aucune
@@ -1476,7 +1486,6 @@ component:
   col_ref: Référence
   col_origin: Origine
   col_location: Emplacement
-  location_manifest: Manifeste
   col_findings: Constats ouverts
   col_snapshot: Instantané
   open_findings:
@@ -1908,6 +1917,7 @@ triage:
   project: "Projet"
   ref: "Référence"
   component: "Composant"
+  locations: "Emplacements"
   fixed_in: "Version corrigée"
   first_seen: "Premier constat"
   state: "État"

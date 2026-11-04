@@ -27,6 +27,23 @@
 {{- else}}<span class="muted">{{T "findings.no_fix"}}</span>{{end}}
 {{- end}}
 
+{{define "location_short" -}}
+{{- if .Shown}}<span class="location">{{range .Shown}}<span class="mono location__path">{{.Path}}</span>{{end}}{{if .More}}<span class="location__more">{{Tn "locations.more" .More}}</span>{{end}}</span>{{end}}
+{{- end}}
+
+{{define "location_list" -}}
+{{- if .All}}
+<ul class="locations">
+  {{- range .All}}
+  <li class="locations__item"><span class="mono locations__path">{{.Path}}</span>
+    {{- with .AccessPath}}<span class="locations__meta">{{T "locations.via" "Path" .}}</span>{{end}}
+    {{- with .Layer}}<span class="locations__meta">{{T "locations.layer" "Layer" .}}</span>{{end}}
+    {{- if .Supporting}}<span class="chip">{{T "locations.supporting"}}</span>{{end}}</li>
+  {{- end}}
+</ul>
+{{- else}}<span class="muted">{{T "locations.none"}}</span>{{end}}
+{{- end}}
+
 {{define "triage_status" -}}
 <span class="{{.Class}}">{{T .LabelKey}}</span>
 {{- end}}

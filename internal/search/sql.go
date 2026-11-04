@@ -54,7 +54,7 @@ func rankSQL(col string) string {
 }
 
 // Colonnes communes des occurrences : org_id, project_id, ref_id, component_id, origin,
-// confidence, weak_id, snapshot_id, finding_id, vuln_id, status, triage, open, sev, kev,
+// confidence, weak_id, locations, snapshot_id, finding_id, vuln_id, status, triage, open, sev, kev,
 // risk, kind, labels et team_id du projet.
 
 // componentHits : composants désignés, dans l'inventaire courant des références actives
@@ -62,7 +62,7 @@ func rankSQL(col string) string {
 // ouvertes. Comme les listes de constats, elles écartent les constats triés « non
 // affecté » ou « faux positif » (triage.HiddenStatuses, T14), qui n'appellent pas d'action.
 const componentHits = `
-	SELECT i.org_id, p.id AS project_id, r.id AS ref_id, i.component_id, i.origin, i.confidence, i.weak_id,
+	SELECT i.org_id, p.id AS project_id, r.id AS ref_id, i.component_id, i.origin, i.confidence, i.weak_id, i.locations,
 	       rc.snapshot_id, NULL::uuid AS finding_id, ''::text AS vuln_id, ''::text AS status, ''::text AS triage,
 	       coalesce(v.open, 0) AS open, v.sev, coalesce(v.kev, false) AS kev, coalesce(v.risk, 0) AS risk,
 	       p.kind, p.labels, p.team_id
@@ -83,7 +83,7 @@ const componentHits = `
 // Projets archivés et références retirées depuis comptent : la question porte sur l'état
 // d'alors. Sans vulnérabilités : les constats d'alors ne sont pas conservés (T21).
 const componentHitsAt = `
-	SELECT i.org_id, p.id AS project_id, r.id AS ref_id, i.component_id, i.origin, i.confidence, i.weak_id,
+	SELECT i.org_id, p.id AS project_id, r.id AS ref_id, i.component_id, i.origin, i.confidence, i.weak_id, i.locations,
 	       s.id AS snapshot_id, NULL::uuid AS finding_id, ''::text AS vuln_id, ''::text AS status, ''::text AS triage,
 	       0 AS open, NULL::int AS sev, false AS kev, 0::float8 AS risk,
 	       p.kind, p.labels, p.team_id
@@ -102,7 +102,7 @@ const componentHitsAt = `
 // touché » appelle aussi la réponse « non affecté »).
 const vulnHits = `
 	SELECT f.org_id, f.project_id, f.ref_id, f.component_id, i.origin, i.confidence, coalesce(i.weak_id, false) AS weak_id,
-	       rc.snapshot_id, f.id AS finding_id, f.vuln_id, f.status, f.triage_status AS triage,
+	       i.locations, rc.snapshot_id, f.id AS finding_id, f.vuln_id, f.status, f.triage_status AS triage,
 	       CASE WHEN f.status = 'open' THEN 1 ELSE 0 END AS open, ` + "%RANK%" + ` AS sev, f.kev, f.risk::float8 AS risk,
 	       p.kind, p.labels, p.team_id
 	  FROM findings f
@@ -206,7 +206,7 @@ const hitOrder = `h.risk DESC, c.name, c.version, r.name, h.ref_id, c.id, h.vuln
 // projet.
 const hitColumns = `SELECT h.project_id, h.ref_id, r.kind, r.name, s.id, s.scanned_at, coalesce(s.commit_sha, ''),
 	       c.id, c.purl, c.name, c.version, c.type, coalesce(h.origin, ''), h.confidence, h.weak_id,
-	       h.open, h.sev, h.kev, h.risk, fx.fixed, h.vuln_id, h.status, h.triage, h.finding_id`
+	       h.open, h.sev, h.kev, h.risk, fx.fixed, h.vuln_id, h.status, h.triage, h.finding_id, h.locations`
 
 // hitJoins : jointures des colonnes d'une occurrence. Versions corrigées : celles des
 // vulnérabilités ouvertes du composant dans la référence, ou celles du constat ; aucune à
@@ -238,6 +238,7 @@ type hitScan struct {
 	status     string
 	triage     string
 	finding    uuid.NullUUID
+	locations  []byte
 }
 
 // scanTargets renvoie les destinations des colonnes de hitColumns (projet exclu). Les
@@ -246,7 +247,8 @@ func (h *Hit) scanTargets() []any {
 	h.scan = &hitScan{}
 	return []any{&h.RefID, &h.RefKind, &h.RefName, &h.scan.snapshot, &h.scan.scanned, &h.Commit,
 		&h.ComponentID, &h.PURL, &h.Name, &h.Version, &h.Type, &h.scan.origin, &h.scan.confidence, &h.Weak,
-		&h.Open, &h.scan.sev, &h.KEV, &h.Risk, db.Array(&h.Fixed), &h.VulnID, &h.scan.status, &h.scan.triage, &h.scan.finding}
+		&h.Open, &h.scan.sev, &h.KEV, &h.Risk, db.Array(&h.Fixed), &h.VulnID, &h.scan.status, &h.scan.triage, &h.scan.finding,
+		&h.scan.locations}
 }
 
 // finish recopie les colonnes nullables et trie les versions corrigées selon
@@ -271,6 +273,7 @@ func (h *Hit) finish(c version.Comparer) {
 	if s.finding.Valid {
 		h.FindingID = s.finding.UUID
 	}
+	h.Locations = sbom.ParseLocations(s.locations)
 	if len(h.Fixed) > 1 {
 		scheme := version.ForPURLType(purlType(h.PURL))
 		sorted, unreadable := version.Sort(c, scheme, h.Fixed)

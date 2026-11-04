@@ -1,0 +1,48 @@
+/* Emplacements d'un composant : chemins des fichiers où l'analyse l'a trouvé. Dans un
+   tableau, les principaux (trois au plus) et le nombre des autres, en petit sous le nom du
+   composant ; sur la fiche d'un constat, la liste entière. La cellule garde une largeur
+   lisible (le tableau défile) ; un chemin plus long se coupe plutôt que de l'élargir. */
+.location {
+  display: grid;
+  justify-items: start;
+  gap: 1px;
+  min-width: 16rem;
+  max-width: 28rem;
+  color: var(--color-text-2);
+  font-size: var(--text-xs);
+  white-space: normal;
+
+  .location__path {
+    overflow-wrap: anywhere;
+  }
+
+  .location__more {
+    color: var(--color-text-2);
+    font-size: var(--text-xs);
+  }
+}
+
+.locations {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  .locations__item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-2);
+  }
+
+  .locations__path {
+    overflow-wrap: anywhere;
+  }
+
+  .locations__meta {
+    color: var(--color-text-2);
+    font-size: var(--text-xs);
+    overflow-wrap: anywhere;
+  }
+}

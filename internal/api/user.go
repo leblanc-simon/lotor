@@ -360,6 +360,16 @@ func searchHit(x search.Hit) userapi.SearchHit {
 		t := userapi.SearchHitTriageStatus(x.Triage)
 		h.TriageStatus = &t
 	}
+	if len(x.Locations) > 0 {
+		ls := make([]userapi.ComponentLocation, len(x.Locations))
+		for i, l := range x.Locations {
+			ls[i] = userapi.ComponentLocation{Path: l.Path, AccessPath: nonEmpty(l.AccessPath), Layer: nonEmpty(l.Layer)}
+			if l.Supporting {
+				ls[i].Supporting = &l.Supporting
+			}
+		}
+		h.Locations = &ls
+	}
 	return h
 }
 
@@ -399,4 +409,12 @@ func (h *userAPI) ExportProjectVEX(w http.ResponseWriter, r *http.Request, _ use
 	w.Header().Set("Content-Type", ctype)
 	w.Header().Set("Content-Length", strconv.Itoa(len(data)))
 	_, _ = w.Write(data)
+}
+
+// nonEmpty renvoie nil pour une chaîne vide (champ facultatif omis).
+func nonEmpty(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
 }

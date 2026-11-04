@@ -188,7 +188,7 @@
               <tbody>
                 {{- range .Rows}}
                 <tr>
-                  <th scope="row" class="wrap"><span class="cell-stack"><a href="{{.ComponentHref}}">{{.Name}}</a><span class="purl">{{.PURL}}</span></span></th>
+                  <th scope="row" class="wrap"><span class="cell-stack"><a href="{{.ComponentHref}}">{{.Name}}</a><span class="purl">{{.PURL}}</span>{{template "location_short" .Locations}}</span></th>
                   <td class="version">{{.Version}}</td>
                   <td><span class="cell-stack"><span>{{.RefName}}</span>{{with .CommitShort}}<span class="mono muted">{{.}}</span>{{end}}</span></td>
                   <td>{{if .Origin}}<span class="origin origin--{{.Origin}}">{{T (print "origin." .Origin)}}{{with .Confidence}} {{T "search.confidence" "Pct" .}}{{end}}</span>{{if .Weak}} <span class="muted">{{T "search.weak"}}</span>{{end}}{{else}}<span class="muted">{{T "search.not_in_inventory"}}</span>{{end}}</td>

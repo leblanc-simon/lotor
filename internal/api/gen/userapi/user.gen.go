@@ -708,6 +708,21 @@ type ComponentCounts struct {
 	Weak  int `json:"weak"`
 }
 
+// ComponentLocation Fichier où l'analyse a trouvé le composant (base de paquets, manifeste, archive, binaire).
+type ComponentLocation struct {
+	// AccessPath Chemin par lequel l'analyse l'a atteint, s'il diffère du chemin réel.
+	AccessPath *string `json:"access_path,omitempty"`
+
+	// Layer Couche de l'image qui contient le fichier.
+	Layer *string `json:"layer,omitempty"`
+
+	// Path Chemin réel du fichier, liens symboliques résolus.
+	Path string `json:"path"`
+
+	// Supporting Preuve secondaire (fichier de liste ou de sommes d'un paquet).
+	Supporting *bool `json:"supporting,omitempty"`
+}
+
 // ImpactFinding defines model for ImpactFinding.
 type ImpactFinding struct {
 	Component     SearchComponent    `json:"component"`
@@ -791,11 +806,14 @@ type SearchGroup struct {
 
 // SearchHit defines model for SearchHit.
 type SearchHit struct {
-	Commit              *string               `json:"commit,omitempty"`
-	Component           SearchComponent       `json:"component"`
-	Confidence          *float64              `json:"confidence,omitempty"`
-	FixedVersions       []string              `json:"fixed_versions"`
-	Kev                 bool                  `json:"kev"`
+	Commit        *string         `json:"commit,omitempty"`
+	Component     SearchComponent `json:"component"`
+	Confidence    *float64        `json:"confidence,omitempty"`
+	FixedVersions []string        `json:"fixed_versions"`
+	Kev           bool            `json:"kev"`
+
+	// Locations Emplacements du composant dans cet inventaire, principaux d'abord (32 au plus) ; absent si le SBOM n'en donne pas.
+	Locations           *[]ComponentLocation  `json:"locations,omitempty"`
 	MaxSeverity         *SearchHitMaxSeverity `json:"max_severity,omitempty"`
 	OpenVulnerabilities int                   `json:"open_vulnerabilities"`
 	Origin              *SearchHitOrigin      `json:"origin,omitempty"`

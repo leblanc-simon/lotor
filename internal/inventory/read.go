@@ -325,6 +325,7 @@ type Item struct {
 	WeakID      bool
 	Licenses    []string
 	Evidence    json.RawMessage
+	Locations   []sbom.Location
 }
 
 // ItemFilter restreint les composants listés.
@@ -365,7 +366,7 @@ func ListItems(ctx context.Context, tx *db.OrgTx, setID uuid.UUID, f ItemFilter,
 	}
 	rows, err := tx.QueryContext(ctx, `
 		SELECT c.id, c.purl, c.type, c.name, c.version, c.cpes, c.hashes, i.origin, i.confidence::float8, i.model,
-		       coalesce(i.scope, ''), i.weak_id, i.licenses, i.evidence
+		       coalesce(i.scope, ''), i.weak_id, i.licenses, i.evidence, i.locations
 		  FROM component_set_items i
 		  JOIN components c ON c.org_id = i.org_id AND c.id = i.component_id
 		 WHERE i.set_id = $1 AND c.purl > $2
@@ -382,11 +383,12 @@ func ListItems(ctx context.Context, tx *db.OrgTx, setID uuid.UUID, f ItemFilter,
 		var it Item
 		var origin, scope string
 		var conf sql.NullFloat64
-		var evidence []byte
+		var evidence, locations []byte
 		if err := rows.Scan(&it.ComponentID, &it.PURL, &it.Type, &it.Name, &it.Version, db.Array(&it.CPEs), db.Array(&it.Hashes),
-			&origin, &conf, &it.Model, &scope, &it.WeakID, db.Array(&it.Licenses), &evidence); err != nil {
+			&origin, &conf, &it.Model, &scope, &it.WeakID, db.Array(&it.Licenses), &evidence, &locations); err != nil {
 			return pagination.Page[Item]{}, wrap("composants", err)
 		}
+		it.Locations = sbom.ParseLocations(locations)
 		it.Origin, it.Scope = sbom.Origin(origin), sbom.Scope(scope)
 		if conf.Valid {
 			it.Confidence = &conf.Float64

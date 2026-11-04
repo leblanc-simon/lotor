@@ -1482,6 +1482,11 @@ components:
           format: double
         weak_identification:
           type: boolean
+        locations:
+          type: array
+          description: "Emplacements du composant dans cet inventaire, principaux d'abord (32 au plus) ; absent si le SBOM n'en donne pas."
+          items:
+            $ref: "#/components/schemas/ComponentLocation"
         open_vulnerabilities:
           type: integer
         max_severity:
@@ -1507,6 +1512,23 @@ components:
           type: string
           enum: [in_triage, affected, not_affected, false_positive, risk_accepted, fixed]
           description: "Recherche par vulnérabilité : statut de triage effectif du constat."
+    ComponentLocation:
+      type: object
+      description: "Fichier où l'analyse a trouvé le composant (base de paquets, manifeste, archive, binaire)."
+      required: [path]
+      properties:
+        path:
+          type: string
+          description: "Chemin réel du fichier, liens symboliques résolus."
+        access_path:
+          type: string
+          description: "Chemin par lequel l'analyse l'a atteint, s'il diffère du chemin réel."
+        layer:
+          type: string
+          description: "Couche de l'image qui contient le fichier."
+        supporting:
+          type: boolean
+          description: "Preuve secondaire (fichier de liste ou de sommes d'un paquet)."
     SearchRef:
       type: object
       required: [id, kind, name]

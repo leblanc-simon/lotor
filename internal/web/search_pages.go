@@ -62,7 +62,8 @@ type searchHitRow struct {
 	Fixed         []string
 	Risk          int
 	// Scanned : date de l'instantané retenu, à une date passée.
-	Scanned *stamp
+	Scanned   *stamp
+	Locations locationsView
 }
 
 type searchGroupRow struct {
@@ -339,7 +340,8 @@ func (id *identity) searchResults(view *searchView, req search.Request, res sear
 			row := searchHitRow{ComponentHref: base + "/components/" + h.ComponentID.String(), Name: h.Name, PURL: h.PURL,
 				Version: h.Version, RefKind: h.RefKind, RefName: h.RefName, CommitShort: shortCommit(h.Commit),
 				Origin: string(h.Origin), Weak: h.Weak, Open: h.Open, KEV: h.KEV, Fixed: h.Fixed, Risk: riskOf(h.Risk),
-				Status: string(h.Status), FindingsHref: base + "/projects/" + g.Project.Slug + "/findings?ref=" + h.RefID.String()}
+				Status: string(h.Status), FindingsHref: base + "/projects/" + g.Project.Slug + "/findings?ref=" + h.RefID.String(),
+				Locations: locationsOf(h.Locations)}
 			if view.AtMode && !h.ScannedAt.IsZero() {
 				row.Scanned = stampAt(h.ScannedAt)
 			}

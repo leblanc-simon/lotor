@@ -27,15 +27,25 @@ func TestFingerprintChangesWithInventory(t *testing.T) {
 	base := RawComponent{PURL: "pkg:npm/jquery@3.4.1", Name: "jquery"}
 	ref := fingerprintOf(base)
 	variants := map[string]func(*RawComponent){
-		"version":   func(c *RawComponent) { c.PURL = "pkg:npm/jquery@3.5.0" },
-		"qualifier": func(c *RawComponent) { c.PURL = "pkg:npm/jquery@3.4.1?arch=x" },
-		"origine":   func(c *RawComponent) { c.Origin = "ia" },
-		"confiance": func(c *RawComponent) { c.Confidence = "0.5" },
-		"modèle":    func(c *RawComponent) { c.Model = "m" },
-		"portée":    func(c *RawComponent) { c.Scope = "required" },
-		"licence":   func(c *RawComponent) { c.Licenses = []string{"MIT"} },
-		"preuve":    func(c *RawComponent) { c.Evidence = json.RawMessage(`{"a":1}`) },
-		"faible":    func(c *RawComponent) { c.PURL = "" },
+		"version":     func(c *RawComponent) { c.PURL = "pkg:npm/jquery@3.5.0" },
+		"qualifier":   func(c *RawComponent) { c.PURL = "pkg:npm/jquery@3.4.1?arch=x" },
+		"origine":     func(c *RawComponent) { c.Origin = "ia" },
+		"confiance":   func(c *RawComponent) { c.Confidence = "0.5" },
+		"modèle":      func(c *RawComponent) { c.Model = "m" },
+		"portée":      func(c *RawComponent) { c.Scope = "required" },
+		"licence":     func(c *RawComponent) { c.Licenses = []string{"MIT"} },
+		"preuve":      func(c *RawComponent) { c.Evidence = json.RawMessage(`{"a":1}`) },
+		"faible":      func(c *RawComponent) { c.PURL = "" },
+		"emplacement": func(c *RawComponent) { c.Locations = []RawLocation{{Path: "/app/package-lock.json"}} },
+		"accès": func(c *RawComponent) {
+			c.Locations = []RawLocation{{Path: "/app/package-lock.json", AccessPath: "/srv/package-lock.json"}}
+		},
+		"couche": func(c *RawComponent) {
+			c.Locations = []RawLocation{{Path: "/app/package-lock.json", Layer: "sha256:ab"}}
+		},
+		"secondaire": func(c *RawComponent) {
+			c.Locations = []RawLocation{{Path: "/app/package-lock.json", Evidence: "supporting"}}
+		},
 	}
 	for name, change := range variants {
 		c := base
