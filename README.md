@@ -7,15 +7,15 @@
 lotor inventorie chaque jour les logiciels de vos **serveurs**, de leurs **conteneurs** et
 de vos **dépôts git** (SBOM), les confronte à la base de vulnérabilités Grype et répond en
 une recherche à « qui utilise ce composant ? » et « qui est touché par cette CVE ? ».
-Open source, auto-hébergé, multi-organisation.
+Open source, auto-hébergé, multi-organisation. Chaque instance présente l'outil sur sa page
+d'accueil aux visiteurs non connectés, avec un lien vers la connexion.
 
-[Présentation](site/index.html) ·
 [Guide de démarrage](docs/demarrage.md) ·
 [Getting started (English)](docs/getting-started.md) ·
 [Installation et exploitation](docs/operations.md) ·
 [Versions](https://github.com/leblanc-simon/lotor/releases)
 
-![Tableau de bord d'une organisation : constats ouverts par sévérité, vulnérabilités KEV, alertes des politiques et tendance sur 90 jours](site/screenshots/dashboard.webp)
+![Tableau de bord d'une organisation : constats ouverts par sévérité, vulnérabilités KEV, alertes des politiques et tendance sur 90 jours](web/static/img/screenshots/dashboard.webp)
 
 ## Pourquoi lotor
 
@@ -43,11 +43,11 @@ Open source, auto-hébergé, multi-organisation.
 
 | | |
 | --- | --- |
-| ![Recherche de CVE-2023-44487 : neuf occurrences dans quatre serveurs](site/screenshots/search.webp) | ![Comparaison de deux instantanés : 24 montées de version, 26 constats résolus](site/screenshots/compare.webp) |
+| ![Recherche de CVE-2023-44487 : neuf occurrences dans quatre serveurs](web/static/img/screenshots/search.webp) | ![Comparaison de deux instantanés : 24 montées de version, 26 constats résolus](web/static/img/screenshots/compare.webp) |
 | **Recherche transverse** — qui est touché par HTTP/2 « Rapid Reset » ? | **Comparaison d'instantanés** — ce qu'une montée de version a corrigé |
-| ![Fiche du constat Spring4Shell, KEV, EPSS 99,6 %, triage affecté](site/screenshots/finding.webp) | ![Politiques en CEL avec leurs violations ouvertes](site/screenshots/policies.webp) |
+| ![Fiche du constat Spring4Shell, KEV, EPSS 99,6 %, triage affecté](web/static/img/screenshots/finding.webp) | ![Politiques en CEL avec leurs violations ouvertes](web/static/img/screenshots/policies.webp) |
 | **Triage et VEX** — une décision justifiée, tracée, exportable | **Politiques et alertes** — modèles fournis, règles bloquantes |
-| ![Fiche d'un serveur : constats et tendance sur 90 jours](site/screenshots/host.webp) | ![Tableau de bord en thème sombre](site/screenshots/dashboard-dark.webp) |
+| ![Fiche d'un serveur : constats et tendance sur 90 jours](web/static/img/screenshots/host.webp) | ![Tableau de bord en thème sombre](web/static/img/screenshots/dashboard-dark.webp) |
 | **Fiche d'un serveur** — constats, tendance, conteneurs | **Thème sombre** — et interface auditée RGAA |
 
 <sub>Captures d'une instance de démonstration : paquets réels de Debian 12 et Ubuntu 24.04,
@@ -112,7 +112,6 @@ make help      # liste des cibles
 - [Journal des modifications](CHANGELOG.md)
 - [Décisions d'architecture](docs/adr/)
 - [Modèle de menace](docs/security/threat-model.md)
-- [Page de présentation](site/index.html) (statique, publiable telle quelle, par exemple sur GitHub Pages)
 
 ## Licence
 

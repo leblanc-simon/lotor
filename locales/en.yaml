@@ -2191,3 +2191,204 @@ verdict:
   pass: "Compliant with policies"
   pass_warnings: "Compliant; warnings: {{.Count}}"
   fail: "Not compliant: blocking violations {{.Count}} ({{.Policies}})"
+
+# Landing page, served on "/" to anonymous visitors (ADR 0054).
+landing:
+  title: "Software inventory and vulnerabilities across your whole estate"
+  eyebrow: "SBOM · vulnerabilities · open source"
+  heading: "A CVE drops."
+  heading_accent: "You know who is affected."
+  lead: >-
+    Every day, lotor inventories the software on your servers, their containers and your
+    git repositories, matches it against the Grype vulnerability database and tells you, in
+    a single search, which projects to fix first.
+  login: "Sign in"
+  guide: "Getting started"
+  guide_url: "https://github.com/leblanc-simon/lotor/blob/main/docs/getting-started.md"
+  fact_binaries: "Go binaries"
+  fact_database: "PostgreSQL database"
+  fact_third_party: "third-party service dependencies"
+  shot_dashboard: >-
+    Organization dashboard: open findings by severity, KEV vulnerabilities, policy alerts and
+    90-day trend.
+  formats_label: "Formats and integrations"
+  formats:
+    cyclonedx: "CycloneDX 1.5 to 1.7"
+    spdx: "SPDX 2.3"
+    syft: "Syft JSON"
+    grype: "Grype · EPSS · KEV"
+    vex: "OpenVEX"
+    forges: "GitHub and GitLab"
+    containers: "Docker and Podman"
+    distributions: "Debian · Ubuntu · RHEL · Alpine"
+  problem:
+    title: "Friday, 5:42 pm: “are we affected?”"
+    text: >-
+      Without an inventory, the answer takes days: emails to every team, scripts run by hand
+      on each server, dependency files searched one by one. And next week, it all starts
+      again.
+    with_lotor: "With lotor"
+    step1: "Type the CVE into the search box."
+    step2: "Read the list: projects, components, versions, fixed version."
+    step3: "Export it as CSV for the teams concerned."
+    speed: "Under 50 ms across 1,000 projects and a million components."
+    speed_link: "See the benchmarks"
+  features:
+    eyebrow: "Features"
+    title: "From inventory to remediation, no spreadsheet needed"
+    inventory:
+      title: "Automatic inventory"
+      text: >-
+        A lightweight agent per Linux server (deb, rpm and apk packages, Java archives,
+        Python…) and a repository agent hooked to your forges that scans every push. Docker
+        and Podman containers become child projects of their host.
+    daily:
+      title: "Daily rescans"
+      text: >-
+        The Grype database is refreshed every day and the whole estate is rescanned: a new
+        CVE shows up on your projects without agents sending anything. CVSS, EPSS and the KEV
+        catalog rank the risks.
+    search:
+      title: "Cross-project search"
+      text: >-
+        By name, purl, vers version range, CVE, GHSA or SHA-256 digest, across every project
+        at once. Filter by team, label, severity, KEV; shareable URL, CSV or JSON export,
+        API.
+    triage:
+      title: "Triage and VEX"
+      text: >-
+        Affected, not affected, false positive, risk accepted until a date: every decision is
+        justified, logged and applied to future findings. OpenVEX and CycloneDX export,
+        import of your vendors' VEX.
+    policies:
+      title: "Policies and alerts"
+      text: >-
+        CEL rules, dated violations, delivery by email, signed webhook, Matrix, Mattermost or
+        Slack, and blocking commit statuses on GitHub and GitLab.
+    history:
+      title: "History and comparison"
+      text: >-
+        Every SBOM received becomes a dated snapshot. Compare two: components added, removed,
+        upgraded, and the effect on security.
+    dashboards:
+      title: "Dashboards"
+      text: >-
+        Open findings and their trend, median time to fix, most exposed projects and
+        components, silent agents: your estate at a glance.
+    ai:
+      title: "AI that proves what it finds"
+      text: >-
+        Optionally, a local model (Ollama) or Anthropic, when allowed, looks for dependencies
+        no manifest declares. Every finding is verified and comes with its proof.
+  tour:
+    eyebrow: "Guided tour"
+    title: "What your teams see"
+    search:
+      title: "Who is affected? One search."
+      text: >-
+        The HTTP/2 “Rapid Reset” vulnerability is actively exploited: lotor finds it in the
+        nghttp2 and nginx packages of four servers, with the fixing version and the triage
+        status of each occurrence.
+      tick1: "CVE, GHSA, purl, vers range or digest"
+      tick2: "Results grouped by project, ranked by risk"
+      tick3: "Full CSV or JSON export"
+      alt: >-
+        Search for CVE-2023-44487: nine occurrences on four servers, with component, version,
+        fixed version and risk.
+    compare:
+      title: "Every upgrade, measured."
+      text: >-
+        Between two snapshots of a repository, lotor lists the components that changed and
+        what security gained: here, 24 upgrades resolving 26 findings.
+      tick1: "Snapshot timeline per branch or tag"
+      tick2: "Additions, removals, upgrades and downgrades"
+      tick3: "Findings resolved and introduced"
+      alt: >-
+        Comparison of two snapshots of the Portail client repository: 24 components upgraded
+        and 26 findings resolved.
+    triage:
+      title: "One finding, one decision, one trail."
+      text: >-
+        Spring4Shell on the payment API: severity, 99.6% EPSS, listed in the KEV catalog,
+        fixed version. The analyst marks it “affected” and plans the fix; the decision goes
+        to the log and the VEX export.
+      tick1: "Decision per project or for the whole organization"
+      tick2: "Standard VEX justifications"
+      tick3: "Risk accepted with an expiry date"
+      alt: >-
+        Finding CVE-2022-22965 on spring-beans 5.3.17: critical, KEV, 99.6% EPSS, triage
+        status affected.
+    policies:
+      title: "Your rules, enforced every day."
+      text: >-
+        Start from the bundled templates or write your own rules. A blocking violation marks
+        the commit as failing on the forge: no regression reaches production unnoticed.
+      tick1: "Checked CEL expressions, with preview"
+      tick2: "Immediate delivery or daily digest"
+      tick3: "Verdict API for your pipelines"
+      alt: >-
+        Policies screen: three active rules, two of them blocking, with their open
+        violations and the bundled templates.
+    host:
+      title: "Every server, its trajectory."
+      text: >-
+        A host's page shows its findings by severity, their trend over 90 days or 12 months,
+        and its containers, each with its own inventory.
+      tick1: "OS, kernel, architecture, labels"
+      tick2: "“Scan now” at the next heartbeat"
+      tick3: "SBOM downloads as CycloneDX 1.6 and SPDX 2.3"
+      alt: "Server srv-web-01: open findings by severity and their decrease over 90 days."
+    note: >-
+      Screenshots taken on a demo instance: real Debian 12 and Ubuntu 24.04 packages, npm,
+      Maven, PyPI and Go dependencies, current Grype database.
+  how:
+    eyebrow: "How it works"
+    title: "Three pieces, a single server to run"
+    agents:
+      title: "Agents take the inventory"
+      text: >-
+        lotor-host-agent on every server, lotor-repo-agent next to your forges. They produce
+        SBOMs with Syft and only send what changed.
+    server:
+      title: "The server keeps history and analyzes"
+      text: >-
+        lotor-server receives SBOMs, stores them as snapshots, scans them with Grype and
+        re-evaluates your policies. One dependency: PostgreSQL.
+    you:
+      title: "You decide"
+      text: >-
+        Web interface in French and English, REST API described in OpenAPI, notifications:
+        each team sees its projects and triages its findings.
+  trust:
+    eyebrow: "Security and sovereignty"
+    title: "Your inventory never leaves your infrastructure"
+    self_hosted:
+      title: "Self-hosted"
+      text: >-
+        No online account, no telemetry. Air-gapped sites import the vulnerability database
+        by hand.
+    isolation:
+      title: "Sealed organizations"
+      text: "Isolation enforced by PostgreSQL itself (row-level security), tested route by route."
+    teams:
+      title: "Per-team permissions"
+      text: >-
+        Reader, analyst, administrator: everyone sees only their teams' projects. Audit log of
+        every sensitive action.
+    mfa:
+      title: "Mandatory second factor"
+      text: >-
+        TOTP for every local account, single-use recovery codes, account lockout after wrong
+        codes.
+    agents:
+      title: "Agents under control"
+      text: "Revocable tokens, optional mTLS, per-token rate limiting, secrets encrypted at rest."
+    a11y:
+      title: "Accessible"
+      text: >-
+        Interface audited against the RGAA, usable with a keyboard and a screen reader, light
+        and dark themes.
+  final:
+    title: "Free, for real."
+    text: "lotor is released under the WTFPL: use it, change it, share it, no strings attached."
+    source: "Source code on GitHub"

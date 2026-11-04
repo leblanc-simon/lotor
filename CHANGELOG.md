@@ -10,9 +10,10 @@ appliquées automatiquement, sans retour arrière.
 
 ### Ajouté
 
-- Page de présentation statique (`site/`, publiable telle quelle, par exemple sur GitHub
-  Pages), captures d'écran d'une instance de démonstration (`site/screenshots/`) et
-  README réécrit autour des fonctions et des captures.
+- Page de présentation sur l'accueil (`/`) pour un visiteur non connecté (ADR 0054) :
+  fonctions, visite guidée par captures d'écran, sécurité, lien « Se connecter » ; en
+  français et en anglais. Un compte connecté garde son accueil. README réécrit autour des
+  fonctions et des mêmes captures.
 
 ## [0.2.0] - 2026-11-04
 

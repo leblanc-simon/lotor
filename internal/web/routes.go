@@ -26,6 +26,9 @@ func registerUI(r chi.Router, h *handlers, loginLimit func(http.Handler) http.Ha
 	r.With(loginLimit).Post(pathVerify, id.verifyPOST)
 	r.Post(pathLogout, id.logout)
 
+	// Accueil : présentation de lotor pour un visiteur anonyme, sinon accueil du compte.
+	r.Get("/", id.root)
+
 	// Enrôlement du TOTP : session de configuration (premier login) ou authentifiée. mfax
 	// refuse de re-provisionner un TOTP actif. La désactivation n'est pas montée : le TOTP
 	// est obligatoire : seul un administrateur le réinitialise, ou son titulaire le
@@ -35,7 +38,6 @@ func registerUI(r chi.Router, h *handlers, loginLimit func(http.Handler) http.Ha
 
 	r.Group(func(r chi.Router) {
 		r.Use(requireAuth)
-		r.Get("/", id.home)
 		r.Get(pathSiteMap, id.siteMap)
 		r.Get("/account", id.profile)
 		r.Post("/account", id.saveProfile)

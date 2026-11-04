@@ -1,0 +1,221 @@
+{{define "content" -}}
+{{- /* Page de présentation, servie sur « / » au visiteur anonyme (ADR 0054). Les
+     captures viennent d'une instance de démonstration (static/img/screenshots). */ -}}
+<div class="landing">
+  <section class="landing__hero" aria-labelledby="landing-title">
+    <div class="landing__hero-text">
+      <p class="landing__eyebrow">{{T "landing.eyebrow"}}</p>
+      <h1 class="landing__title" id="landing-title">{{T "landing.heading"}} <span class="landing__accent">{{T "landing.heading_accent"}}</span></h1>
+      <p class="landing__lead">{{T "landing.lead"}}</p>
+      <p class="landing__cta">
+        <a class="btn btn--primary btn--lg" href="/login">{{T "landing.login"}}</a>
+        <a class="btn btn--lg" href="{{T "landing.guide_url"}}">{{T "landing.guide"}}</a>
+      </p>
+      <ul class="landing__facts">
+        <li><strong>3</strong> {{T "landing.fact_binaries"}}</li>
+        <li><strong>1</strong> {{T "landing.fact_database"}}</li>
+        <li><strong>0</strong> {{T "landing.fact_third_party"}}</li>
+      </ul>
+    </div>
+    <figure class="landing__shot landing__shot--hero">
+      {{- if eq .Page.Theme "dark"}}
+      <img src="{{asset "img/screenshots/dashboard-dark.webp"}}" width="1440" height="900" alt="{{T "landing.shot_dashboard"}}">
+      {{- else if eq .Page.Theme "light"}}
+      <img src="{{asset "img/screenshots/dashboard.webp"}}" width="1440" height="900" alt="{{T "landing.shot_dashboard"}}">
+      {{- else}}
+      <picture>
+        <source srcset="{{asset "img/screenshots/dashboard-dark.webp"}}" media="(prefers-color-scheme: dark)">
+        <img src="{{asset "img/screenshots/dashboard.webp"}}" width="1440" height="900" alt="{{T "landing.shot_dashboard"}}">
+      </picture>
+      {{- end}}
+    </figure>
+  </section>
+
+  <ul class="landing__band" aria-label="{{T "landing.formats_label"}}">
+    <li>{{T "landing.formats.cyclonedx"}}</li>
+    <li>{{T "landing.formats.spdx"}}</li>
+    <li>{{T "landing.formats.syft"}}</li>
+    <li>{{T "landing.formats.grype"}}</li>
+    <li>{{T "landing.formats.vex"}}</li>
+    <li>{{T "landing.formats.forges"}}</li>
+    <li>{{T "landing.formats.containers"}}</li>
+    <li>{{T "landing.formats.distributions"}}</li>
+  </ul>
+
+  <section class="landing__problem" aria-labelledby="landing-problem">
+    <div>
+      <h2 class="landing__h2" id="landing-problem">{{T "landing.problem.title"}}</h2>
+      <p class="landing__text">{{T "landing.problem.text"}}</p>
+    </div>
+    <div class="landing__answer">
+      <p class="landing__answer-label">{{T "landing.problem.with_lotor"}}</p>
+      <ol class="landing__steps">
+        <li>{{T "landing.problem.step1"}}</li>
+        <li>{{T "landing.problem.step2"}}</li>
+        <li>{{T "landing.problem.step3"}}</li>
+      </ol>
+      <p>{{T "landing.problem.speed"}} <a href="https://github.com/leblanc-simon/lotor/blob/main/docs/benchmarks.md">{{T "landing.problem.speed_link"}}</a></p>
+    </div>
+  </section>
+
+  <section class="landing__section" aria-labelledby="landing-features">
+    <p class="landing__eyebrow">{{T "landing.features.eyebrow"}}</p>
+    <h2 class="landing__h2" id="landing-features">{{T "landing.features.title"}}</h2>
+    <ul class="landing__grid">
+      <li class="landing__card">
+        <span class="landing__icon" aria-hidden="true">⌂</span>
+        <h3 class="landing__h3">{{T "landing.features.inventory.title"}}</h3>
+        <p>{{T "landing.features.inventory.text"}}</p>
+      </li>
+      <li class="landing__card">
+        <span class="landing__icon" aria-hidden="true">↻</span>
+        <h3 class="landing__h3">{{T "landing.features.daily.title"}}</h3>
+        <p>{{T "landing.features.daily.text"}}</p>
+      </li>
+      <li class="landing__card">
+        <span class="landing__icon" aria-hidden="true">⌕</span>
+        <h3 class="landing__h3">{{T "landing.features.search.title"}}</h3>
+        <p>{{T "landing.features.search.text"}}</p>
+      </li>
+      <li class="landing__card">
+        <span class="landing__icon" aria-hidden="true">✓</span>
+        <h3 class="landing__h3">{{T "landing.features.triage.title"}}</h3>
+        <p>{{T "landing.features.triage.text"}}</p>
+      </li>
+      <li class="landing__card">
+        <span class="landing__icon" aria-hidden="true">⚑</span>
+        <h3 class="landing__h3">{{T "landing.features.policies.title"}}</h3>
+        <p>{{T "landing.features.policies.text"}}</p>
+      </li>
+      <li class="landing__card">
+        <span class="landing__icon" aria-hidden="true">⇄</span>
+        <h3 class="landing__h3">{{T "landing.features.history.title"}}</h3>
+        <p>{{T "landing.features.history.text"}}</p>
+      </li>
+      <li class="landing__card">
+        <span class="landing__icon" aria-hidden="true">▦</span>
+        <h3 class="landing__h3">{{T "landing.features.dashboards.title"}}</h3>
+        <p>{{T "landing.features.dashboards.text"}}</p>
+      </li>
+      <li class="landing__card landing__card--ai">
+        <span class="landing__icon" aria-hidden="true">✦</span>
+        <h3 class="landing__h3">{{T "landing.features.ai.title"}}</h3>
+        <p>{{T "landing.features.ai.text"}}</p>
+      </li>
+    </ul>
+  </section>
+
+  <section class="landing__section" aria-labelledby="landing-tour">
+    <p class="landing__eyebrow">{{T "landing.tour.eyebrow"}}</p>
+    <h2 class="landing__h2" id="landing-tour">{{T "landing.tour.title"}}</h2>
+
+    <div class="landing__row">
+      <div class="landing__row-text">
+        <h3 class="landing__h3 landing__h3--lg">{{T "landing.tour.search.title"}}</h3>
+        <p class="landing__text">{{T "landing.tour.search.text"}}</p>
+        <ul class="landing__ticks">
+          <li>{{T "landing.tour.search.tick1"}}</li>
+          <li>{{T "landing.tour.search.tick2"}}</li>
+          <li>{{T "landing.tour.search.tick3"}}</li>
+        </ul>
+      </div>
+      <figure class="landing__shot"><img src="{{asset "img/screenshots/search.webp"}}" width="1440" height="900" loading="lazy" alt="{{T "landing.tour.search.alt"}}"></figure>
+    </div>
+
+    <div class="landing__row landing__row--reverse">
+      <div class="landing__row-text">
+        <h3 class="landing__h3 landing__h3--lg">{{T "landing.tour.compare.title"}}</h3>
+        <p class="landing__text">{{T "landing.tour.compare.text"}}</p>
+        <ul class="landing__ticks">
+          <li>{{T "landing.tour.compare.tick1"}}</li>
+          <li>{{T "landing.tour.compare.tick2"}}</li>
+          <li>{{T "landing.tour.compare.tick3"}}</li>
+        </ul>
+      </div>
+      <figure class="landing__shot"><img src="{{asset "img/screenshots/compare.webp"}}" width="1440" height="900" loading="lazy" alt="{{T "landing.tour.compare.alt"}}"></figure>
+    </div>
+
+    <div class="landing__row">
+      <div class="landing__row-text">
+        <h3 class="landing__h3 landing__h3--lg">{{T "landing.tour.triage.title"}}</h3>
+        <p class="landing__text">{{T "landing.tour.triage.text"}}</p>
+        <ul class="landing__ticks">
+          <li>{{T "landing.tour.triage.tick1"}}</li>
+          <li>{{T "landing.tour.triage.tick2"}}</li>
+          <li>{{T "landing.tour.triage.tick3"}}</li>
+        </ul>
+      </div>
+      <figure class="landing__shot"><img src="{{asset "img/screenshots/finding.webp"}}" width="1440" height="900" loading="lazy" alt="{{T "landing.tour.triage.alt"}}"></figure>
+    </div>
+
+    <div class="landing__row landing__row--reverse">
+      <div class="landing__row-text">
+        <h3 class="landing__h3 landing__h3--lg">{{T "landing.tour.policies.title"}}</h3>
+        <p class="landing__text">{{T "landing.tour.policies.text"}}</p>
+        <ul class="landing__ticks">
+          <li>{{T "landing.tour.policies.tick1"}}</li>
+          <li>{{T "landing.tour.policies.tick2"}}</li>
+          <li>{{T "landing.tour.policies.tick3"}}</li>
+        </ul>
+      </div>
+      <figure class="landing__shot"><img src="{{asset "img/screenshots/policies.webp"}}" width="1440" height="900" loading="lazy" alt="{{T "landing.tour.policies.alt"}}"></figure>
+    </div>
+
+    <div class="landing__row">
+      <div class="landing__row-text">
+        <h3 class="landing__h3 landing__h3--lg">{{T "landing.tour.host.title"}}</h3>
+        <p class="landing__text">{{T "landing.tour.host.text"}}</p>
+        <ul class="landing__ticks">
+          <li>{{T "landing.tour.host.tick1"}}</li>
+          <li>{{T "landing.tour.host.tick2"}}</li>
+          <li>{{T "landing.tour.host.tick3"}}</li>
+        </ul>
+      </div>
+      <figure class="landing__shot"><img src="{{asset "img/screenshots/host.webp"}}" width="1440" height="900" loading="lazy" alt="{{T "landing.tour.host.alt"}}"></figure>
+    </div>
+    <p class="landing__note">{{T "landing.tour.note"}}</p>
+  </section>
+
+  <section class="landing__section" aria-labelledby="landing-how">
+    <p class="landing__eyebrow">{{T "landing.how.eyebrow"}}</p>
+    <h2 class="landing__h2" id="landing-how">{{T "landing.how.title"}}</h2>
+    <ol class="landing__flow">
+      <li class="landing__card">
+        <h3 class="landing__h3">{{T "landing.how.agents.title"}}</h3>
+        <p>{{T "landing.how.agents.text"}}</p>
+      </li>
+      <li class="landing__card">
+        <h3 class="landing__h3">{{T "landing.how.server.title"}}</h3>
+        <p>{{T "landing.how.server.text"}}</p>
+      </li>
+      <li class="landing__card">
+        <h3 class="landing__h3">{{T "landing.how.you.title"}}</h3>
+        <p>{{T "landing.how.you.text"}}</p>
+      </li>
+    </ol>
+  </section>
+
+  <section class="landing__section" aria-labelledby="landing-trust">
+    <p class="landing__eyebrow">{{T "landing.trust.eyebrow"}}</p>
+    <h2 class="landing__h2" id="landing-trust">{{T "landing.trust.title"}}</h2>
+    <ul class="landing__trust">
+      <li><h3 class="landing__h3">{{T "landing.trust.self_hosted.title"}}</h3><p>{{T "landing.trust.self_hosted.text"}}</p></li>
+      <li><h3 class="landing__h3">{{T "landing.trust.isolation.title"}}</h3><p>{{T "landing.trust.isolation.text"}}</p></li>
+      <li><h3 class="landing__h3">{{T "landing.trust.teams.title"}}</h3><p>{{T "landing.trust.teams.text"}}</p></li>
+      <li><h3 class="landing__h3">{{T "landing.trust.mfa.title"}}</h3><p>{{T "landing.trust.mfa.text"}}</p></li>
+      <li><h3 class="landing__h3">{{T "landing.trust.agents.title"}}</h3><p>{{T "landing.trust.agents.text"}}</p></li>
+      <li><h3 class="landing__h3">{{T "landing.trust.a11y.title"}}</h3><p>{{T "landing.trust.a11y.text"}}</p></li>
+    </ul>
+  </section>
+
+  <section class="landing__final" aria-labelledby="landing-final">
+    <img src="{{asset "img/favicon.svg"}}" alt="" width="56" height="56">
+    <h2 class="landing__h2" id="landing-final">{{T "landing.final.title"}}</h2>
+    <p class="landing__text">{{T "landing.final.text"}}</p>
+    <p class="landing__cta">
+      <a class="btn btn--primary btn--lg" href="/login">{{T "landing.login"}}</a>
+      <a class="btn btn--lg" href="https://github.com/leblanc-simon/lotor">{{T "landing.final.source"}}</a>
+    </p>
+  </section>
+</div>
+{{- end}}

@@ -58,3 +58,4 @@ décision contraire fait l'objet d'un nouvel ADR qui le remplace.
 | [0051](0051-corrections-revue-securite-lot2.md) | Corrections de la revue de sécurité du lot 2 : enrôlement du TOTP, reconfiguration avec nouveau mot de passe, inscription bornée à l'équipe, IA externe et secrets liés à leur destination, conteneurs bornés par hôte | Accepté |
 | [0052](0052-envois-de-notification-reserves.md) | Envois de notification réservés avant l'appel réseau : un seul envoi par violation même avec deux jobs simultanés | Accepté |
 | [0053](0053-paquet-deb-du-serveur.md) | Paquet deb du serveur : debconf, base locale créée, site du mandataire, aucun redémarrage automatique | Accepté |
+| [0054](0054-page-de-presentation-publique.md) | Page de présentation publique sur « / » | Accepté |
