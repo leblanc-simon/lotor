@@ -28,9 +28,11 @@ func (v Violation) String() string {
 // anchoreImporters liste, pour chaque bibliothèque d'Anchore, les seuls paquets autorisés
 // à l'importer directement (sous-paquets compris).
 var anchoreImporters = map[string][]string{
-	"github.com/anchore/syft":  {"internal/sbom/syft", "internal/vuln/grype", "internal/hostagent", "internal/repoagent"},
-	"github.com/anchore/grype": {"internal/vuln/grype", "internal/version/grypeversion"},
-	"github.com/anchore/grant": {"internal/license/grant"},
+	"github.com/anchore/syft": {"internal/sbom/syft", "internal/vuln/grype", "internal/hostagent", "internal/repoagent"},
+	// stereoscope (références de fichier de Syft) : seulement le résolveur de l'agent serveur.
+	"github.com/anchore/stereoscope": {"internal/hostagent"},
+	"github.com/anchore/grype":       {"internal/vuln/grype", "internal/version/grypeversion"},
+	"github.com/anchore/grant":       {"internal/license/grant"},
 }
 
 // domainPackages sont les paquets métier : ni HTTP, ni gabarits, ni couche de présentation.

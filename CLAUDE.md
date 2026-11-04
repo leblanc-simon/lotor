@@ -163,6 +163,11 @@ et T23).
 T27 terminé : paquet deb `lotor-server` (ADR 0053 ; `deploy/server/`, debconf en anglais et en
 français, rôles PostgreSQL créés en local, premier administrateur, site nginx ou Apache, aucun
 démarrage sur une mise à jour), recette `make test-package` dans des conteneurs systemd.
+Agent serveur, hors lot (ADR 0055) : index compact de l'arborescence (`hostagent.fsIndex`,
+`indexSource`, `indexResolver`) au lieu de la source « répertoire » de Syft, qui ouvrait chaque
+fichier ; répertoires de données exclus par défaut ; parité vérifiée par
+`TestIndexSourceMatchesSyftDirectory` (`LOTOR_PARITY_ROOT=/` pour une vraie racine, à refaire
+à chaque montée de version de Syft).
 
 ## Règles de travail
 

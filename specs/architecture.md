@@ -126,6 +126,8 @@ Nommage : paquets courts en anglais, jamais de paquet fourre-tout (`util`, `help
 - **Imports directs** autorisés des bibliothèques d'Anchore (Grype dépend lui-même de Syft,
   la règle porte donc sur les imports directs, pas sur le graphe transitif) :
   - `github.com/anchore/syft/...` : `sbom/syft`, `vuln/grype`, `hostagent`, `repoagent` ;
+  - `github.com/anchore/stereoscope/...` : `hostagent` (références de fichier du résolveur
+    de l'index compact, ADR 0055) ;
   - `github.com/anchore/grype/...` : `vuln/grype`, `version/grypeversion` ;
   - `github.com/anchore/grant/...` : `license/grant`.
 - Les types d'Anchore ne traversent jamais la frontière d'un adaptateur.
@@ -765,7 +767,9 @@ qu'aucune mesure ne la justifie (ADR 0015).
 - `lotor-host-agent` (T07, ADR 0020 et 0021) : configuration `LOTOR_HOST_AGENT_*`
   (`deploy/host-agent/config.example.yaml`), modes `daemon` et `oneshot` ; scan de `/`
   par Syft (catalogueurs d'un système installé, sans catalogage de fichiers, systèmes
-  virtuels, stockages de conteneurs et montages réseau ou de conteneurs exclus) ;
+  virtuels, stockages de conteneurs, répertoires de données et montages réseau ou de
+  conteneurs exclus), sur un index compact de l'arborescence au lieu de la source
+  « répertoire » de Syft, qui lit l'en-tête de chaque fichier (ADR 0055) ;
   empreinte d'inventaire calculée par `sbom/syft.Decode` et `sbom.Fingerprint`, comme à
   l'ingestion ; inchangée, un signal de vie la soumet (`HeartbeatRequest.inventory`) et
   le serveur avance la date de dernière analyse ou réclame le SBOM ; changée, le SBOM part

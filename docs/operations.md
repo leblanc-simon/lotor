@@ -595,12 +595,41 @@ le binaire de l'archive `lotor-host-agent_<version>_linux_<arch>.tar.gz` en
 
 - **Scan** de `/` avec les catalogueurs d'un système installé (dpkg, rpm, apk, paquets
   Python, Ruby, Node.js installés, archives Java, binaires Go et Rust), sans catalogage de
-  fichiers. **Exclus** : `/proc`, `/sys`, `/dev`, `/run`, `/var/run`, les stockages de
+  fichiers. L'agent parcourt l'arborescence une fois, sans ouvrir les fichiers, et Syft
+  n'en lit que ceux qui l'intéressent (bases de paquets, manifestes, archives, binaires) :
+  la mémoire et la durée suivent le nombre de fichiers, pas leur volume (ADR 0055).
+  **Exclus** : `/proc`, `/sys`, `/dev`, `/run`, `/var/run`, les stockages de
   Docker, Podman (y compris sans root, `~/.local/share/containers`), containerd, kubelet,
-  LXC/LXD, Rancher, les montages réseau (NFS, CIFS, sshfs, Ceph…), de conteneurs
-  (overlay…) et autofs, plus `scan.exclude`. Les conteneurs sont inventoriés à part,
+  LXC/LXD, Rancher, les répertoires de données (`/tmp`, `/var/tmp`, `/var/log`,
+  `/var/cache`, `/var/spool`, `/var/mail`, `/var/backups`, `/var/crash`, `/lost+found`,
+  `/var/lib/apt/lists`, `~/.cache`, et les données de PostgreSQL, MySQL/MariaDB, MongoDB,
+  Redis, Elasticsearch, OpenSearch, ClickHouse, InfluxDB, Cassandra, RabbitMQ et
+  Prometheus sous `/var/lib`), les montages réseau (NFS, CIFS, sshfs, Ceph…), de conteneurs
+  (overlay…), autofs et les systèmes de fichiers virtuels du noyau, plus `scan.exclude`.
+  Un serveur qui garde de gros volumes de données ailleurs (`/srv/data`, `/data`) gagne à
+  les ajouter à `scan.exclude`. Les conteneurs sont inventoriés à part,
   si l'option est activée (« Conteneurs » ci-dessous). Syft travaille hors ligne : il
   n'exécute aucun outil (`go list`) et ne sort pas sur le réseau.
+- **Exclusions configurées** (`scan.exclude`) : chemins absolus ou motifs, comparés au
+  chemin complet depuis la racine du scan ; un répertoire exclu n'est pas parcouru.
+  `*` couvre un seul niveau de répertoire, `**` n'importe quelle profondeur, `?` un
+  caractère, `[abc]` un caractère parmi d'autres, `{a,b}` une alternative ; une barre
+  finale est ignorée.
+
+  | Motif | Exclut | Garde |
+  | --- | --- | --- |
+  | `/srv/data` | `/srv/data` et tout son contenu | `/srv/data2` |
+  | `/home/*/www` | `/home/alice/www`, `/home/bob/www` | `/home/alice/sites/www`, `/home/alice/www2` |
+  | `/home/**/www` | tout répertoire `www` sous `/home`, à toute profondeur | `/srv/www` |
+  | `/home/*/{www,public_html}` | `www` et `public_html` de chaque compte | `/home/bob/app` |
+  | `/srv/data/**/cache` | tout répertoire `cache` sous `/srv/data` | `/srv/data/a/keep.jar` |
+
+  Un motif qui ne commence pas par `/` empêche l'agent de démarrer. Avec la variable
+  `LOTOR_HOST_AGENT_SCAN_EXCLUDE`, les motifs sont séparés par des virgules : un motif
+  `{a,b}` s'écrit alors dans le fichier de configuration. Ce qui est exclu disparaît de
+  l'inventaire : n'exclure que des données (médias, téléversements, caches), jamais des
+  applications (`node_modules`, `vendor` de Composer, extensions WordPress, archives Java),
+  dont les vulnérabilités ne seraient plus suivies.
 - **Envoi conditionnel** : l'empreinte d'inventaire du SBOM est calculée comme par le
   serveur. Inchangée, l'agent envoie un signal de vie avec son empreinte ; le serveur
   avance la date de dernière analyse, ou réclame le SBOM s'il ne connaît pas cet

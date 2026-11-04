@@ -40,8 +40,15 @@ scan:
   poll_interval: 5m
   max_duration: 1h
   # Chemins absolus exclus, en plus des exclusions par défaut (/proc, /sys, /dev, /run,
-  # stockages de Docker, Podman, containerd, kubelet, LXC/LXD, montages réseau et de
-  # conteneurs). Motifs admis : /srv/data/**/cache.
+  # stockages de Docker, Podman, containerd, kubelet, LXC/LXD, répertoires de données :
+  # /tmp, /var/log, /var/cache, /var/spool, données des bases sous /var/lib…, montages
+  # réseau et de conteneurs). Y ajouter les gros volumes de données (/srv/data, /data) :
+  # aucun logiciel n'y est installé. Motifs admis, comparés au chemin complet : « * » pour
+  # un niveau (/home/*/www), « ** » pour toute profondeur (/srv/data/**/cache), « {a,b} »
+  # pour une alternative (/home/*/{www,public_html}, à écrire ici plutôt que dans
+  # LOTOR_HOST_AGENT_SCAN_EXCLUDE, dont les valeurs sont séparées par des virgules). Ce qui
+  # est exclu n'est plus inventorié : n'exclure que des données, jamais des applications.
+  # Détail : docs/operations.md, « Agent serveur ».
   exclude: []
 
 # Conteneurs en cours d'exécution (Docker, Podman), chacun projet enfant de l'hôte.
