@@ -270,6 +270,15 @@ home:
   create_org: Create an organization
   invitations: "See my invitations"
 
+locations:
+  more:
+    one: "+{{.Count}} other location"
+    other: "+{{.Count}} other locations"
+  none: Not recorded
+  via: "reached through {{.Path}}"
+  layer: "layer {{.Layer}}"
+  supporting: Supporting
+
 login:
   no_account: "No account yet?"
   signup: "Create an account"
@@ -1197,6 +1206,7 @@ snapshot:
   col_type: Type
   col_purl: purl
   col_licenses: Licenses
+  col_location: Location
   confidence: "{{.Percent}}%"
   weak: Weak identification
   no_license: None
@@ -1393,7 +1403,6 @@ component:
   col_ref: Reference
   col_origin: Origin
   col_location: Location
-  location_manifest: Manifest
   col_findings: Open findings
   col_snapshot: Snapshot
   open_findings:
@@ -1815,6 +1824,7 @@ triage:
   project: "Project"
   ref: "Reference"
   component: "Component"
+  locations: "Locations"
   fixed_in: "Fixed version"
   first_seen: "First seen"
   state: "State"

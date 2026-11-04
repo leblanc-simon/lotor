@@ -87,6 +87,7 @@ type findingRow struct {
 	Component     string
 	Version       string
 	ComponentHref string
+	Locations     locationsView
 	Fixed         []string
 	FixState      string
 	RefName       string
@@ -108,7 +109,8 @@ func (id *identity) findingRow(base string, r finding.Row) findingRow {
 		ID: r.ID, VulnID: r.VulnID, VulnHref: base + "/vulnerabilities/" + url.PathEscape(r.VulnID),
 		Sev: sevOf(r.Severity, r.CVSS), EPSS: r.EPSS, KEV: r.KEV, Risk: riskOf(r.Risk),
 		Component: r.ComponentName, Version: r.ComponentVersion, ComponentHref: base + "/components/" + r.ComponentID.String(),
-		Fixed: r.FixedVersions, FixState: string(r.FixState), RefName: r.RefName, RefKind: r.RefKind,
+		Locations: locationsOf(r.Locations),
+		Fixed:     r.FixedVersions, FixState: string(r.FixState), RefName: r.RefName, RefKind: r.RefKind,
 		ProjectName: r.ProjectName, ProjectKind: r.ProjectKind, ProjectHref: base + "/projects/" + r.ProjectSlug,
 		Status: string(r.Status), Resolution: string(r.Resolution), FirstSeen: stampAt(r.FirstSeen), ResolvedAt: stampOf(r.ResolvedAt),
 		Triage: triageBadge(r.TriageStatus), Href: base + "/projects/" + r.ProjectSlug + "/findings/" + r.ID.String(),
@@ -450,6 +452,8 @@ type usageRow struct {
 	// « preuve » sur la fiche.
 	File    string
 	ProofID string
+	// Locations : emplacements notés par l'analyse (composants de Syft).
+	Locations locationsView
 }
 
 // proofView est le bloc « preuve » d'un composant trouvé par l'IA, pour une référence
@@ -550,7 +554,7 @@ func (id *identity) component(w http.ResponseWriter, r *http.Request) {
 		row := usageRow{ProjectName: u.ProjectName, ProjectKind: u.ProjectKind, ProjectHref: base + "/projects/" + u.ProjectSlug,
 			RefName: u.RefName, RefKind: u.RefKind, Version: u.Version, Origin: string(u.Origin), Open: open[k], KEV: kev[k],
 			Scanned: stampAt(u.ScannedAt), SnapshotURL: base + "/projects/" + u.ProjectSlug + "/snapshots/" + u.SnapshotID.String(),
-			CommitShort: shortCommit(u.Commit), Current: u.ComponentID == c.ID}
+			CommitShort: shortCommit(u.Commit), Current: u.ComponentID == c.ID, Locations: locationsOf(u.Locations)}
 		if u.Confidence != nil {
 			pct := int(math.Round(*u.Confidence * 100))
 			row.Confidence = &pct

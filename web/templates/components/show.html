@@ -115,7 +115,7 @@
               <th scope="row"><span class="cell-stack"><a href="{{.ProjectHref}}">{{.ProjectName}}</a>{{template "project_kind" .ProjectKind}}</span></th>
               <td><span class="cell-stack"><span class="mono">{{.RefName}}</span><span class="muted">{{T (print "ref_kind." .RefKind)}}</span></span></td>
               <td>{{if .Current}}<span class="cell-stack"><span class="version">{{.Version}}</span><span class="chip">{{T "component.this_version"}}</span></span>{{else}}<span class="version">{{.Version}}</span>{{end}}</td>
-              <td>{{if .ProofID}}<a class="mono" href="#{{.ProofID}}">{{.File}}</a>{{else if .File}}<span class="mono">{{.File}}</span>{{else}}<span class="muted">{{T "component.location_manifest"}}</span>{{end}}</td>
+              <td>{{if .ProofID}}<a class="mono" href="#{{.ProofID}}">{{.File}}</a>{{else if .File}}<span class="mono">{{.File}}</span>{{else if .Locations.Shown}}{{template "location_short" .Locations}}{{else}}<span class="muted">{{T "locations.none"}}</span>{{end}}</td>
               <td><span class="origin{{if eq .Origin "ia"}} origin--ai{{end}}"><span>{{T (print "origin." .Origin)}}</span>{{with .Confidence}}<span class="origin__conf">{{T "snapshot.confidence" "Percent" .}}</span>{{end}}</span></td>
               <td>{{if .Open}}<span class="cluster"><span>{{Tn "component.open_findings" .Open}}</span>{{if .KEV}}{{template "kev"}}{{end}}</span>{{else}}<span class="muted">{{T "component.no_findings"}}</span>{{end}}</td>
               <td><span class="cell-stack"><a href="{{.SnapshotURL}}">{{template "stamp" .Scanned}}</a>{{with .CommitShort}}<span class="mono muted">{{.}}</span>{{end}}</span></td>

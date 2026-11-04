@@ -54,7 +54,8 @@ func Decode(format sbom.Format, data []byte) (sbom.Document, error) {
 		if extra.described[id] {
 			continue
 		}
-		rc := sbom.RawComponent{PURL: p.PURL, Name: p.Name, Version: p.Version, Licenses: licenses(p)}
+		rc := sbom.RawComponent{PURL: p.PURL, Name: p.Name, Version: p.Version, Licenses: licenses(p),
+			Locations: locations(p)}
 		for _, c := range p.CPEs {
 			rc.CPEs = append(rc.CPEs, c.Attributes.String())
 		}
@@ -93,6 +94,18 @@ func decode(format sbom.Format, data []byte) (s *syftsbom.SBOM, version string, 
 		return nil, "", sbom.Reject(sbom.KeyDecodeFailed, "", nil)
 	}
 	return s, version, nil
+}
+
+// locations lit les emplacements du paquet : chemin réel, chemin d'accès, couche et
+// annotation de preuve (Syft JSON les donne tous ; CycloneDX le chemin et la couche ; SPDX
+// aucun).
+func locations(p pkg.Package) []sbom.RawLocation {
+	var out []sbom.RawLocation
+	for _, l := range p.Locations.ToUnorderedSlice() {
+		out = append(out, sbom.RawLocation{Path: l.RealPath, AccessPath: l.AccessPath, Layer: l.FileSystemID,
+			Evidence: l.Annotations[pkg.EvidenceAnnotationKey]})
+	}
+	return out
 }
 
 func licenses(p pkg.Package) []string {

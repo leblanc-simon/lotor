@@ -98,7 +98,7 @@
                   <td>{{template "sev" .Sev}}</td>
                   <td>{{template "triage_link" .}}</td>
                   <td>{{with .EPSS}}<span class="mono">{{percent . 1}}</span>{{else}}<span class="muted">{{T "common.none"}}</span>{{end}}</td>
-                  <td><span class="cell-stack"><a href="{{.ComponentHref}}">{{.Component}}</a><span class="version">{{.Version}}</span></span></td>
+                  <td><span class="cell-stack"><a href="{{.ComponentHref}}">{{.Component}}</a><span class="version">{{.Version}}</span>{{template "location_short" .Locations}}</span></td>
                   <td>{{template "fixed" .}}</td>
                   <td>{{if $.Resolved}}<span class="cell-stack">{{template "stamp" .ResolvedAt}}<span class="muted">{{T (print "finding_resolution." .Resolution)}}</span></span>{{else}}{{template "stamp" .FirstSeen}}{{end}}</td>
                   <td class="num">{{template "risk" .Risk}}</td>

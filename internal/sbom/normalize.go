@@ -40,6 +40,7 @@ type RawComponent struct {
 	Model      string
 	Evidence   json.RawMessage
 	Scope      string
+	Locations  []RawLocation
 }
 
 // RawHash est une empreinte telle que l'écrit le document.
@@ -123,6 +124,7 @@ func normalizeComponent(rc RawComponent) (Component, bool) {
 		c.Model = m
 	}
 	c.Evidence = canonicalJSON(rc.Evidence)
+	c.Locations = cleanLocations(rc.Locations)
 	return c, true
 }
 
@@ -241,7 +243,7 @@ func canonicalJSON(raw json.RawMessage) json.RawMessage {
 
 // merge fusionne deux mentions du même purl : Syft l'emporte sur l'IA (preuve par
 // l'analyse), la confiance la plus haute, la portée la plus contraignante, l'union des
-// listes ; à égalité, la première valeur non vide dans l'ordre canonique. Le résultat ne
+// listes (emplacements compris : un même paquet trouvé à deux endroits) ; à égalité, la première valeur non vide dans l'ordre canonique. Le résultat ne
 // dépend pas de l'ordre des mentions.
 func merge(a, b Component) Component {
 	if rank(b) > rank(a) || (rank(b) == rank(a) && tieBreak(b, a) < 0) {
@@ -251,6 +253,7 @@ func merge(a, b Component) Component {
 	out.CPEs = union(a.CPEs, b.CPEs, MaxCPEs)
 	out.Licenses = union(a.Licenses, b.Licenses, MaxLicenses)
 	out.Hashes = union(a.Hashes, b.Hashes, MaxHashes)
+	out.Locations = unionLocations(a.Locations, b.Locations)
 	if scopeRank(b.Scope) > scopeRank(out.Scope) {
 		out.Scope = b.Scope
 	}

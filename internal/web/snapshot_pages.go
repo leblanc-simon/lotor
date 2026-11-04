@@ -230,6 +230,7 @@ type itemRow struct {
 	Licenses   []string
 	Weak       bool
 	Scope      string
+	Locations  locationsView
 }
 
 type downloadLink struct {
@@ -325,7 +326,7 @@ func (id *identity) snapshotPage(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, it := range page.Items {
 		ir := itemRow{Name: it.Name, Version: it.Version, Type: it.Type, PURL: it.PURL, Origin: string(it.Origin),
-			Licenses: it.Licenses, Weak: it.WeakID, Scope: string(it.Scope)}
+			Licenses: it.Licenses, Weak: it.WeakID, Scope: string(it.Scope), Locations: locationsOf(it.Locations)}
 		if it.Confidence != nil {
 			pct := int(math.Round(*it.Confidence * 100))
 			ir.Confidence = &pct

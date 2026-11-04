@@ -3,6 +3,7 @@ package inventory
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -256,23 +257,30 @@ func insertItems(ctx context.Context, tx *db.OrgTx, setID uuid.UUID, cs []sbom.C
 	for start := 0; start < len(cs); start += chunk {
 		part := cs[start:min(start+chunk, len(cs))]
 		n := len(part)
-		comp, origin, conf, model, scope, weak, lic, ev :=
+		comp, origin, conf, model, scope, weak, lic, ev, loc :=
 			make([]string, n), make([]string, n), make([]string, n), make([]string, n),
-			make([]string, n), make([]string, n), make([]string, n), make([]string, n)
+			make([]string, n), make([]string, n), make([]string, n), make([]string, n), make([]string, n)
 		for i, c := range part {
 			comp[i], origin[i], model[i], scope[i], lic[i], ev[i] = ids[c.PURL].String(), string(c.Origin), c.Model, string(c.Scope), join(c.Licenses), string(c.Evidence)
+			if len(c.Locations) > 0 {
+				b, err := json.Marshal(c.Locations)
+				if err != nil {
+					return err
+				}
+				loc[i] = string(b)
+			}
 			if c.Confidence != nil {
 				conf[i] = strconv.FormatFloat(*c.Confidence, 'f', 4, 64)
 			}
 			weak[i] = strconv.FormatBool(c.WeakID)
 		}
 		if _, err := tx.ExecContext(ctx, `
-			INSERT INTO component_set_items (org_id, set_id, component_id, origin, confidence, model, scope, weak_id, licenses, evidence)
+			INSERT INTO component_set_items (org_id, set_id, component_id, origin, confidence, model, scope, weak_id, licenses, evidence, locations)
 			SELECT $1, $2, u.component_id, u.origin, NULLIF(u.confidence, '')::numeric, u.model, NULLIF(u.scope, ''),
-			       u.weak::boolean, string_to_array(u.licenses, E'\x1f'), NULLIF(u.evidence, '')::jsonb
-			  FROM unnest($3::uuid[], $4::text[], $5::text[], $6::text[], $7::text[], $8::text[], $9::text[], $10::text[])
-			       AS u(component_id, origin, confidence, model, scope, weak, licenses, evidence)`,
-			tx.OrgID(), setID, comp, origin, conf, model, scope, weak, lic, ev); err != nil {
+			       u.weak::boolean, string_to_array(u.licenses, E'\x1f'), NULLIF(u.evidence, '')::jsonb, NULLIF(u.locations, '')::jsonb
+			  FROM unnest($3::uuid[], $4::text[], $5::text[], $6::text[], $7::text[], $8::text[], $9::text[], $10::text[], $11::text[])
+			       AS u(component_id, origin, confidence, model, scope, weak, licenses, evidence, locations)`,
+			tx.OrgID(), setID, comp, origin, conf, model, scope, weak, lic, ev, loc); err != nil {
 			return err
 		}
 	}

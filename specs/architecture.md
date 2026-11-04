@@ -295,7 +295,7 @@ Données **par organisation** (toutes portent `org_id`) :
 | `tracked_refs` | référence suivie (branche, tag, l'hôte, ou le conteneur nommé par son identité) |
 | `agents`, `agent_tokens`, `enrollment_tokens` | agents (équipe facultative : sans équipe, agent d'organisation) et jetons hachés ; jeton d'inscription rattaché à une équipe, dont héritent projet et agent inscrits ; pour un agent serveur, demande de scan en attente et dernier contexte d'hôte (T07) |
 | `components` | composant de l'organisation : purl canonique (unique par organisation), `purl_base`, type, nom, version, CPE, empreintes |
-| `component_sets`, `component_set_items` | ensemble d'inventaire adressé par son empreinte ; ses composants avec origine (`syft`, `ia`), confiance, modèle, preuve, portée, licences, identification faible |
+| `component_sets`, `component_set_items` | ensemble d'inventaire adressé par son empreinte ; ses composants avec origine (`syft`, `ia`), confiance, modèle, preuve, portée, licences, identification faible, emplacements (chemin réel, chemin d'accès, couche, preuve secondaire ; ADR 0057) |
 | `sbom_blobs` | SBOM brut compressé, dédoublonné par empreinte SHA-256 |
 | `ingestions` | réception d'un SBOM : statut, erreurs, instantané produit |
 | `snapshots` | instantané d'une référence : commit, date, agent, version d'agent, blob, ensemble d'inventaire, statut et modèle de l'enrichissement IA déclarés par le SBOM (T12) |
@@ -522,8 +522,8 @@ grandes tables par `org_id` donnerait la même séparation physique en gardant l
      licences SPDX de CycloneDX n'est pas imposée à la réception, ADR 0016) ;
    - décodage par `sbom/syft` (décodeurs de Syft, ceux de Grype) vers `sbom.Document`,
      normalisation des purl et fusion des doublons ;
-   - calcul de l'**empreinte d'inventaire** (composants canoniques triés, origine, preuve),
-     indépendante des horodatages et numéros de série du document ;
+   - calcul de l'**empreinte d'inventaire** (composants canoniques triés, origine, preuve,
+     emplacements ; `lotor-inventory-v2`, ADR 0057), indépendante des horodatages et numéros de série du document ;
    - dans une transaction, référence verrouillée : upsert trié des composants de
      l'organisation, ensemble d'inventaire réutilisé ou créé, instantané, `ref_current`,
      fin de l'ingestion ; un SBOM refusé termine l'ingestion en `failed` avec sa clé, sans
@@ -549,6 +549,11 @@ au projet, espace de noms `lotor:` : `lotor:origin` (`syft` ou `ia`), `lotor:con
 ligne, extrait). Dans les métadonnées du document, `lotor:enrichment` (`complete`,
 `incomplete`, `carried`), `lotor:enrichment-model` et `lotor:enrichment-prompt` décrivent
 l'enrichissement IA ; le serveur range statut et modèle avec l'instantané (ADR 0043).
+Les **emplacements** notés par Syft (`locations` du Syft JSON, propriétés
+`syft:location:N:path` et `syft:location:N:layerID` de CycloneDX ; aucun en SPDX) sont
+gardés par élément d'ensemble, 32 au plus, principaux d'abord (annotation `evidence` :
+`supporting` les marque secondaires), et affichés avec les constats et les composants
+(ADR 0057).
 
 Le décodage s'exécute dans le processus worker ; les bornes préalables, le délai du job
 et le plafond de jobs simultanés par organisation (`workers.org_limit`) empêchent un seul

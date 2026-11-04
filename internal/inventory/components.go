@@ -56,9 +56,11 @@ type Usage struct {
 	Origin      sbom.Origin
 	Confidence  *float64
 	// Model et Evidence : modèle et preuve d'un composant d'origine IA.
-	Model        string
-	Evidence     json.RawMessage
-	Licenses     []string
+	Model    string
+	Evidence json.RawMessage
+	Licenses []string
+	// Locations : emplacements du composant dans l'inventaire courant de la référence.
+	Locations    []sbom.Location
 	SnapshotID   uuid.UUID
 	ScannedAt    time.Time
 	Commit       string
@@ -72,7 +74,7 @@ type Usage struct {
 func ComponentUsage(ctx context.Context, tx *db.OrgTx, purlBase string) ([]Usage, error) {
 	rows, err := tx.QueryContext(ctx, `
 		SELECT c.id, c.version, c.purl, p.id, p.slug, p.name, p.kind, r.id, r.kind, r.name, i.origin, i.confidence, i.licenses,
-		       s.id, s.scanned_at, coalesce(s.commit_sha, ''), i.model, i.evidence, s.agent_version
+		       s.id, s.scanned_at, coalesce(s.commit_sha, ''), i.model, i.evidence, s.agent_version, i.locations
 		  FROM components c
 		  JOIN component_set_items i ON i.org_id = c.org_id AND i.component_id = c.id
 		  JOIN ref_current rc ON rc.org_id = i.org_id AND rc.set_id = i.set_id
@@ -91,12 +93,13 @@ func ComponentUsage(ctx context.Context, tx *db.OrgTx, purlBase string) ([]Usage
 		var u Usage
 		var origin string
 		var conf sql.NullFloat64
-		var evidence []byte
+		var evidence, locations []byte
 		if err := rows.Scan(&u.ComponentID, &u.Version, &u.PURL, &u.ProjectID, &u.ProjectSlug, &u.ProjectName, &u.ProjectKind,
 			&u.RefID, &u.RefKind, &u.RefName, &origin, &conf, db.Array(&u.Licenses), &u.SnapshotID, &u.ScannedAt, &u.Commit,
-			&u.Model, &evidence, &u.AgentVersion); err != nil {
+			&u.Model, &evidence, &u.AgentVersion, &locations); err != nil {
 			return nil, wrap("usages d'un composant", err)
 		}
+		u.Locations = sbom.ParseLocations(locations)
 		if len(evidence) > 0 {
 			u.Evidence = evidence
 		}
