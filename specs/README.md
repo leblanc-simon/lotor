@@ -1,7 +1,7 @@
 # Lots techniques
 
 Le [cahier des charges](../docs/cahier-des-charges.md) découpe le produit en trois lots
-fonctionnels. Ce dossier les décline en 28 lots techniques, chacun assez petit pour être
+fonctionnels. Ce dossier les décline en 29 lots techniques, chacun assez petit pour être
 réalisé, relu et fusionné seul. L'[architecture de référence](architecture.md) fait autorité
 sur les choix techniques ; une fiche de lot précise le quoi et le comment d'une étape.
 
@@ -69,6 +69,7 @@ sur les choix techniques ; une fiche de lot précise le quoi et le comment d'une
 | [T24](lots/T24-sbom-signes.md) | SBOM signés | 3 | T19, T23 | À faire |
 | [T25](lots/T25-sso-oidc.md) | SSO OIDC | 3 | T18 | À faire |
 | [T27](lots/T27-paquet-serveur.md) | Paquet deb du serveur | 3 | T18 | Terminé |
+| [T28](lots/T28-inscription.md) | Inscription | 3 | T18 | En cours |
 | [T26](lots/T26-publication-v1.md) | Publication de la v1.0 | 3 | T19 à T25, T27 | À faire |
 
 ## Ordre de réalisation
@@ -104,11 +105,12 @@ flowchart LR
         T22
         T25
         T27
+        T28
         T26
     end
     T11 --> T16
-    T18 --> T19 & T20 & T21 & T22 & T23 & T25 & T27
-    T20 & T21 & T22 & T24 & T25 & T27 --> T26
+    T18 --> T19 & T20 & T21 & T22 & T23 & T25 & T27 & T28
+    T20 & T21 & T22 & T24 & T25 & T27 & T28 --> T26
 ```
 
 Les lots d'une même colonne sans flèche entre eux peuvent avancer en parallèle, dans des

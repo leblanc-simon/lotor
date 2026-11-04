@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,7 +13,10 @@ import (
 	"leblanc.io/lotor/internal/audit"
 	"leblanc.io/lotor/internal/db"
 	"leblanc.io/lotor/internal/db/crossorg"
+	"leblanc.io/lotor/internal/mailer"
+	"leblanc.io/lotor/internal/secret"
 	"leblanc.io/lotor/internal/tenant"
+	"leblanc.io/lotor/internal/token"
 )
 
 // Bornes des invitations : durée de validité, invitations en attente par organisation.
@@ -38,21 +42,59 @@ func invitationEvent(action audit.Action, email string, id uuid.UUID, details ma
 	return audit.Event{Action: action, TargetType: "invitation", TargetID: id.String(), TargetLabel: email, Details: details}
 }
 
-// Invite invite l'adresse email à rejoindre l'organisation avec le rôle role (SEC-09). La
-// réponse ne dit rien du compte : l'invitation est enregistrée qu'un compte porte cette
-// adresse ou non (il pourra l'accepter s'il est créé avant l'expiration), et une nouvelle
-// invitation remplace la précédente (rôle et échéance). Seule exception, sans rien
-// révéler de plus que la liste des membres : une adresse déjà membre n'est pas invitée.
+// Invite invite l'adresse email à rejoindre l'organisation avec le rôle role, sans lien
+// à transmettre (voir InviteWithLink).
 func (s *Service) Invite(ctx context.Context, actor audit.Actor, org tenant.OrgID, email string, role tenant.Role) error {
+	_, err := s.InviteWithLink(ctx, actor, org, email, role, InviteMail{})
+	return err
+}
+
+// InviteMail règle l'envoi du lien d'une invitation par courriel (T28). Sans Secrets, le
+// lien n'est pas envoyé : l'administrateur le transmet à la main.
+type InviteMail struct {
+	Secrets *secret.Box
+	// Language est la langue du courriel, celle de l'invitant ; RoleLabel le rôle traduit
+	// dans cette langue.
+	Language  string
+	RoleLabel string
+}
+
+// Link est le lien d'une invitation : Token, à montrer une seule fois s'il n'est pas
+// envoyé, est vide quand l'adresse est déjà membre (rien n'est créé).
+type Link struct {
+	Token     string
+	Mailed    bool
+	ExpiresAt time.Time
+}
+
+// InvitationPath est le chemin du lien d'une invitation d'organisation.
+func InvitationPath(raw string) string { return "/invitation/" + raw }
+
+// InviteWithLink invite l'adresse email à rejoindre l'organisation avec le rôle role
+// (SEC-09) et lui attache un lien secret neuf (T28), qui remplace le précédent : avec lui,
+// la personne invitée crée son compte à cette adresse, ou se connecte pour accepter. La
+// réponse ne dit rien du compte : l'invitation est enregistrée qu'un compte porte cette
+// adresse ou non, et une nouvelle invitation remplace la précédente (rôle, échéance,
+// lien). Seule exception, sans rien révéler de plus que la liste des membres : une adresse
+// déjà membre n'est pas invitée. Avec mail.Secrets, le lien part par courriel, mis en file
+// dans la transaction.
+func (s *Service) InviteWithLink(ctx context.Context, actor audit.Actor, org tenant.OrgID, email string, role tenant.Role,
+	mail InviteMail) (Link, error) {
 	if _, err := tenant.ParseRole(string(role)); err != nil {
-		return invalid("role", KeyRoleInvalid)
+		return Link{}, invalid("role", KeyRoleInvalid)
 	}
 	e, err := account.NormalizeEmail(email)
 	if err != nil {
-		return err
+		return Link{}, err
 	}
+	issued, err := token.New(token.Invitation)
+	if err != nil {
+		return Link{}, err
+	}
+	var link Link
 	err = s.pool.InOrg(ctx, org, func(tx *db.OrgTx) error {
-		if _, err := getOrg(ctx, tx, true); err != nil {
+		o, err := getOrg(ctx, tx, true)
+		if err != nil {
 			return err
 		}
 		var member bool
@@ -78,17 +120,35 @@ func (s *Service) Invite(ctx context.Context, actor audit.Actor, org tenant.OrgI
 		if actor.UserID != 0 {
 			invitedBy = &actor.UserID
 		}
+		var expires time.Time
 		if err := tx.QueryRowContext(ctx, `
-			INSERT INTO org_invitations (org_id, id, email, role, invited_by, expires_at)
-			VALUES ($1, $2, $3, $4, $5, now() + $6 * interval '1 second')
+			INSERT INTO org_invitations (org_id, id, email, role, invited_by, expires_at, public_id, secret_hash)
+			VALUES ($1, $2, $3, $4, $5, now() + $6 * interval '1 second', $7, $8)
 			ON CONFLICT (org_id, email) DO UPDATE
-			   SET role = excluded.role, invited_by = excluded.invited_by, created_at = now(), expires_at = excluded.expires_at
-			RETURNING id`, tx.OrgID(), id, e, string(role), invitedBy, int64(InvitationLifetime/time.Second)).Scan(&id); err != nil {
+			   SET role = excluded.role, invited_by = excluded.invited_by, created_at = now(), expires_at = excluded.expires_at,
+			       public_id = excluded.public_id, secret_hash = excluded.secret_hash
+			RETURNING id, expires_at`, tx.OrgID(), id, e, string(role), invitedBy, int64(InvitationLifetime/time.Second),
+			issued.PublicID, issued.Hash[:]).Scan(&id, &expires); err != nil {
 			return err
 		}
-		return audit.RecordOrg(ctx, tx, actor, invitationEvent(audit.MemberInvited, e, id, map[string]string{"role": string(role)}))
+		link = Link{Token: issued.Plaintext, ExpiresAt: expires}
+		if mail.Secrets != nil {
+			inviter := actor.Email
+			if inviter == "" {
+				inviter = o.Name
+			}
+			if err := mailer.Enqueue(ctx, tx, mail.Secrets, mailer.Message{To: e, Language: mail.Language,
+				Template: mailer.OrgInvitation, Path: InvitationPath(issued.Plaintext),
+				Params: map[string]string{"Org": o.Name, "Inviter": inviter, "Role": mail.RoleLabel,
+					"Expires": expires.UTC().Format(time.DateOnly)}}); err != nil {
+				return err
+			}
+			link.Mailed = true
+		}
+		return audit.RecordOrg(ctx, tx, actor, invitationEvent(audit.MemberInvited, e, id,
+			map[string]string{"role": string(role), "mailed": strconv.FormatBool(link.Mailed)}))
 	})
-	return wrap("invitation", err)
+	return link, wrap("invitation", err)
 }
 
 // Invitations renvoie les invitations de l'organisation (expirées comprises, jusqu'à leur
@@ -180,33 +240,42 @@ func (s *Service) respond(ctx context.Context, actor audit.Actor, userID int64, 
 	if org.IsZero() {
 		return tenant.OrgID{}, invalid("invitation", KeyInvitationUnknown)
 	}
-	err = s.pool.InOrg(ctx, org, func(tx *db.OrgTx) error {
-		var email, role string
-		err := tx.QueryRowContext(ctx, `
-			SELECT i.email, i.role FROM org_invitations i JOIN users u ON lower(u.email) = i.email
-			 WHERE i.id = $1 AND u.id = $2 AND u.is_active = 1 AND i.expires_at > now() FOR UPDATE OF i`, id, userID).Scan(&email, &role)
-		if errors.Is(err, sql.ErrNoRows) {
-			return invalid("invitation", KeyInvitationUnknown)
-		}
-		if err != nil {
-			return err
-		}
-		if _, err := tx.ExecContext(ctx, `DELETE FROM org_invitations WHERE id = $1`, id); err != nil {
-			return err
-		}
-		if !accept {
-			return audit.RecordOrg(ctx, tx, actor, invitationEvent(audit.InvitationDeclined, email, id, nil))
-		}
-		r, err := tenant.ParseRole(role)
-		if err != nil {
-			return err
-		}
-		if err := audit.RecordOrg(ctx, tx, actor, invitationEvent(audit.InvitationAccepted, email, id, map[string]string{"role": role})); err != nil {
-			return err
-		}
-		return addMember(ctx, tx, actor, userID, r)
-	})
+	err = s.pool.InOrg(ctx, org, func(tx *db.OrgTx) error { return respondIn(ctx, tx, actor, userID, id, accept) })
 	return org, err
+}
+
+// AcceptIn accepte, dans tx déclarée pour l'organisation de l'invitation, l'invitation id
+// adressée à userID : adresse du compte, échéance vérifiées sous verrou. L'inscription par
+// le lien d'une invitation (T28) crée le compte et l'accepte dans la même transaction.
+func AcceptIn(ctx context.Context, tx *db.OrgTx, actor audit.Actor, userID int64, id uuid.UUID) error {
+	return respondIn(ctx, tx, actor, userID, id, true)
+}
+
+func respondIn(ctx context.Context, tx *db.OrgTx, actor audit.Actor, userID int64, id uuid.UUID, accept bool) error {
+	var email, role string
+	err := tx.QueryRowContext(ctx, `
+		SELECT i.email, i.role FROM org_invitations i JOIN users u ON lower(u.email) = i.email
+		 WHERE i.id = $1 AND u.id = $2 AND u.is_active = 1 AND i.expires_at > now() FOR UPDATE OF i`, id, userID).Scan(&email, &role)
+	if errors.Is(err, sql.ErrNoRows) {
+		return invalid("invitation", KeyInvitationUnknown)
+	}
+	if err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, `DELETE FROM org_invitations WHERE id = $1`, id); err != nil {
+		return err
+	}
+	if !accept {
+		return audit.RecordOrg(ctx, tx, actor, invitationEvent(audit.InvitationDeclined, email, id, nil))
+	}
+	r, err := tenant.ParseRole(role)
+	if err != nil {
+		return err
+	}
+	if err := audit.RecordOrg(ctx, tx, actor, invitationEvent(audit.InvitationAccepted, email, id, map[string]string{"role": role})); err != nil {
+		return err
+	}
+	return addMember(ctx, tx, actor, userID, r)
 }
 
 // AcceptInvitation fait de userID un membre de l'organisation qui l'a invité, avec le rôle

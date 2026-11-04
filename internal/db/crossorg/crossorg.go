@@ -200,3 +200,37 @@ func UserInvitations(ctx context.Context, q db.Querier, userID int64) ([]Invitat
 	}
 	return out, nil
 }
+
+// TokenInvitation est une invitation d'organisation désignée par l'identifiant public de son
+// lien (T28) : SecretHash est l'empreinte attendue du secret, à comparer en temps constant.
+type TokenInvitation struct {
+	Org        tenant.OrgID
+	ID         uuid.UUID
+	Email      string
+	Role       tenant.Role
+	SecretHash []byte
+	ExpiresAt  time.Time
+	Slug       string
+	Name       string
+	Language   string
+}
+
+// InvitationByToken renvoie l'invitation non expirée, d'une organisation active, dont le
+// lien porte publicID (fonction lotor_invitation_by_token, ADR 0056) ; ErrNotFound sinon.
+func InvitationByToken(ctx context.Context, q db.Querier, publicID string) (TokenInvitation, error) {
+	var i TokenInvitation
+	var role string
+	err := q.QueryRowContext(ctx, `SELECT org_id, invitation_id, email, role, secret_hash, expires_at, slug, name, language
+		  FROM lotor_invitation_by_token($1)`, publicID).
+		Scan(&i.Org, &i.ID, &i.Email, &role, &i.SecretHash, &i.ExpiresAt, &i.Slug, &i.Name, &i.Language)
+	if errors.Is(err, sql.ErrNoRows) {
+		return TokenInvitation{}, ErrNotFound
+	}
+	if err != nil {
+		return TokenInvitation{}, fmt.Errorf("crossorg: invitation par son lien : %w", err)
+	}
+	if i.Role, err = tenant.ParseRole(role); err != nil {
+		return TokenInvitation{}, err
+	}
+	return i, nil
+}

@@ -16,7 +16,7 @@ offre recherche transverse, triage et tableaux de bord. Multi-organisation, en G
    produit.
 2. [`specs/architecture.md`](specs/architecture.md) — **fait autorité** sur l'architecture,
    les noms et les conventions.
-3. [`specs/README.md`](specs/README.md) — les 28 lots techniques, leur ordre, leur statut,
+3. [`specs/README.md`](specs/README.md) — les 29 lots techniques, leur ordre, leur statut,
    la façon de travailler et la définition de « terminé ».
 4. [`specs/lecons.md`](specs/lecons.md) — erreurs déjà commises et pièges connus : à lire
    avant chaque lot, à compléter à la fin.

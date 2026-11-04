@@ -178,12 +178,12 @@ func run(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
 	if err != nil {
 		return err
 	}
-	policies := policy.NewService(policy.Options{Pool: pool, Compiler: compiler, PublicURL: cfg.Notify.PublicURL, Logger: logger})
+	policies := policy.NewService(policy.Options{Pool: pool, Compiler: compiler, PublicURL: cfg.Web.PublicURL, Logger: logger})
 	sender := delivery.New(delivery.Options{Timeout: cfg.Notify.Timeout, AllowPrivate: cfg.Notify.AllowPrivateNetworks,
 		UserAgent: name + "/" + version, SMTP: delivery.SMTPConfig{Host: cfg.SMTP.Host, Port: cfg.SMTP.Port, TLS: cfg.SMTP.TLS,
 			Username: cfg.SMTP.Username, Password: cfg.SMTP.Password, From: cfg.SMTP.From, HELO: cfg.SMTP.HELO}})
 	notifier := notify.NewService(notify.Options{Pool: pool, Secrets: box, Sender: sender, Loader: policies, Catalog: catalog,
-		PublicURL: cfg.Notify.PublicURL, DigestHour: cfg.Notify.DigestHour, Logger: logger})
+		PublicURL: cfg.Web.PublicURL, DigestHour: cfg.Notify.DigestHour, Logger: logger})
 	if n, err := notifier.RotateSecrets(ctx); err != nil {
 		return err
 	} else if n > 0 {

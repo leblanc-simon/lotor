@@ -43,6 +43,42 @@ type Mail struct {
 	Subject   string
 	Text      string
 	MessageID string
+	// HTML, s'il est posé, ajoute une version HTML au texte : l'expéditeur la met en forme
+	// avec le gabarit des courriels (internal/delivery). Tous ses champs sont déjà traduits.
+	HTML *HTML
+}
+
+// HTML est le contenu de la version HTML d'un courriel, mis en forme hors du métier.
+// Seuls Title et Intro sont obligatoires ; un champ vide n'est pas affiché.
+type HTML struct {
+	Lang      string // étiquette BCP 47 du courriel
+	Preheader string // aperçu affiché par la messagerie à côté du sujet
+	Org       string // organisation concernée, au-dessus du titre
+	Title     string
+	Intro     string
+	Code      string // code à recopier (code d'inscription)
+	Items     []HTMLItem
+	MoreLine  string // « … et 3 autres »
+	URL       string // lien du bouton
+	CTALabel  string
+	Footer    string
+	// ChannelsURL et ChannelsLabel : lien de gestion des canaux, en pied de message.
+	ChannelsURL   string
+	ChannelsLabel string
+}
+
+// HTMLItem est une violation présentée dans un courriel. Severity est la sévérité brute
+// (critical, high, medium, low…), qui choisit les couleurs de l'étiquette SeverityLabel.
+type HTMLItem struct {
+	Severity      string
+	SeverityLabel string
+	KEV           bool
+	KEVLabel      string
+	Blocking      bool
+	BlockingLabel string
+	Headline      string
+	Detail        string
+	Policy        string
 }
 
 // Sender envoie les messages ; il est implémenté hors du métier par internal/delivery

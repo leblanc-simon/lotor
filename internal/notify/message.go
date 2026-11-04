@@ -44,6 +44,7 @@ type Message struct {
 	Items    []Item
 	moreLine string
 	intro    string
+	html     *HTML // version HTML des courriels
 }
 
 // localizer renvoie le localiseur de la langue de l'organisation.
@@ -84,7 +85,46 @@ func (s *Service) compose(o orgInfo, ev event, items []Item, id uuid.UUID) Messa
 	if m.More > 0 {
 		m.moreLine = loc.T("notify.more", map[string]any{"Count": m.More})
 	}
+	m.html = s.composeHTML(loc, o, ev, m)
 	return m
+}
+
+// composeHTML prépare la version HTML d'un courriel de notification, tous champs traduits.
+func (s *Service) composeHTML(loc *i18n.Localizer, o orgInfo, ev event, m Message) *HTML {
+	args := map[string]any{"Org": o.Name}
+	title := map[event]string{eventTest: "notify.mail.title_test", eventDigest: "notify.mail.title_digest"}[ev]
+	if title == "" {
+		title = "notify.mail.title_opened"
+	}
+	h := &HTML{Lang: o.Language, Preheader: m.intro, Org: o.Name, Title: loc.T(title, args), Intro: m.intro,
+		MoreLine: m.moreLine, URL: m.URL, CTALabel: loc.T("notify.mail.cta"), Footer: loc.T("notify.mail.footer", args)}
+	if s.o.PublicURL != "" {
+		h.ChannelsURL = s.o.PublicURL + "/o/" + url.PathEscape(o.Slug) + "/channels"
+		h.ChannelsLabel = loc.T("notify.mail.channels")
+	}
+	for i, it := range m.Items {
+		if i >= chatMax {
+			break
+		}
+		args := map[string]any{"Policy": it.Policy, "Project": it.Project, "Ref": it.Ref, "Vuln": it.VulnID,
+			"Component": it.Component, "Agent": it.Agent}
+		item := HTMLItem{KEV: it.KEV, Blocking: it.Blocking, Policy: loc.T("notify.mail.policy", args)}
+		if it.KEV {
+			item.KEVLabel = loc.T("notify.mail.kev")
+		}
+		if it.Blocking {
+			item.BlockingLabel = loc.T("notify.mail.blocking")
+		}
+		if it.Subject == "agent" {
+			item.Headline = loc.T("notify.mail.agent_headline", args)
+		} else {
+			item.Severity, item.SeverityLabel = it.Severity, loc.T("severity."+it.Severity)
+			item.Headline = loc.T("notify.mail.finding_headline", args)
+			item.Detail = loc.T("notify.mail.finding_detail", args)
+		}
+		h.Items = append(h.Items, item)
+	}
+	return h
 }
 
 // line présente une violation en une ligne.
@@ -209,7 +249,7 @@ func (s *Service) deliver(ctx context.Context, t target, m Message) error {
 	switch t.Kind {
 	case KindEmail:
 		return s.o.Sender.Mail(ctx, Mail{To: t.Settings.Recipients, Subject: m.Subject, Text: m.text("- "),
-			MessageID: m.ID.String()})
+			MessageID: m.ID.String(), HTML: m.html})
 	case KindWebhook:
 		body, err := m.webhookBody()
 		if err != nil {

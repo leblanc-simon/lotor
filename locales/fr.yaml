@@ -134,6 +134,8 @@ pagination:
   next: Page suivante
 
 validation:
+  signup_code_label: "Donnez un libellé au code (100 caractères au plus)."
+  signup_code_days: "La validité est de 1 à 365 jours."
   policy_expression_required: "Saisissez la règle (expression CEL)."
   policy_expression_too_long: "La règle dépasse 4 000 caractères."
   policy_syntax: "Erreur de syntaxe ligne {{.Line}}, colonne {{.Column}}."
@@ -497,6 +499,10 @@ audit:
     account_bootstrapped: "Premier administrateur {{.Target}} créé au démarrage"
     account_rescue_totp_reset: "Procédure de secours : TOTP de {{.Target}} réinitialisé (ticket {{.D_ticket}})"
     account_locked: "Compte {{.Target}} verrouillé après trop de codes TOTP incorrects (jusqu'à {{.D_until}})"
+    account_signed_up: "Compte {{.Target}} créé par son titulaire (inscription)"
+    signup_requested: "Inscription demandée pour {{.Target}}, lien de vérification envoyé"
+    signup_code_created: "Code d'inscription « {{.Target}} » créé, valable jusqu'au {{.D_expires_at}}"
+    signup_code_revoked: "Code d'inscription « {{.Target}} » révoqué"
     org_created: "Organisation {{.Target}} créée"
     org_renamed: "Organisation renommée de « {{.D_from}} » en « {{.D_to}} »"
     org_language_changed: "Langue par défaut de l'organisation : {{.D_from}} → {{.D_to}}"
@@ -2186,6 +2192,20 @@ notify:
   line_agent: "{{.Policy}} : agent {{.Agent}}"
   kev: "[KEV]"
   blocking: "[bloquante]"
+  # Version HTML des courriels de notification (internal/delivery, ADR 0056).
+  mail:
+    title_opened: "Nouvelles violations de politiques"
+    title_digest: "Résumé quotidien des violations"
+    title_test: "Message de test"
+    cta: "Voir les violations"
+    footer: "Ce canal reçoit les alertes des politiques de l'organisation {{.Org}}."
+    channels: "Gérer les canaux"
+    finding_headline: "{{.Vuln}} dans {{.Component}}"
+    finding_detail: "Projet {{.Project}}, référence {{.Ref}}"
+    agent_headline: "Agent {{.Agent}}"
+    policy: "Politique : {{.Policy}}"
+    kev: "KEV"
+    blocking: "Bloquante"
 verdict:
   pending: "Analyse et politiques en cours"
   pass: "Conforme aux politiques"
@@ -2417,3 +2437,39 @@ landing:
     title: "Libre, vraiment."
     text: "lotor est publié sous licence WTFPL : utilisez-le, modifiez-le, redistribuez-le, sans condition."
     source: "Code source sur GitHub"
+
+# Courriels de l'inscription et des invitations (internal/mailer, T28, ADR 0056).
+mail:
+  footer: >-
+    Vous recevez ce message à la suite d'une demande faite sur {{.Instance}}. Si vous n'en
+    êtes pas à l'origine, ignorez-le : rien ne sera créé.
+  signup_verify:
+    subject: "Confirmez votre adresse pour créer votre compte lotor"
+    title: "Confirmez votre adresse"
+    intro: >-
+      Pour terminer votre inscription sur {{.Instance}}, ouvrez le lien ci-dessous. Il est
+      valable 24 heures et ne sert qu'une fois.
+    cta: "Terminer mon inscription"
+  signup_existing:
+    subject: "Votre compte lotor"
+    title: "Vous avez déjà un compte"
+    intro: >-
+      Une inscription a été demandée sur {{.Instance}} avec cette adresse, qui a déjà un
+      compte. Connectez-vous ; si vous avez perdu votre mot de passe, adressez-vous à un
+      administrateur de l'instance.
+    cta: "Se connecter"
+  signup_code:
+    subject: "Votre code d'inscription lotor"
+    title: "Votre code d'inscription"
+    intro: >-
+      Vous êtes invité à créer un compte et une organisation sur {{.Instance}}. Ouvrez le
+      lien ci-dessous et saisissez ce code ; il est valable jusqu'au {{.Expires}} et ne sert
+      qu'une fois.
+    cta: "Créer mon compte"
+  org_invitation:
+    subject: "Invitation à rejoindre {{.Org}} sur lotor"
+    title: "Rejoignez {{.Org}}"
+    intro: >-
+      {{.Inviter}} vous invite à rejoindre l'organisation {{.Org}} sur {{.Instance}}, avec
+      le rôle {{.Role}}. L'invitation est valable jusqu'au {{.Expires}}.
+    cta: "Voir l'invitation"

@@ -134,6 +134,8 @@ pagination:
   next: Next page
 
 validation:
+  signup_code_label: "Give the code a label (100 characters at most)."
+  signup_code_days: "Validity is 1 to 365 days."
   policy_expression_required: "Enter the rule (CEL expression)."
   policy_expression_too_long: "The rule exceeds 4,000 characters."
   policy_syntax: "Syntax error at line {{.Line}}, column {{.Column}}."
@@ -497,6 +499,10 @@ audit:
     account_bootstrapped: "First administrator {{.Target}} created at startup"
     account_rescue_totp_reset: "Rescue procedure: TOTP of {{.Target}} reset (ticket {{.D_ticket}})"
     account_locked: "Account {{.Target}} locked after too many incorrect TOTP codes (until {{.D_until}})"
+    account_signed_up: "Account {{.Target}} created by its holder (sign-up)"
+    signup_requested: "Sign-up requested for {{.Target}}, verification link sent"
+    signup_code_created: "Sign-up code “{{.Target}}” created, valid until {{.D_expires_at}}"
+    signup_code_revoked: "Sign-up code “{{.Target}}” revoked"
     org_created: "Organization {{.Target}} created"
     org_renamed: "Organization renamed from “{{.D_from}}” to “{{.D_to}}”"
     org_language_changed: "Organization default language: {{.D_from}} → {{.D_to}}"
@@ -2186,6 +2192,20 @@ notify:
   line_agent: "{{.Policy}}: agent {{.Agent}}"
   kev: "[KEV]"
   blocking: "[blocking]"
+  # HTML version of notification e-mails (internal/delivery, ADR 0056).
+  mail:
+    title_opened: "New policy violations"
+    title_digest: "Daily digest of violations"
+    title_test: "Test message"
+    cta: "View violations"
+    footer: "This channel receives the policy alerts of the {{.Org}} organization."
+    channels: "Manage channels"
+    finding_headline: "{{.Vuln}} in {{.Component}}"
+    finding_detail: "Project {{.Project}}, reference {{.Ref}}"
+    agent_headline: "Agent {{.Agent}}"
+    policy: "Policy: {{.Policy}}"
+    kev: "KEV"
+    blocking: "Blocking"
 verdict:
   pending: "Analysis and policies in progress"
   pass: "Compliant with policies"
@@ -2413,3 +2433,37 @@ landing:
     title: "Free, for real."
     text: "lotor is released under the WTFPL: use it, change it, share it, no strings attached."
     source: "Source code on GitHub"
+
+# Sign-up and invitation e-mails (internal/mailer, T28, ADR 0056).
+mail:
+  footer: >-
+    You receive this message following a request made on {{.Instance}}. If you did not make
+    it, ignore this message: nothing will be created.
+  signup_verify:
+    subject: "Confirm your address to create your lotor account"
+    title: "Confirm your address"
+    intro: >-
+      To finish signing up on {{.Instance}}, open the link below. It is valid for 24 hours
+      and works only once.
+    cta: "Finish signing up"
+  signup_existing:
+    subject: "Your lotor account"
+    title: "You already have an account"
+    intro: >-
+      Someone asked to sign up on {{.Instance}} with this address, which already has an
+      account. Sign in; if you lost your password, ask an instance administrator.
+    cta: "Sign in"
+  signup_code:
+    subject: "Your lotor sign-up code"
+    title: "Your sign-up code"
+    intro: >-
+      You are invited to create an account and an organization on {{.Instance}}. Open the
+      link below and enter this code; it is valid until {{.Expires}} and works only once.
+    cta: "Create my account"
+  org_invitation:
+    subject: "Invitation to join {{.Org}} on lotor"
+    title: "Join {{.Org}}"
+    intro: >-
+      {{.Inviter}} invites you to join the {{.Org}} organization on {{.Instance}}, with the
+      {{.Role}} role. The invitation is valid until {{.Expires}}.
+    cta: "View the invitation"
