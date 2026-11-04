@@ -8,6 +8,13 @@ appliquées automatiquement, sans retour arrière.
 
 ## [Non publié]
 
+### Ajouté
+
+- Page de présentation sur l'accueil (`/`) pour un visiteur non connecté (ADR 0054) :
+  fonctions, visite guidée par captures d'écran, sécurité, installation, lien « Se connecter » ; en
+  français et en anglais. Un compte connecté garde son accueil. README réécrit autour des
+  fonctions et des mêmes captures.
+
 ## [0.2.0] - 2026-11-04
 
 Préversion du **lot 2 · IA et triage** : équipes et droits, conteneurs des serveurs,
