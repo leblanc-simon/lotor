@@ -59,3 +59,4 @@ décision contraire fait l'objet d'un nouvel ADR qui le remplace.
 | [0052](0052-envois-de-notification-reserves.md) | Envois de notification réservés avant l'appel réseau : un seul envoi par violation même avec deux jobs simultanés | Accepté |
 | [0053](0053-paquet-deb-du-serveur.md) | Paquet deb du serveur : debconf, base locale créée, site du mandataire, aucun redémarrage automatique | Accepté |
 | [0054](0054-page-de-presentation-publique.md) | Page de présentation publique sur « / » | Accepté |
+| [0055](0055-index-compact-agent-serveur.md) | Agent serveur : index compact de l'arborescence au lieu de la source « répertoire » de Syft, répertoires de données exclus | Accepté |

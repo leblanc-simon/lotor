@@ -7,10 +7,13 @@
 //     credential systemd « enrollment-token ») est échangé contre un jeton d'agent,
 //     gardé dans le répertoire d'état (Store, 0700, fichiers en 0600) ;
 //  2. lecture du projet d'hôte confié à l'agent (listAgentProjects) ;
-//  3. scan de la racine (SyftScanner) : catalogueurs d'un système installé, sans
-//     catalogage de fichiers, exclusions par défaut (DefaultExclusions : systèmes de
-//     fichiers virtuels et stockages de conteneurs), montages réseau
-//     et de conteneurs (lus dans /proc/self/mountinfo) et exclusions configurées ;
+//  3. scan de la racine (SyftScanner) : un parcours construit un index compact de
+//     l'arborescence (fsIndex : chemin, type et bit d'exécution, sans ouvrir de fichier),
+//     que Syft interroge par indexSource et indexResolver au lieu de sa source
+//     « répertoire » (ADR 0055) ; catalogueurs d'un système installé, sans catalogage de
+//     fichiers, exclusions par défaut (DefaultExclusions : systèmes de fichiers virtuels,
+//     stockages de conteneurs, répertoires de données), montages réseau, de conteneurs et
+//     virtuels (lus dans /proc/self/mountinfo) et exclusions configurées ;
 //  4. empreinte d'inventaire du SBOM produit, calculée par le même adaptateur et la même
 //     fonction que le serveur (sbom/syft.Decode puis sbom.Fingerprint) ;
 //  5. empreinte identique à celle du dernier envoi rangé : signal de vie avec compte rendu

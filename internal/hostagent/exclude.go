@@ -11,13 +11,21 @@ import (
 )
 
 // DefaultExclusions sont toujours exclues du scan, relativement à sa racine : systèmes de
-// fichiers virtuels, et stockages des moteurs de conteneurs, dont les images relèvent de
-// T13 et jamais du SBOM de l'hôte.
+// fichiers virtuels, stockages des moteurs de conteneurs, dont les images relèvent de T13
+// et jamais du SBOM de l'hôte, et répertoires de données (ADR 0055) : journaux, caches,
+// fichiers temporaires, files d'attente, sauvegardes et données des bases, où aucun
+// logiciel n'est installé mais qui comptent souvent l'essentiel des fichiers d'un serveur.
 var DefaultExclusions = []string{
 	"/proc", "/sys", "/dev", "/run", "/var/run",
 	"/var/lib/docker", "/var/lib/containers", "/var/lib/containerd",
 	"/var/lib/kubelet/pods", "/var/lib/lxc", "/var/lib/lxd", "/var/lib/rancher",
 	"/home/**/.local/share/containers", "/root/.local/share/containers",
+	"/tmp", "/var/tmp", "/var/log", "/var/cache", "/var/spool", "/var/mail", "/var/backups", "/var/crash",
+	"/lost+found", "/var/lib/apt/lists",
+	"/home/*/.cache", "/root/.cache",
+	"/var/lib/postgresql", "/var/lib/pgsql", "/var/lib/mysql", "/var/lib/mongodb", "/var/lib/redis",
+	"/var/lib/elasticsearch", "/var/lib/opensearch", "/var/lib/clickhouse", "/var/lib/influxdb",
+	"/var/lib/cassandra", "/var/lib/rabbitmq", "/var/lib/prometheus",
 }
 
 // skippedFSTypes sont les types de montage exclus du scan : partages réseau (lents, et
@@ -28,6 +36,9 @@ var skippedFSTypes = []string{
 	"fuse.sshfs", "fuse.glusterfs", "fuse.cephfs", "fuse.davfs2", "fuse.s3fs", "fuse.rclone", "fuse.gcsfuse",
 	"overlay", "aufs", "shiftfs", "fuse.fuse-overlayfs",
 	"autofs",
+	// Systèmes de fichiers virtuels du noyau, où qu'ils soient montés (Syft les écarte aussi).
+	"proc", "sysfs", "devtmpfs", "devpts", "cgroup", "cgroup2", "securityfs", "debugfs", "tracefs",
+	"pstore", "bpf", "configfs", "fusectl", "mqueue", "hugetlbfs", "binfmt_misc", "efivarfs",
 }
 
 // mount est un point de montage lu dans mountinfo.

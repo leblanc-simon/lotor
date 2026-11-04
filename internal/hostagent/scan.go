@@ -59,14 +59,29 @@ func (s SyftScanner) Scan(ctx context.Context) (Inventory, error) {
 	if mounts == nil {
 		mounts = systemMounts
 	}
-	excludes := exclusionPatterns(append(append([]string{}, DefaultExclusions...), s.Exclude...), skippedMounts(mounts(), s.Root))
-	srcCfg := syft.DefaultGetSourceConfig().WithSources("dir").WithBasePath(s.Root).
-		WithExcludeConfig(source.ExcludeConfig{Paths: excludes}).WithAlias(source.Alias{Name: s.Hostname})
-	src, err := syft.GetSource(ctx, s.Root, srcCfg)
+	// Index compact au lieu de la source « répertoire » de Syft, qui lit l'en-tête de
+	// chaque fichier de l'hôte (ADR 0055).
+	idx, err := buildIndex(ctx, s.Root, s.exclusions(mounts()))
 	if err != nil {
-		return Inventory{}, fmt.Errorf("hostagent: source du scan : %w", err)
+		return Inventory{}, fmt.Errorf("hostagent: index de %s : %w", s.Root, err)
 	}
-	defer src.Close()
+	inv, err := s.catalog(ctx, newIndexSource(idx, s.Hostname))
+	if err != nil {
+		return Inventory{}, err
+	}
+	inv.Started, inv.Duration = start.UTC(), time.Since(start)
+	return inv, nil
+}
+
+// exclusions renvoie les motifs écartés du scan : exclusions par défaut et configurées,
+// montages à ne pas parcourir.
+func (s SyftScanner) exclusions(mounts []mount) []string {
+	return exclusionPatterns(append(append([]string{}, DefaultExclusions...), s.Exclude...), skippedMounts(mounts, s.Root))
+}
+
+// catalog fait inventorier src par les catalogueurs d'un système installé, sans
+// catalogage de fichiers, et calcule l'empreinte du SBOM produit.
+func (s SyftScanner) catalog(ctx context.Context, src source.Source) (Inventory, error) {
 	cfg := syft.DefaultCreateSBOMConfig().
 		WithTool("lotor-host-agent", s.Version).
 		WithParallelism(max(s.Parallelism, 1)).
@@ -84,12 +99,7 @@ func (s SyftScanner) Scan(ctx context.Context) (Inventory, error) {
 	if err := syftjson.NewFormatEncoder().Encode(&buf, *doc); err != nil {
 		return Inventory{}, fmt.Errorf("hostagent: encodage du SBOM : %w", err)
 	}
-	inv, err := fingerprint(buf.Bytes())
-	if err != nil {
-		return Inventory{}, err
-	}
-	inv.Started, inv.Duration = start.UTC(), time.Since(start)
-	return inv, nil
+	return fingerprint(buf.Bytes())
 }
 
 // fingerprint décode le SBOM comme le serveur (même adaptateur, même normalisation) et en
