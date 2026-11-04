@@ -8,13 +8,12 @@ appliquées automatiquement, sans retour arrière.
 
 ## [Non publié]
 
-### Corrigé
+### Ajouté
 
-- Agent serveur : le scan d'un serveur réel n'échoue plus faute de mémoire ou de temps
-  (ADR 0055). La source « répertoire » de Syft ouvrait chaque fichier de l'hôte et en
-  gardait un arbre en mémoire ; l'agent parcourt désormais l'arborescence une seule fois,
-  sans ouvrir les fichiers, et Syft ne lit que ceux qui l'intéressent. Même inventaire
-  qu'avant, vérifié sur la racine d'un hôte réel.
+- Page de présentation sur l'accueil (`/`) pour un visiteur non connecté (ADR 0054) :
+  fonctions, visite guidée par captures d'écran, sécurité, installation, lien « Se connecter » ; en
+  français et en anglais. Un compte connecté garde son accueil. README réécrit autour des
+  fonctions et des mêmes captures.
 
 ### Modifié
 
@@ -28,6 +27,14 @@ appliquées automatiquement, sans retour arrière.
 - Agent serveur : syntaxe des motifs de `scan.exclude` documentée, avec exemples
   (`/home/*/www`, `/home/**/www`, `/home/*/{www,public_html}`, `/srv/data/**/cache` ;
   `docs/operations.md`, « Agent serveur ») et couverte par un test.
+
+### Corrigé
+
+- Agent serveur : le scan d'un serveur réel n'échoue plus faute de mémoire ou de temps
+  (ADR 0055). La source « répertoire » de Syft ouvrait chaque fichier de l'hôte et en
+  gardait un arbre en mémoire ; l'agent parcourt désormais l'arborescence une seule fois,
+  sans ouvrir les fichiers, et Syft ne lit que ceux qui l'intéressent. Même inventaire
+  qu'avant, vérifié sur la racine d'un hôte réel.
 
 ## [0.2.0] - 2026-11-04
 
