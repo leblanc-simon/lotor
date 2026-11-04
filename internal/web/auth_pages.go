@@ -24,13 +24,16 @@ type loginView struct {
 	Email    string
 	ErrorKey string
 	InfoKey  string
+	// Signup : inscription ouverte, "public" ou "invitation" (T28) ; vide sinon.
+	Signup string
 }
 
 // RenderLogin rend le formulaire de connexion. Un échec est générique (jamais distinguer
 // un e-mail inconnu d'un mot de passe faux) et journalisé ; authx égalise déjà le temps de
 // réponse par une comparaison bcrypt factice.
 func (a authRenderer) RenderLogin(w http.ResponseWriter, r *http.Request, v authx.LoginView) {
-	view := &loginView{Page: render.Page{TitleKey: "login.title"}, Next: safeNext(v.Next), Email: v.Email}
+	view := &loginView{Page: render.Page{TitleKey: "login.title"}, Next: safeNext(v.Next), Email: v.Email,
+		Signup: a.id.signupLinks()}
 	status := http.StatusOK
 	switch {
 	case v.Code == authx.CodeInvalidCredentials:

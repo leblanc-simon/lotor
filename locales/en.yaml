@@ -9,6 +9,7 @@ layout:
   home_link: Home
 
 nav:
+  admin_signup: "Sign-up"
   violations: "Violations"
   policies: "Policies"
   channels: "Channels"
@@ -80,6 +81,8 @@ form:
   save: Save
 
 flash:
+  invitation_mailed: "Invitation sent by e-mail."
+  signup_code_revoked: "Sign-up code revoked."
   policy_saved: "Policy saved; its evaluation is queued."
   policy_deleted: "Policy deleted with its violations."
   channel_saved: "Channel saved."
@@ -268,6 +271,10 @@ home:
   invitations: "See my invitations"
 
 login:
+  no_account: "No account yet?"
+  signup: "Create an account"
+  have_code: "Have a sign-up code?"
+  signup_code: "Create your account"
   title: Sign in
   heading: Sign in
   lead: Sign in with your e-mail address and password. A TOTP code will then be requested.
@@ -424,6 +431,10 @@ dashboard:
     other: "+{{.Count}} others"
 
 members:
+  link_title: "Invitation link"
+  link_once_title: "Link shown only once"
+  link_once_text: "Send this link to {{.Email}}: it lets them create their account, or sign in to accept. It will not be shown again; a new invitation creates another one and cancels this one."
+  link_expires: "Valid until"
   title: Members
   heading: Organization members
   lead: Members see the projects of their teams, according to their team role; organization administrators see and manage everything.
@@ -1666,6 +1677,9 @@ sitemap:
   admin: "Instance administration"
 
 confirm:
+  signup_code_heading: "Revoke the code “{{.Label}}”?"
+  signup_code_text: "The code will no longer allow anyone to sign up, including through verification links already sent for it. The action is logged."
+  signup_code_submit: "Revoke the code"
   policy_heading: "Delete the policy “{{.Name}}”?"
   policy_text: "The policy, its {{.Count}} open violations and their history are deleted; pending notifications will not be sent. The action is logged."
   policy_submit: "Delete the policy"
@@ -2214,6 +2228,8 @@ verdict:
 
 # Landing page, served on "/" to anonymous visitors (ADR 0054).
 landing:
+  signup: "Create an account"
+  signup_code: "I have a sign-up code"
   title: "Software inventory and vulnerabilities across your whole estate"
   eyebrow: "SBOM · vulnerabilities · open source"
   heading: "A CVE drops."
@@ -2467,3 +2483,106 @@ mail:
       {{.Inviter}} invites you to join the {{.Org}} organization on {{.Instance}}, with the
       {{.Role}} role. The invitation is valid until {{.Expires}}.
     cta: "View the invitation"
+signup:
+  title: "Sign up"
+  heading: "Create an account"
+  lead_public: "Enter your e-mail address: you will receive a link to confirm it, then choose your password and the name of your organization."
+  lead_code: "Enter the sign-up code you received and your e-mail address: you will receive a link to confirm it, then choose your password and the name of your organization."
+  lead_direct: "Enter the sign-up code you received, then choose your address, the name of your organization and your password. You will be the administrator of this organization."
+  code: "Sign-up code"
+  code_hint: "It starts with lotor_sgn_ and works only once."
+  email: "E-mail address"
+  domains: "Accepted addresses: {{.Domains}}."
+  org_name: "Name of your organization"
+  org_hint: "You will be its administrator; you can rename it and invite other people."
+  password: "Password"
+  confirm: "Confirm the password"
+  create: "Create my account"
+  send_link: "Send me the link"
+  have_account: "Already have an account?"
+  login: "Sign in"
+  next_title: "Next step"
+  next_text: "You will then set up an authenticator app (TOTP), which is mandatory, and receive your recovery codes."
+  sent_title: "Check your inbox"
+  sent_heading: "Check your inbox"
+  sent_status: "Request received"
+  sent_text: "If this address can sign up, an e-mail has just been sent to it. Follow its link, valid for 24 hours, to continue."
+  sent_help: "Nothing received? Check your spam folder, then try again in a few minutes."
+  back_home: "Back to the home page"
+  link_invalid_title: "Invalid link"
+  link_invalid_heading: "This link is no longer valid"
+  link_invalid_status: "Link refused"
+  link_invalid_help: "Ask for a new link or a new invitation; if you already have an account, sign in."
+  complete_title: "Finish signing up"
+  complete_heading: "Finish signing up"
+  complete_lead: "Address verified: {{.Email}}. Choose the name of your organization and your password."
+  mode:
+    private: "Private: no sign-up"
+    invitation: "With a sign-up code"
+    public: "Public"
+  code_status:
+    active: "Active"
+    used: "Used"
+    expired: "Expired"
+    revoked: "Revoked"
+  error:
+    closed: "Sign-up is not open on this instance."
+    code_invalid: "Sign-up code refused: it is unknown, expired, revoked or already used, or the address cannot sign up."
+    domain: "This address does not belong to a domain accepted by the instance."
+    link_invalid: "The link is unknown, expired or already used."
+    account_exists: "An account already exists for this address: sign in."
+    other_account: "This invitation is addressed to another address than the signed-in account's. Sign out, then open the link again."
+    code_not_revocable: "This code is already used, expired or revoked."
+link_invitation:
+  title: "Invitation"
+  heading: "Join {{.Org}}"
+  lead: "{{.Email}} is invited to join the organization {{.Org}} with the role {{.Role}}."
+  expires: "Invitation valid until"
+  other_title: "Another account is signed in"
+  logout: "Sign out"
+  accept: "Accept the invitation"
+  create_title: "Create your account"
+  have_account: "Already have an account at this address?"
+  login: "Sign in to accept"
+admin_signup:
+  title: "Sign-up"
+  heading: "Sign-up"
+  lead: "Sign-up mode of the instance and sign-up codes. The mode is set in the configuration (signup.mode)."
+  mode_title: "Mode"
+  mode: "Sign-up"
+  mail: "E-mail delivery"
+  mail_on: "Configured: addresses are verified by a link"
+  mail_off: "Not configured: codes and links are passed on by hand"
+  domains: "Accepted domains"
+  mode_hint: "In every mode, an organization invitation lets the invited address create its account."
+  create_title: "New code"
+  label: "Label"
+  label_hint: "Who or what it is for: visible to administrators only."
+  days: "Validity (days)"
+  days_hint: "From 1 to {{.Max}} days."
+  recipient: "Send to (optional)"
+  recipient_hint: "The code is e-mailed to this address, which is not kept; sign-up may use another address."
+  create: "Create the code"
+  list_title: "Codes"
+  prefix: "Start"
+  status: "State"
+  created: "Created"
+  expires: "Expires"
+  used_by: "Used by"
+  used_by_deleted: "Deleted account"
+  unused: "Not yet"
+  revoke: "Revoke"
+  no_codes: "No code yet."
+  code_title: "Sign-up code created"
+  code_heading: "Sign-up code created"
+  code_lead: "Code “{{.Label}}”: it allows a single sign-up, which creates an organization and its administrator."
+  mailed_title: "Code sent"
+  mailed_text: "The code was sent to {{.Email}}."
+  send_failed_title: "Sending failed"
+  send_failed_text: "The code is created, but the e-mail did not go out: pass it on by hand, or revoke it."
+  once_title: "Code shown only once"
+  once_text: "Copy it now: only its hash is kept and it will not be shown again."
+  code: "Code"
+  code_expires: "Valid until"
+  code_next: "The person enters it on the sign-up page (/signup)."
+  back: "Back to sign-up"

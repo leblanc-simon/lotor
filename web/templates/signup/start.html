@@ -1,0 +1,32 @@
+{{define "content" -}}
+<div class="auth">
+  <section class="auth__card{{if .Direct}} auth__card--wide{{end}}" aria-labelledby="signup-title">
+    <h1 class="auth__title" id="signup-title">{{T "signup.heading"}}</h1>
+    <p class="auth__lead">{{if .Direct}}{{T "signup.lead_direct"}}{{else if .Invitation}}{{T "signup.lead_code"}}{{else}}{{T "signup.lead_public"}}{{end}}</p>
+    {{template "form_error" .Error}}
+    <form class="form" method="post" action="/signup">
+      {{csrfField .Page.CSRFToken}}
+      {{- if .Invitation}}
+      <div class="field">
+        <label class="field__label" for="signup-code">{{T "signup.code"}}</label>
+        <input class="input" id="signup-code" name="code" type="text" autocomplete="off" spellcheck="false" autocapitalize="off" required aria-describedby="signup-code-hint"{{if eq .Error.Field "code"}} aria-invalid="true"{{end}}>
+        <p class="field__hint" id="signup-code-hint">{{T "signup.code_hint"}}</p>
+      </div>
+      {{- end}}
+      <div class="field">
+        <label class="field__label" for="signup-email">{{T "signup.email"}}</label>
+        <input class="input" id="signup-email" name="email" type="email" autocomplete="email" required value="{{.Email}}"{{with .Domains}} aria-describedby="signup-email-hint"{{end}}{{if eq .Error.Field "email"}} aria-invalid="true"{{end}}>
+        {{- with .Domains}}
+        <p class="field__hint" id="signup-email-hint">{{T "signup.domains" "Domains" .}}</p>
+        {{- end}}
+      </div>
+      {{- if .Direct}}
+      {{template "signup_org_field" .}}
+      {{template "signup_password_fields" .}}
+      {{- end}}
+      <p><button type="submit" class="btn btn--primary">{{if .Direct}}{{T "signup.create"}}{{else}}{{T "signup.send_link"}}{{end}}</button></p>
+    </form>
+    <p class="muted">{{T "signup.have_account"}} <a href="/login">{{T "signup.login"}}</a></p>
+  </section>
+</div>
+{{- end}}

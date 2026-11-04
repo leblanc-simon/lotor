@@ -26,6 +26,7 @@ import (
 	"leblanc.io/lotor/internal/ingest"
 	"leblanc.io/lotor/internal/inventory"
 	"leblanc.io/lotor/internal/locale"
+	"leblanc.io/lotor/internal/mailer"
 	"leblanc.io/lotor/internal/notify"
 	"leblanc.io/lotor/internal/org"
 	"leblanc.io/lotor/internal/policy"
@@ -33,6 +34,7 @@ import (
 	"leblanc.io/lotor/internal/render"
 	"leblanc.io/lotor/internal/search"
 	"leblanc.io/lotor/internal/secret"
+	"leblanc.io/lotor/internal/signup"
 	"leblanc.io/lotor/internal/tenant"
 	"leblanc.io/lotor/internal/triage"
 	"leblanc.io/lotor/internal/web/middleware"
@@ -84,6 +86,12 @@ type IdentityOptions struct {
 	Dashboard *dashboard.Service
 	// VulnDB règle l'écran de la base de vulnérabilités et son alerte d'âge.
 	VulnDB VulnDBOptions
+	// Signup porte l'inscription (T28) : mode, codes, liens de vérification et
+	// d'invitation. Mailer envoie sur-le-champ un code d'inscription (nil sans envoi de
+	// courriels) ; PublicURL est web.public_url (vide si non réglée).
+	Signup    *signup.Service
+	Mailer    *mailer.Mailer
+	PublicURL string
 	// Secrets chiffre les secrets TOTP en base.
 	Secrets *secret.Box
 	Auth    appconf.Auth
@@ -123,7 +131,7 @@ type identity struct {
 
 func newIdentity(o IdentityOptions, rd *render.Renderer, cat *locale.Catalog, logger *slog.Logger, clientIP func(*http.Request) string) (*identity, error) {
 	if o.Pool == nil || o.Accounts == nil || o.Orgs == nil || o.Projects == nil || o.Agents == nil || o.Inventory == nil ||
-		o.History == nil || o.Ingest == nil || o.Findings == nil || o.Triage == nil || o.Search == nil || o.Exports == nil || o.Reencodes == nil || o.Dashboard == nil || o.Policies == nil || o.Notify == nil || o.Secrets == nil || o.VulnDB.MaxAge <= 0 {
+		o.History == nil || o.Ingest == nil || o.Findings == nil || o.Triage == nil || o.Search == nil || o.Exports == nil || o.Reencodes == nil || o.Dashboard == nil || o.Policies == nil || o.Notify == nil || o.Signup == nil || o.Secrets == nil || o.VulnDB.MaxAge <= 0 {
 		return nil, errors.New("web: dépendances de l'identité incomplètes")
 	}
 	if hostCookies(o.Auth.CookieSecure) {

@@ -1,0 +1,15 @@
+{{define "content" -}}
+<div class="auth">
+  <section class="auth__card" aria-labelledby="signup-sent-title">
+    <h1 class="auth__title" id="signup-sent-title">{{T "signup.sent_heading"}}</h1>
+    <div class="callout callout--success" role="status">
+      <div class="callout__body">
+        <p class="callout__title">{{T "signup.sent_status"}}</p>
+        <p class="callout__text">{{T "signup.sent_text"}}</p>
+      </div>
+    </div>
+    <p class="muted">{{T "signup.sent_help"}}</p>
+    <p><a class="btn" href="/">{{T "signup.back_home"}}</a></p>
+  </section>
+</div>
+{{- end}}

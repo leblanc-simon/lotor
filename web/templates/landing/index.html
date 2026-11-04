@@ -9,6 +9,11 @@
       <p class="landing__lead">{{T "landing.lead"}}</p>
       <p class="landing__cta">
         <a class="btn btn--primary btn--lg" href="/login">{{T "landing.login"}}</a>
+        {{- if eq .Signup "public"}}
+        <a class="btn btn--lg" href="/signup">{{T "landing.signup"}}</a>
+        {{- else if eq .Signup "invitation"}}
+        <a class="btn btn--lg" href="/signup">{{T "landing.signup_code"}}</a>
+        {{- end}}
         <a class="btn btn--lg" href="{{T "landing.guide_url"}}">{{T "landing.guide"}}</a>
       </p>
       <ul class="landing__facts">

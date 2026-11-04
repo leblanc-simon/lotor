@@ -49,6 +49,7 @@ import (
 	"leblanc.io/lotor/internal/sbom/schema"
 	"leblanc.io/lotor/internal/search"
 	"leblanc.io/lotor/internal/secret"
+	"leblanc.io/lotor/internal/signup"
 	"leblanc.io/lotor/internal/tenant"
 	"leblanc.io/lotor/internal/triage"
 	"leblanc.io/lotor/internal/version/grypeversion"
@@ -223,6 +224,10 @@ func newApp(t *testing.T, opts ...appOption) *app {
 		UserAPI: &apiv1.UserOptions{Pool: tdb.App, Accounts: a.accounts, Orgs: a.orgs, Search: a.search,
 			Exports: search.NewExportLimiter(2, time.Minute), Projects: a.projects, Inventory: a.inv, History: a.history,
 			Findings: finding.NewService(tdb.App), Triage: a.triage, Version: "test"},
+	}
+	if o.Identity.Signup, err = signup.NewService(signup.Options{Pool: tdb.App, Accounts: a.accounts, Secrets: box,
+		Mode: signup.Private}); err != nil {
+		t.Fatal(err)
 	}
 	for _, opt := range opts {
 		opt(&o)

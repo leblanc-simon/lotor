@@ -44,6 +44,7 @@ var flashes = map[string]string{
 
 	"member_invited":       "flash.member_invited",
 	"invitation_revoked":   "flash.invitation_revoked",
+	"invitation_mailed":    "flash.invitation_mailed",
 	"invitation_accepted":  "flash.invitation_accepted",
 	"invitation_declined":  "flash.invitation_declined",
 	"team_created":         "flash.team_created",
@@ -70,6 +71,7 @@ var flashes = map[string]string{
 	"job_discarded":        "flash.job_discarded",
 	"vulndb_import_queued": "flash.vulndb_import_queued",
 	"vulndb_purged":        "flash.vulndb_purged",
+	"signup_code_revoked":  "flash.signup_code_revoked",
 
 	"triage_saved":     "flash.triage_saved",
 	"triage_withdrawn": "flash.triage_withdrawn",

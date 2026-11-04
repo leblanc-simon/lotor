@@ -32,6 +32,7 @@ import (
 	"leblanc.io/lotor/internal/inventory"
 	"leblanc.io/lotor/internal/jobs"
 	"leblanc.io/lotor/internal/locale"
+	"leblanc.io/lotor/internal/mailer"
 	"leblanc.io/lotor/internal/notify"
 	"leblanc.io/lotor/internal/org"
 	"leblanc.io/lotor/internal/policy"
@@ -41,6 +42,7 @@ import (
 	"leblanc.io/lotor/internal/sbom/schema"
 	"leblanc.io/lotor/internal/search"
 	"leblanc.io/lotor/internal/secret"
+	"leblanc.io/lotor/internal/signup"
 	"leblanc.io/lotor/internal/triage"
 	"leblanc.io/lotor/internal/version/grypeversion"
 	"leblanc.io/lotor/internal/vuln"
@@ -189,6 +191,10 @@ func run(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
 	} else if n > 0 {
 		logger.Info("secrets des canaux rechiffrés avec la clé active", "count", n)
 	}
+	mail, signups, err := newSignup(cfg, pool, accounts, box, sender, catalog)
+	if err != nil {
+		return err
+	}
 	exports := search.NewExportLimiter(cfg.UserAPI.MaxExports, cfg.UserAPI.ExportTimeout)
 	reencodes := search.NewExportLimiter(cfg.Ingest.MaxReencodes, cfg.UserAPI.ExportTimeout)
 	vulndbScreen := web.VulnDBOptions{MaxAge: cfg.VulnDB.MaxAge, Offline: cfg.VulnDB.Offline, ListingURL: cfg.VulnDB.ListingURL,
@@ -221,6 +227,9 @@ func run(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
 			Dashboard:             dash,
 			Policies:              policies,
 			Notify:                notifier,
+			Signup:                signups,
+			Mailer:                mail,
+			PublicURL:             cfg.Web.PublicURL,
 			VulnDB:                vulndbScreen,
 			Secrets:               box,
 			Auth:                  cfg.Auth,
@@ -339,6 +348,9 @@ func run(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
 		if err := registerAlerts(runner, scheduler, policies, notifier); err != nil {
 			return err
 		}
+		if err := registerSignup(runner, scheduler, mail, signups); err != nil {
+			return err
+		}
 		if err := registerContainers(runner, scheduler, project.NewArchiver(pool, cfg.Containers.ArchiveAfter, nil)); err != nil {
 			return err
 		}
@@ -439,6 +451,41 @@ func registerAlerts(runner *jobs.Runner, scheduler *jobs.Scheduler, policies *po
 		return err
 	}
 	return scheduler.Register(notifier.DigestSchedule())
+}
+
+// newSignup prépare l'inscription (T28) : le Mailer n'existe que si l'envoi de courriels
+// est configuré (SMTP et web.public_url) ; sans lui, codes et liens sont transmis à la main.
+func newSignup(cfg config.Config, pool *db.Pool, accounts *account.Service, box *secret.Box, sender mailer.Sender,
+	catalog *locale.Catalog) (*mailer.Mailer, *signup.Service, error) {
+	var mail *mailer.Mailer
+	if cfg.MailConfigured() {
+		var err error
+		if mail, err = mailer.New(mailer.Options{Sender: sender, Secrets: box, Catalog: catalog, PublicURL: cfg.Web.PublicURL}); err != nil {
+			return nil, nil, err
+		}
+	}
+	signups, err := signup.NewService(signup.Options{Pool: pool, Accounts: accounts, Secrets: box,
+		Mode: signup.Mode(cfg.Signup.Mode), AllowedDomains: cfg.Signup.AllowedDomains, Mail: mail != nil})
+	return mail, signups, err
+}
+
+// registerSignup enregistre l'envoi des courriels et la purge des vérifications d'adresse
+// expirées (T28). Sans envoi configuré, un courriel resté en file (configuration retirée
+// entre-temps) échoue définitivement au lieu d'attendre.
+func registerSignup(runner *jobs.Runner, scheduler *jobs.Scheduler, mail *mailer.Mailer, signups *signup.Service) error {
+	h := jobs.Handler(jobs.HandlerFunc(func(context.Context, jobs.Execution) error {
+		return jobs.Permanent(errors.New("envoi de courriels non configuré (smtp, web.public_url)"))
+	}))
+	if mail != nil {
+		h = mail.Handler()
+	}
+	if err := runner.Register(mailer.Kind, h); err != nil {
+		return err
+	}
+	if err := runner.Register(signup.PurgeKind, signups.PurgeHandler()); err != nil {
+		return err
+	}
+	return scheduler.Register(signup.PurgeSchedule())
 }
 
 // registerContainers enregistre l'archivage des conteneurs absents (T13).

@@ -235,7 +235,7 @@ func TestEveryScreenIsAccessible(t *testing.T) {
 		"/login": anon, "/account": b, "/account/password": b, pathSecurity: b,
 		"/o/atelier": b, "/o/atelier/members": b, "/o/atelier/settings": b, "/o/atelier/audit": b,
 		"/admin/users": b, "/admin/users/" + itoa(viewer.ID): b, "/admin/orgs": b, "/admin/orgs/atelier": b, "/admin/audit": b,
-		"/admin/jobs": b, "/admin/vulndb": b,
+		"/admin/jobs": b, "/admin/vulndb": b, "/admin/signup": b,
 	}
 	for path, br := range screens {
 		for _, lang := range []string{"fr", "en"} {

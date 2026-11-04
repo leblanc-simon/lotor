@@ -1,0 +1,28 @@
+{{define "signup_org_field" -}}
+<div class="field">
+  <label class="field__label" for="signup-org">{{T "signup.org_name"}}</label>
+  <input class="input" id="signup-org" name="org_name" type="text" autocomplete="organization" maxlength="100" required value="{{.OrgName}}" aria-describedby="signup-org-hint"{{if eq .Error.Field "org_name"}} aria-invalid="true"{{end}}>
+  <p class="field__hint" id="signup-org-hint">{{T "signup.org_hint"}}</p>
+</div>
+{{- end}}
+
+{{define "signup_password_fields" -}}
+<div class="field">
+  <label class="field__label" for="signup-password">{{T "signup.password"}}</label>
+  <input class="input" id="signup-password" name="password" type="password" autocomplete="new-password" minlength="{{.MinLength}}" required aria-describedby="signup-password-hint"{{if eq .Error.Field "password"}} aria-invalid="true"{{end}}>
+  <p class="field__hint" id="signup-password-hint">{{T "password.rule" "Min" .MinLength}}</p>
+</div>
+<div class="field">
+  <label class="field__label" for="signup-confirm">{{T "signup.confirm"}}</label>
+  <input class="input" id="signup-confirm" name="confirm" type="password" autocomplete="new-password" required{{if eq .Error.Field "confirm"}} aria-invalid="true"{{end}}>
+</div>
+{{- end}}
+
+{{define "signup_next_steps" -}}
+<div class="callout" role="note">
+  <div class="callout__body">
+    <p class="callout__title">{{T "signup.next_title"}}</p>
+    <p class="callout__text">{{T "signup.next_text"}}</p>
+  </div>
+</div>
+{{- end}}

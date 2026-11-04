@@ -1,0 +1,40 @@
+{{define "content" -}}
+<div class="stack">
+  <div class="page-head">
+    <p class="page-head__eyebrow"><a href="/admin/signup">{{T "admin_signup.heading"}}</a></p>
+    <h1 class="page-head__title">{{T "admin_signup.code_heading"}}</h1>
+    <p class="page-head__lead">{{T "admin_signup.code_lead" "Label" .Code.Label}}</p>
+  </div>
+  {{- with .MailedTo}}
+  <div class="callout callout--success" role="status">
+    <div class="callout__body">
+      <p class="callout__title">{{T "admin_signup.mailed_title"}}</p>
+      <p class="callout__text">{{T "admin_signup.mailed_text" "Email" .}}</p>
+    </div>
+  </div>
+  {{- end}}
+  {{- if .SendFailed}}
+  <div class="callout callout--danger" role="alert">
+    <div class="callout__body">
+      <p class="callout__title">{{T "admin_signup.send_failed_title"}}</p>
+      <p class="callout__text">{{T "admin_signup.send_failed_text"}}</p>
+    </div>
+  </div>
+  {{- end}}
+  <div class="callout callout--warning" role="status">
+    <div class="callout__body">
+      <p class="callout__title">{{T "admin_signup.once_title"}}</p>
+      <p class="callout__text">{{T "admin_signup.once_text"}}</p>
+    </div>
+  </div>
+  <section class="panel" aria-labelledby="signup-code-value">
+    <div class="panel__head"><h2 class="panel__title" id="signup-code-value">{{T "admin_signup.code"}}</h2></div>
+    <div class="panel__body stack stack--sm">
+      <p><code class="secret-once">{{.Plain}}</code></p>
+      <p class="muted">{{T "admin_signup.code_expires"}} {{template "stamp" .Expires}}</p>
+      <p class="muted">{{T "admin_signup.code_next"}}</p>
+      <p><a class="btn" href="/admin/signup">{{T "admin_signup.back"}}</a></p>
+    </div>
+  </section>
+</div>
+{{- end}}

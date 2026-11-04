@@ -1,0 +1,89 @@
+{{define "content" -}}
+<div class="stack">
+  <div class="page-head">
+    <h1 class="page-head__title">{{T "admin_signup.heading"}}</h1>
+    <p class="page-head__lead">{{T "admin_signup.lead"}}</p>
+  </div>
+  {{template "single_admin" .SingleAdmin}}
+  {{template "vulndb_alert" .VulnDBAlert}}
+  {{template "flash" .FlashKey}}
+  {{template "form_error" .Error}}
+  <section class="panel" aria-labelledby="signup-mode">
+    <div class="panel__head"><h2 class="panel__title" id="signup-mode">{{T "admin_signup.mode_title"}}</h2></div>
+    <div class="panel__body stack stack--sm">
+      <dl class="kv">
+        <dt>{{T "admin_signup.mode"}}</dt><dd>{{T .ModeKey}}</dd>
+        <dt>{{T "admin_signup.mail"}}</dt><dd>{{if .Mail}}{{T "admin_signup.mail_on"}}{{else}}{{T "admin_signup.mail_off"}}{{end}}</dd>
+        {{- with .Domains}}
+        <dt>{{T "admin_signup.domains"}}</dt><dd>{{.}}</dd>
+        {{- end}}
+      </dl>
+      <p class="field__hint">{{T "admin_signup.mode_hint"}}</p>
+    </div>
+  </section>
+  {{- if .Invitation}}
+  <section class="panel" aria-labelledby="signup-code-create">
+    <div class="panel__head"><h2 class="panel__title" id="signup-code-create">{{T "admin_signup.create_title"}}</h2></div>
+    <div class="panel__body">
+      <form class="form" method="post" action="/admin/signup/codes">
+        {{csrfField .Page.CSRFToken}}
+        <div class="field">
+          <label class="field__label" for="code-label">{{T "admin_signup.label"}}</label>
+          <input class="input" id="code-label" name="label" type="text" maxlength="100" required value="{{.Label}}" aria-describedby="code-label-hint"{{if eq .Error.Field "label"}} aria-invalid="true"{{end}}>
+          <p class="field__hint" id="code-label-hint">{{T "admin_signup.label_hint"}}</p>
+        </div>
+        <div class="field">
+          <label class="field__label" for="code-days">{{T "admin_signup.days"}}</label>
+          <input class="input" id="code-days" name="days" type="number" min="1" max="{{.MaxDays}}" required value="{{.Days}}" aria-describedby="code-days-hint"{{if eq .Error.Field "days"}} aria-invalid="true"{{end}}>
+          <p class="field__hint" id="code-days-hint">{{T "admin_signup.days_hint" "Max" .MaxDays}}</p>
+        </div>
+        {{- if .Mail}}
+        <div class="field">
+          <label class="field__label" for="code-recipient">{{T "admin_signup.recipient"}}</label>
+          <input class="input" id="code-recipient" name="recipient" type="email" value="{{.Recipient}}" aria-describedby="code-recipient-hint"{{if eq .Error.Field "recipient"}} aria-invalid="true"{{end}}>
+          <p class="field__hint" id="code-recipient-hint">{{T "admin_signup.recipient_hint"}}</p>
+        </div>
+        {{- end}}
+        <p><button type="submit" class="btn btn--primary">{{T "admin_signup.create"}}</button></p>
+      </form>
+    </div>
+  </section>
+  <section class="panel" aria-labelledby="signup-codes">
+    <div class="panel__head"><h2 class="panel__title" id="signup-codes">{{T "admin_signup.list_title"}}</h2></div>
+    {{- if .Codes}}
+    <div class="table-wrap" role="group" aria-labelledby="signup-codes" tabindex="0">
+      <table class="data-table">
+        <caption class="visually-hidden">{{T "admin_signup.list_title"}}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{{T "admin_signup.label"}}</th>
+            <th scope="col">{{T "admin_signup.prefix"}}</th>
+            <th scope="col">{{T "admin_signup.status"}}</th>
+            <th scope="col">{{T "admin_signup.created"}}</th>
+            <th scope="col">{{T "admin_signup.expires"}}</th>
+            <th scope="col">{{T "admin_signup.used_by"}}</th>
+            <th scope="col" class="cell-actions">{{T "table.actions"}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{- range .Codes}}
+          <tr>
+            <th scope="row">{{.Label}}</th>
+            <td><code>{{.Prefix}}</code></td>
+            <td><span class="status{{if .Active}} status--active{{else}} status--revoked{{end}}">{{T .StatusKey}}</span></td>
+            <td>{{template "stamp" .Created}}{{with .CreatedBy}}<br><span class="muted">{{.}}</span>{{end}}</td>
+            <td>{{template "stamp" .Expires}}</td>
+            <td>{{if .UsedAt}}{{with .UsedBy}}{{.}}{{else}}<span class="muted">{{T "admin_signup.used_by_deleted"}}</span>{{end}}<br>{{template "stamp" .Used}}{{else}}<span class="muted">{{T "admin_signup.unused"}}</span>{{end}}</td>
+            <td class="cell-actions">{{if .Active}}<a class="btn btn--sm btn--danger" href="/admin/signup/codes/{{.ID}}/revoke">{{T "admin_signup.revoke"}}<span class="visually-hidden"> {{.Label}}</span></a>{{end}}</td>
+          </tr>
+          {{- end}}
+        </tbody>
+      </table>
+    </div>
+    {{- else}}
+    <div class="panel__body"><p class="muted">{{T "admin_signup.no_codes"}}</p></div>
+    {{- end}}
+  </section>
+  {{- end}}
+</div>
+{{- end}}

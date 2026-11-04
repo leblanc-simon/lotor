@@ -55,6 +55,7 @@ var globalRoutes = []string{
 	"/account/invitations/{invitationID}/decline", "/account/security", "/account/security/recovery-codes",
 	"/account/security/reconfigure",
 	"/account/totp/setup", "/account/totp/enable", "/static/*", "/api/*", "/sitemap",
+	"/signup", "/signup/verify/{token}", "/invitation/{token}",
 }
 
 func isGlobal(pattern string) bool {
@@ -195,12 +196,13 @@ func TestRolesInOrganization(t *testing.T) {
 	}
 
 	ad := a.signIn(admin)
-	// SEC-09 : l'invitation répond de même, que l'adresse ait un compte ou non.
+	// SEC-09 : l'invitation répond de même, que l'adresse ait un compte ou non (sans envoi
+	// de courriels, la page montre le lien à transmettre, T28).
 	known := ad.post("/o/org-a/members", url.Values{"email": {newcomer.Email}, "role": {"member"}})
 	unknown := ad.post("/o/org-a/members", url.Values{"email": {"absent@example.org"}, "role": {"member"}})
-	if known.status != http.StatusSeeOther || known.status != unknown.status || known.location != unknown.location ||
-		!strings.Contains(known.location, "member_invited") {
-		t.Fatalf("invitations : %d %q, %d %q", known.status, known.location, unknown.status, unknown.location)
+	if known.status != http.StatusOK || known.status != unknown.status || !inviteLinkRE.MatchString(known.body) ||
+		!inviteLinkRE.MatchString(unknown.body) {
+		t.Fatalf("invitations : %d, %d", known.status, unknown.status)
 	}
 	if p := ad.get("/o/org-a/members"); !strings.Contains(p.body, "absent@example.org") || !strings.Contains(p.body, newcomer.Email) {
 		t.Errorf("invitations en attente absentes de la page des membres")

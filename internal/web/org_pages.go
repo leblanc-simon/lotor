@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
+	"leblanc.io/lotor/internal/account"
 	"leblanc.io/lotor/internal/audit"
 	"leblanc.io/lotor/internal/db"
 	"leblanc.io/lotor/internal/org"
@@ -74,6 +75,15 @@ type membersView struct {
 	FlashKey    string
 	Error       formError
 	Email       string
+	// InviteLink est le lien d'une invitation qui vient d'être créée sans envoi de
+	// courriels : montré une seule fois, à transmettre à la main (T28).
+	InviteLink *inviteLink
+}
+
+type inviteLink struct {
+	URL     string
+	Email   string
+	Expires *stamp
 }
 
 func roleOptions(selected tenant.Role) []option {
@@ -85,6 +95,10 @@ func roleOptions(selected tenant.Role) []option {
 }
 
 func (id *identity) membersPage(w http.ResponseWriter, r *http.Request, status int, fe formError, email string) {
+	id.membersPageWith(w, r, status, fe, email, nil)
+}
+
+func (id *identity) membersPageWith(w http.ResponseWriter, r *http.Request, status int, fe formError, email string, link *inviteLink) {
 	acc := access(r)
 	page, err := id.Orgs.Members(r.Context(), acc.Org, r.URL.Query().Get("cursor"), org.DefaultPage)
 	if err != nil {
@@ -99,7 +113,7 @@ func (id *identity) membersPage(w http.ResponseWriter, r *http.Request, status i
 	view := &membersView{
 		Page: render.Page{TitleKey: "members.title", Nav: orgNav(acc, "members")},
 		Base: orgBase(acc), CanAdmin: acc.Can(tenant.PermMembersManage, uuid.Nil), Roles: roleOptions(tenant.RoleMember),
-		NextCursor: page.NextCursor, FlashKey: flashKey(r), Error: fe, Email: email,
+		NextCursor: page.NextCursor, FlashKey: flashKey(r), Error: fe, Email: email, InviteLink: link,
 	}
 	for _, m := range page.Items {
 		view.Members = append(view.Members, memberRow{Member: m, RoleKey: "role." + string(m.Role), Self: m.UserID == v.user.ID})
@@ -140,14 +154,33 @@ func (id *identity) memberResult(w http.ResponseWriter, r *http.Request, err err
 }
 
 // inviteMember invite une adresse à rejoindre l'organisation (SEC-09) : la réponse est la
-// même que l'adresse ait un compte ou non.
+// même que l'adresse ait un compte ou non. Avec l'envoi de courriels, le lien part dans la
+// langue de l'invitant ; sans, il est montré une seule fois, à transmettre (T28).
 func (id *identity) inviteMember(w http.ResponseWriter, r *http.Request) {
 	if !id.parseForm(w, r) {
 		return
 	}
 	email := r.PostForm.Get("email")
-	err := id.Orgs.Invite(r.Context(), id.actor(r), access(r).Org, email, tenant.Role(r.PostForm.Get("role")))
-	id.memberResult(w, r, err, "member_invited", email)
+	role := tenant.Role(r.PostForm.Get("role"))
+	var mail org.InviteMail
+	if id.Signup.Mail() {
+		mail = org.InviteMail{Secrets: id.Secrets, Language: requestLanguage(w),
+			RoleLabel: id.localizer(r).T("role."+string(role), nil)}
+	}
+	link, err := id.Orgs.InviteWithLink(r.Context(), id.actor(r), access(r).Org, email, role, mail)
+	switch {
+	case err != nil:
+		id.memberResult(w, r, err, "", email)
+	case link.Mailed:
+		redirectDone(w, r, orgBase(access(r))+"/members", "invitation_mailed")
+	case link.Token == "":
+		redirectDone(w, r, orgBase(access(r))+"/members", "member_invited")
+	default:
+		noStore(w)
+		normalized, _ := account.NormalizeEmail(email)
+		id.membersPageWith(w, r, http.StatusOK, formError{}, "", &inviteLink{
+			URL: id.invitationURL(r, org.InvitationPath(link.Token)), Email: normalized, Expires: dateOf(&link.ExpiresAt)})
+	}
 }
 
 // confirmRevokeInvitation : révocation d'une invitation.

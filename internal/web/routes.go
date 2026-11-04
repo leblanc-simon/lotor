@@ -26,6 +26,15 @@ func registerUI(r chi.Router, h *handlers, loginLimit func(http.Handler) http.Ha
 	r.With(loginLimit).Post(pathVerify, id.verifyPOST)
 	r.Post(pathLogout, id.logout)
 
+	// Inscription (T28) : publiques, débit des POST borné par IP comme la connexion. Le
+	// lien d'une invitation d'organisation sert dans tous les modes.
+	r.Get(pathSignup, id.signupForm)
+	r.With(loginLimit).Post(pathSignup, id.signupSubmit)
+	r.Get(pathSignupVerify, id.signupVerifyForm)
+	r.With(loginLimit).Post(pathSignupVerify, id.signupVerifySubmit)
+	r.Get(pathInvitation, id.linkInvitationForm)
+	r.With(loginLimit).Post(pathInvitation, id.linkInvitationSubmit)
+
 	// Accueil : présentation de lotor pour un visiteur anonyme, sinon accueil du compte.
 	r.Get("/", id.root)
 
@@ -69,6 +78,10 @@ func registerUI(r chi.Router, h *handlers, loginLimit func(http.Handler) http.Ha
 			r.Post("/orgs", id.createOrg)
 			r.Get("/orgs/{slug}", id.adminOrg)
 			r.Post("/orgs/{slug}/{action}", id.adminOrgAction)
+			r.Get("/signup", id.adminSignup)
+			r.Post("/signup/codes", id.createSignupCode)
+			r.Get("/signup/codes/{codeID}/revoke", id.confirmRevokeSignupCode)
+			r.Post("/signup/codes/{codeID}/revoke", id.revokeSignupCode)
 			r.Get("/audit", id.adminAudit)
 			r.Get("/vulndb", id.vulnDB)
 			r.Post(strings.TrimPrefix(pathVulnDBImport, "/admin"), id.importVulnDB)
