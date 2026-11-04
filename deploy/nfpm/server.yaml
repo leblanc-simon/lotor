@@ -1,0 +1,72 @@
+# Paquet deb de lotor-server (nfpm, go tool nfpm), produit par `make packages` : PKG_ARCH et
+# PKG_VERSION viennent du Makefile. Non signé (signature : T24, T26). ADR 0053.
+name: lotor-server
+arch: ${PKG_ARCH}
+platform: linux
+version: ${PKG_VERSION}
+version_schema: none
+section: admin
+priority: optional
+maintainer: Simon Leblanc <contact@leblanc-simon.eu>
+vendor: lotor
+homepage: https://github.com/leblanc-simon/lotor
+license: WTFPL
+description: |
+  Serveur de lotor : gestion de SBOM par projet
+  Serveur central de lotor : historise les SBOM envoyés par les agents, les analyse chaque
+  jour avec Grype et offre recherche, triage et tableaux de bord. L'installation crée les
+  rôles PostgreSQL, le premier administrateur et le site nginx ou Apache.
+
+depends:
+  - debconf (>= 0.5) | debconf-2.0
+  - openssl
+
+contents:
+  # Copies posées par make packages : binaire de l'architecture en cours, unité avec le
+  # chemin du paquet.
+  - src: bin/package/lotor-server
+    dst: /usr/bin/lotor-server
+    file_info:
+      mode: 0755
+  - src: bin/package/lotor-server.service
+    dst: /usr/lib/systemd/system/lotor-server.service
+    file_info:
+      mode: 0644
+  - src: deploy/server/config.yaml.in
+    dst: /usr/share/lotor-server/config.yaml.in
+    file_info:
+      mode: 0644
+  - src: deploy/server/nginx.conf.in
+    dst: /usr/share/lotor-server/nginx.conf.in
+    file_info:
+      mode: 0644
+  - src: deploy/server/apache.conf.in
+    dst: /usr/share/lotor-server/apache.conf.in
+    file_info:
+      mode: 0644
+  - src: config.example.yaml
+    dst: /usr/share/lotor-server/config.example.yaml
+    file_info:
+      mode: 0644
+  - src: LICENSE
+    dst: /usr/share/doc/lotor-server/LICENSE
+    file_info:
+      mode: 0644
+
+scripts:
+  postinstall: deploy/server/postinstall.sh
+  preremove: deploy/server/preremove.sh
+  postremove: deploy/server/postremove.sh
+
+overrides:
+  deb:
+    recommends:
+      - postgresql (>= 16)
+      - systemd
+    suggests:
+      - nginx | apache2
+
+deb:
+  scripts:
+    templates: deploy/server/templates
+    config: deploy/server/config

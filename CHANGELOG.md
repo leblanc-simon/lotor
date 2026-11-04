@@ -8,6 +8,16 @@ appliquées automatiquement, sans retour arrière.
 
 ## [Non publié]
 
+### Ajouté
+
+- Paquet deb `lotor-server` (amd64, arm64 ; T27, ADR 0053) : sur Debian 13 ou Ubuntu 24.04,
+  `apt install` crée les rôles et la base PostgreSQL en local, les secrets, le premier
+  administrateur avec un mot de passe temporaire affiché une fois, et le site nginx ou Apache,
+  avec un certificat existant ou autosigné. Base distante par chaînes de connexion,
+  installation sans terminal par réponses prérenseignées. Une mise à jour ne redémarre pas le
+  serveur ; une purge garde la base et la clé de chiffrement. Voir
+  [`docs/operations.md`](https://github.com/leblanc-simon/lotor/blob/main/docs/operations.md#installation-par-le-paquet-deb).
+
 ## [0.2.0] - 2026-11-03
 
 Préversion du **lot 2 · IA et triage** : équipes et droits, conteneurs des serveurs,

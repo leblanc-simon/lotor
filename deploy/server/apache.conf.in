@@ -1,0 +1,32 @@
+# Site de lotor, créé par le paquet lotor-server (docs/operations.md, « TLS et mandataire
+# inverse ») et réécrit seulement par dpkg-reconfigure lotor-server.
+<VirtualHost *:80>
+    ServerName @SERVER_NAME@
+    Redirect permanent / https://@SERVER_NAME@/
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerName @SERVER_NAME@
+
+    SSLEngine on
+    SSLCertificateFile @CERT@
+    SSLCertificateKeyFile @KEY@
+    SSLProtocol -all +TLSv1.2 +TLSv1.3
+
+    # Import de la base de vulnérabilités : vulndb.max_archive_mib et vulndb.download_timeout.
+    LimitRequestBody 2147483647
+    ProxyTimeout 1800
+
+    # Host tel quel : la protection inter-origines le compare à Origin.
+    ProxyPreserveHost On
+    # Écrasés : le client ne doit pas choisir l'IP comptée et journalisée.
+    ProxyAddHeaders Off
+    RequestHeader set X-Forwarded-For "expr=%{REMOTE_ADDR}"
+    RequestHeader set X-Real-IP "expr=%{REMOTE_ADDR}"
+    RequestHeader set X-Forwarded-Proto "https"
+
+    # Chemins transmis tels quels : un purl peut porter des barres obliques encodées.
+    AllowEncodedSlashes NoDecode
+    ProxyPass "/" "http://127.0.0.1:1758/" nocanon
+    ProxyPassReverse "/" "http://127.0.0.1:1758/"
+</VirtualHost>

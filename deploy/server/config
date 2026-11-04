@@ -1,0 +1,117 @@
+#!/bin/sh
+# Questions debconf du paquet lotor-server. Ce script peut tourner avant le dépaquetage
+# (dpkg-preconfigure) : il ne dépend d'aucun fichier du paquet. Une valeur préremplie
+# invalide est vidée sans question quand personne ne peut répondre, jamais rejouée en boucle.
+set -e
+. /usr/share/debconf/confmodule
+db_version 2.0
+db_capb backup
+
+ENV_FILE=/etc/lotor/lotor-server.env
+
+configured() { [ -r "$ENV_FILE" ] && grep -q '^LOTOR_DB_DSN=' "$ENV_FILE"; }
+
+matches() { printf '%s\n' "$1" | grep -Eq "$2"; }
+
+EMAIL_RE='^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+$'
+HOST_RE='^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$'
+DSN_RE='^postgres(ql)?://[^[:space:]"'"'"'\\]+$'
+PATH_RE='^/[^[:space:];"'"'"'\\]+$'
+
+# Valeurs par défaut calculées, une seule fois.
+db_get lotor-server/server_name
+if [ -z "$RET" ]; then
+    db_set lotor-server/server_name "$(hostname -f 2>/dev/null || hostname)"
+fi
+db_fget lotor-server/web_server seen
+if [ "$RET" = false ]; then
+    if command -v nginx >/dev/null 2>&1; then
+        db_set lotor-server/web_server nginx
+    elif command -v apache2 >/dev/null 2>&1 || [ -x /usr/sbin/apache2 ]; then
+        db_set lotor-server/web_server apache2
+    fi
+fi
+
+shown=0
+ask() {
+    rc=0
+    db_input "$1" "lotor-server/$2" || rc=$?
+    if [ "$rc" -eq 0 ]; then shown=1; else shown=0; fi
+}
+
+# Après une réponse : renvoie 0 pour avancer. Une valeur refusée est redemandée si la
+# question a été posée, vidée sinon.
+accept() { # question, valeur acceptable (0/1)
+    [ "$2" -eq 1 ] && return 0
+    if [ "$shown" -eq 1 ]; then
+        db_fset lotor-server/invalid_value seen false
+        db_input critical lotor-server/invalid_value || true
+        db_go || true
+        db_fset "lotor-server/$1" seen false
+        return 1
+    fi
+    db_set "lotor-server/$1" ""
+    return 0
+}
+
+valid() { # expression, valeur vide admise (0/1)
+    if [ -z "$RET" ]; then return "$((1 - $2))"; fi
+    matches "$RET" "$1"
+}
+
+check() { # question, expression, vide admis
+    db_get "lotor-server/$1"
+    if valid "$2" "$3"; then accept "$1" 1; else accept "$1" 0; fi
+}
+
+check_file() { # question
+    db_get "lotor-server/$1"
+    if [ -n "$RET" ] && matches "$RET" "$PATH_RE" && [ -r "$RET" ]; then accept "$1" 1; else accept "$1" 0; fi
+}
+
+database() { db_get lotor-server/database; printf '%s' "$RET"; }
+web_server() { db_get lotor-server/web_server; printf '%s' "$RET"; }
+tls_mode() { db_get lotor-server/tls_mode; printf '%s' "$RET"; }
+
+state=1
+while [ "$state" -ge 1 ] && [ "$state" -le 8 ]; do
+    shown=0
+    case "$state" in
+    1) configured || ask high database ;;
+    2) if ! configured && [ "$(database)" = remote ]; then ask high db_dsn; fi ;;
+    3) if ! configured && [ "$(database)" = remote ]; then ask high migration_dsn; fi ;;
+    4) if ! configured && [ "$(database)" != manual ]; then ask high admin_email; fi ;;
+    5) ask high server_name ;;
+    6) ask high web_server ;;
+    7) if [ "$(web_server)" != none ]; then ask high tls_mode; fi ;;
+    8)
+        if [ "$(web_server)" != none ] && [ "$(tls_mode)" = existing ]; then
+            ask high tls_cert
+            db_input high lotor-server/tls_key || true
+        fi
+        ;;
+    esac
+
+    if ! db_go; then
+        state=$((state - 1))
+        continue
+    fi
+
+    ok=1
+    case "$state" in
+    2) if ! configured && [ "$(database)" = remote ]; then check db_dsn "$DSN_RE" 0 || ok=0; fi ;;
+    3) if ! configured && [ "$(database)" = remote ]; then check migration_dsn "$DSN_RE" 0 || ok=0; fi ;;
+    4) if ! configured && [ "$(database)" != manual ]; then check admin_email "$EMAIL_RE" 1 || ok=0; fi ;;
+    5) check server_name "$HOST_RE" 0 || ok=0 ;;
+    8)
+        if [ "$(web_server)" != none ] && [ "$(tls_mode)" = existing ]; then
+            check_file tls_cert || ok=0
+            check_file tls_key || ok=0
+            if [ "$ok" -eq 0 ]; then db_fset lotor-server/tls_key seen false; fi
+        fi
+        ;;
+    esac
+    if [ "$ok" -eq 1 ]; then state=$((state + 1)); fi
+done
+
+db_stop

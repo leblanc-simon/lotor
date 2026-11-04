@@ -1,0 +1,223 @@
+Template: lotor-server/database
+Type: select
+Choices-C: local, remote, manual
+Choices: local PostgreSQL (created automatically), remote PostgreSQL (connection strings), manual configuration
+Default: local
+Description: Where is the lotor database?
+ Local: the roles and the database are created on this machine's PostgreSQL 16 or later.
+ .
+ Remote: you provide the two connection strings; the roles and the database must already
+ exist. No superuser password is requested.
+ .
+ Manual: nothing is configured and the server is not started; follow docs/operations.md.
+Description-fr.UTF-8: Où se trouve la base de données de lotor ?
+ Locale : les rôles et la base sont créés sur le PostgreSQL 16 ou plus de cette machine.
+ .
+ Distante : vous fournissez les deux chaînes de connexion ; les rôles et la base doivent
+ déjà exister. Aucun mot de passe de superutilisateur n'est demandé.
+ .
+ Manuelle : rien n'est configuré et le serveur n'est pas démarré ; suivre
+ docs/operations.md.
+Choices-fr.UTF-8: PostgreSQL local (création automatique), PostgreSQL distant (chaînes de connexion), configuration manuelle
+
+Template: lotor-server/db_dsn
+Type: password
+Description: Connection string of the application role (lotor_app):
+ For example postgres://lotor_app:password@db.example.org:5432/lotor?sslmode=verify-full
+Description-fr.UTF-8: Chaîne de connexion du rôle d'exécution (lotor_app) :
+ Par exemple postgres://lotor_app:mot-de-passe@db.example.org:5432/lotor?sslmode=verify-full
+
+Template: lotor-server/migration_dsn
+Type: password
+Description: Connection string of the owner role (lotor_owner):
+ Used only to migrate the schema at startup. For example
+ postgres://lotor_owner:password@db.example.org:5432/lotor?sslmode=verify-full
+Description-fr.UTF-8: Chaîne de connexion du rôle propriétaire (lotor_owner) :
+ Sert uniquement à migrer le schéma au démarrage. Par exemple
+ postgres://lotor_owner:mot-de-passe@db.example.org:5432/lotor?sslmode=verify-full
+
+Template: lotor-server/admin_email
+Type: string
+Description: Email address of the first administrator:
+ This account is created at first startup with a temporary password, shown at the end of
+ the installation. Leave empty to create it later (docs/operations.md).
+Description-fr.UTF-8: Adresse e-mail du premier administrateur :
+ Ce compte est créé au premier démarrage avec un mot de passe temporaire, affiché à la fin
+ de l'installation. Laisser vide pour le créer plus tard (docs/operations.md).
+
+Template: lotor-server/server_name
+Type: string
+Description: Public host name of the server:
+ Users and agents reach lotor at https://<this name>/.
+Description-fr.UTF-8: Nom d'hôte public du serveur :
+ Les utilisateurs et les agents joignent lotor sur https://<ce nom>/.
+
+Template: lotor-server/web_server
+Type: select
+Choices-C: nginx, apache2, none
+Choices: nginx, Apache, none
+Default: none
+Description: Web server to configure as a reverse proxy:
+ A dedicated site is added and tested; existing sites are not modified. With "none",
+ lotor only listens on 127.0.0.1:1758: provide TLS yourself (docs/operations.md).
+Description-fr.UTF-8: Serveur web à configurer comme mandataire inverse :
+ Un site dédié est ajouté et testé ; les sites existants ne sont pas modifiés. Avec
+ « aucun », lotor n'écoute que sur 127.0.0.1:1758 : à vous de fournir TLS
+ (docs/operations.md).
+Choices-fr.UTF-8: nginx, Apache, aucun
+
+Template: lotor-server/tls_mode
+Type: select
+Choices-C: selfsigned, existing
+Choices: generate a self-signed certificate, use an existing certificate
+Default: selfsigned
+Description: HTTPS certificate of the site:
+ lotor requires HTTPS: its session cookies are refused over plain HTTP. A self-signed
+ certificate triggers a browser warning; replace it later, for example with certbot.
+Description-fr.UTF-8: Certificat HTTPS du site :
+ lotor exige HTTPS : ses cookies de session sont refusés en HTTP. Un certificat autosigné
+ provoque un avertissement du navigateur ; à remplacer ensuite, par exemple avec certbot.
+Choices-fr.UTF-8: générer un certificat autosigné, utiliser un certificat existant
+
+Template: lotor-server/tls_cert
+Type: string
+Description: Path of the certificate (PEM, full chain):
+Description-fr.UTF-8: Chemin du certificat (PEM, chaîne complète) :
+
+Template: lotor-server/tls_key
+Type: string
+Description: Path of the private key (PEM):
+Description-fr.UTF-8: Chemin de la clé privée (PEM) :
+
+Template: lotor-server/invalid_value
+Type: note
+Description: Invalid value
+ The value does not have the expected format or the file cannot be read. Please enter it
+ again.
+Description-fr.UTF-8: Valeur non valide
+ La valeur n'a pas le format attendu ou le fichier n'est pas lisible. Merci de la saisir
+ de nouveau.
+
+Template: lotor-server/admin_password
+Type: note
+Description: Temporary password of the first administrator
+ Copy this password now: it is shown only once and is not kept on this machine.
+ .
+ Address: ${URL}
+ .
+ Email: ${EMAIL}
+ .
+ Temporary password: ${PASSWORD}
+ .
+ At first login, enroll a TOTP application, then choose your own password.
+Description-fr.UTF-8: Mot de passe temporaire du premier administrateur
+ Copiez ce mot de passe maintenant : il n'est affiché qu'une fois et n'est pas conservé
+ sur cette machine.
+ .
+ Adresse : ${URL}
+ .
+ E-mail : ${EMAIL}
+ .
+ Mot de passe temporaire : ${PASSWORD}
+ .
+ À la première connexion, enrôlez une application TOTP, puis choisissez votre mot de passe.
+
+Template: lotor-server/msg_password_file
+Type: text
+Description: lotor: no terminal to show the temporary password of ${EMAIL}: it is in ${FILE} (root only). Delete this file after the first login at ${URL}.
+Description-fr.UTF-8: lotor : pas de terminal pour afficher le mot de passe temporaire de ${EMAIL} : il est dans ${FILE} (root seulement). Supprimer ce fichier après la première connexion sur ${URL}.
+
+Template: lotor-server/msg_backup_key
+Type: text
+Description: lotor: back up the encryption key from ${FILE} in a safe place: without it, the TOTP secrets of all accounts are lost.
+Description-fr.UTF-8: lotor : sauvegarder à part la clé de chiffrement de ${FILE} : sans elle, les secrets TOTP de tous les comptes sont perdus.
+
+Template: lotor-server/msg_pg_missing
+Type: text
+Description: lotor: no running local PostgreSQL 16 or later yet (apt may be installing it after this package). Once it is installed and running, run: dpkg-reconfigure lotor-server
+Description-fr.UTF-8: lotor : pas encore de PostgreSQL 16 ou plus en marche sur cette machine (apt l'installe peut-être après ce paquet). Une fois installé et démarré, lancer : dpkg-reconfigure lotor-server
+
+Template: lotor-server/msg_pg_too_old
+Type: text
+Description: lotor: the local PostgreSQL is version ${VERSION}; lotor requires 16 or later (PGDG repository on older distributions). Then run: dpkg-reconfigure lotor-server
+Description-fr.UTF-8: lotor : le PostgreSQL local est en version ${VERSION} ; lotor exige la 16 ou plus (dépôt PGDG sur les anciennes distributions). Lancer ensuite : dpkg-reconfigure lotor-server
+
+Template: lotor-server/msg_pg_exists
+Type: text
+Description: lotor: the lotor_owner or lotor_app role or the lotor database already exists and is left untouched. Choose the remote mode with their connection strings: dpkg-reconfigure lotor-server
+Description-fr.UTF-8: lotor : le rôle lotor_owner ou lotor_app, ou la base lotor, existe déjà et n'est pas modifié. Choisir le mode distant avec leurs chaînes de connexion : dpkg-reconfigure lotor-server
+
+Template: lotor-server/msg_pg_failed
+Type: text
+Description: lotor: creating the PostgreSQL roles and database failed. Fix the cause, then run: dpkg-reconfigure lotor-server
+Description-fr.UTF-8: lotor : la création des rôles et de la base PostgreSQL a échoué. Corriger la cause, puis lancer : dpkg-reconfigure lotor-server
+
+Template: lotor-server/msg_dsn_missing
+Type: text
+Description: lotor: connection strings missing or invalid; the server is not started. Run: dpkg-reconfigure lotor-server
+Description-fr.UTF-8: lotor : chaînes de connexion absentes ou non valides ; le serveur n'est pas démarré. Lancer : dpkg-reconfigure lotor-server
+
+Template: lotor-server/msg_manual
+Type: text
+Description: lotor: manual configuration: complete ${FILE} (docs/operations.md), then run: systemctl enable --now lotor-server
+Description-fr.UTF-8: lotor : configuration manuelle : compléter ${FILE} (docs/operations.md), puis lancer : systemctl enable --now lotor-server
+
+Template: lotor-server/msg_start_failed
+Type: text
+Description: lotor: the server did not confirm the first administrator within ${SECONDS} seconds; the variables stay in ${FILE} (root only). See: journalctl -u lotor-server
+Description-fr.UTF-8: lotor : le serveur n'a pas confirmé le premier administrateur en ${SECONDS} secondes ; les variables restent dans ${FILE} (root seulement). Voir : journalctl -u lotor-server
+
+Template: lotor-server/msg_no_systemd
+Type: text
+Description: lotor: systemd is not running: the server is not started. Later, run: systemctl enable --now lotor-server
+Description-fr.UTF-8: lotor : systemd n'est pas actif : le serveur n'est pas démarré. Plus tard, lancer : systemctl enable --now lotor-server
+
+Template: lotor-server/msg_started
+Type: text
+Description: lotor: server started. The vulnerability database downloads in the background (a few minutes): /readyz answers 503 until then.
+Description-fr.UTF-8: lotor : serveur démarré. La base de vulnérabilités se télécharge en arrière-plan (quelques minutes) : /readyz répond 503 jusque-là.
+
+Template: lotor-server/msg_no_admin
+Type: text
+Description: lotor: no administrator was requested. See "First administrator" in docs/operations.md.
+Description-fr.UTF-8: lotor : aucun administrateur demandé. Voir « Premier administrateur » dans docs/operations.md.
+
+Template: lotor-server/msg_upgrade
+Type: text
+Description: lotor: new binary installed; the running server was not restarted, because a restart applies irreversible migrations. Back up the database, then run: systemctl restart lotor-server
+Description-fr.UTF-8: lotor : nouveau binaire installé ; le serveur en marche n'a pas été redémarré, car un redémarrage applique des migrations irréversibles. Sauvegarder la base, puis lancer : systemctl restart lotor-server
+
+Template: lotor-server/msg_reinstall
+Type: text
+Description: lotor: existing configuration kept; the server is not started, because a start can apply irreversible migrations. Back up the database, then run: systemctl enable --now lotor-server
+Description-fr.UTF-8: lotor : configuration existante conservée ; le serveur n'est pas démarré, car un démarrage peut appliquer des migrations irréversibles. Sauvegarder la base, puis lancer : systemctl enable --now lotor-server
+
+Template: lotor-server/msg_site_ready
+Type: text
+Description: lotor: ${SERVER} site enabled for https://${NAME}/.
+Description-fr.UTF-8: lotor : site ${SERVER} activé pour https://${NAME}/.
+
+Template: lotor-server/msg_web_missing
+Type: text
+Description: lotor: ${SERVER} is not installed: no site was added. Install it, then run: dpkg-reconfigure lotor-server
+Description-fr.UTF-8: lotor : ${SERVER} n'est pas installé : aucun site ajouté. L'installer, puis lancer : dpkg-reconfigure lotor-server
+
+Template: lotor-server/msg_web_failed
+Type: text
+Description: lotor: the ${SERVER} configuration test failed: the lotor site was removed and the other sites are unchanged. Fix the cause, then run: dpkg-reconfigure lotor-server
+Description-fr.UTF-8: lotor : le test de configuration de ${SERVER} a échoué : le site lotor a été retiré et les autres sites sont inchangés. Corriger la cause, puis lancer : dpkg-reconfigure lotor-server
+
+Template: lotor-server/msg_web_reload_failed
+Type: text
+Description: lotor: ${SERVER} could not be reloaded; the lotor site is in place. See: systemctl status ${SERVER}
+Description-fr.UTF-8: lotor : ${SERVER} n'a pas pu être rechargé ; le site lotor est en place. Voir : systemctl status ${SERVER}
+
+Template: lotor-server/msg_no_web
+Type: text
+Description: lotor: no web server configured: lotor listens on http://127.0.0.1:1758 with secure cookies. Provide TLS (docs/operations.md, "TLS and reverse proxy").
+Description-fr.UTF-8: lotor : aucun serveur web configuré : lotor écoute sur http://127.0.0.1:1758 avec des cookies sécurisés. À vous de fournir TLS (docs/operations.md, « TLS et mandataire inverse »).
+
+Template: lotor-server/msg_purge
+Type: text
+Description: lotor: the PostgreSQL database and ${FILE} are kept: this file holds the encryption key without which the TOTP secrets are lost. Delete them yourself if you no longer need them.
+Description-fr.UTF-8: lotor : la base PostgreSQL et ${FILE} sont conservés : ce fichier porte la clé de chiffrement sans laquelle les secrets TOTP sont perdus. Les supprimer vous-même s'ils ne servent plus.

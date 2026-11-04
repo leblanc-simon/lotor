@@ -51,10 +51,11 @@ for arch in $ARCHES; do
   done
 done
 
-# Paquets de l'agent serveur (nfpm), version des paquets tirée de l'étiquette.
+# Paquets de l'agent serveur et du serveur (nfpm), version des paquets tirée de l'étiquette.
 make --no-print-directory packages VERSION="$VERSION" >/dev/null
 cp dist/lotor-host-agent_"$NUM"_amd64.deb dist/lotor-host-agent_"$NUM"_arm64.deb \
-  dist/lotor-host-agent-"$NUM"-1.x86_64.rpm dist/lotor-host-agent-"$NUM"-1.aarch64.rpm "$OUT/"
+  dist/lotor-host-agent-"$NUM"-1.x86_64.rpm dist/lotor-host-agent-"$NUM"-1.aarch64.rpm \
+  dist/lotor-server_"$NUM"_amd64.deb dist/lotor-server_"$NUM"_arm64.deb "$OUT/"
 
 (cd "$OUT" && sha256sum -- *.tar.gz *.deb *.rpm > SHA256SUMS)
 echo "fichiers de $VERSION dans $OUT :"

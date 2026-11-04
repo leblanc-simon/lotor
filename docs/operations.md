@@ -36,6 +36,83 @@ crée sa base et ses rôles jetables à partir de `LOTOR_TEST_DATABASE_DSN`, con
 d'administration, par défaut celle de `deploy/compose.yaml`), `make ci` (tout ce que fait
 la CI).
 
+## Installation par le paquet deb
+
+Sur **une machine Debian 13 ou Ubuntu 24.04** (ou une distribution plus ancienne avec
+PostgreSQL 16 du dépôt PGDG), le paquet `lotor-server` enchaîne le parcours manuel de la
+section suivante (ADR 0053).
+
+1. **Prérequis** : installer PostgreSQL et le serveur web **avant** le paquet. Installés dans
+   le même appel, apt peut configurer lotor en premier (voir plus bas).
+
+   ```bash
+   sudo apt install postgresql nginx   # ou apache2
+   ```
+
+2. **Fichiers** : télécharger `lotor-server_<version>_<arch>.deb` et `SHA256SUMS` depuis la
+   page des versions, vérifier (`sha256sum -c --ignore-missing SHA256SUMS`).
+3. **Installation** : `sudo apt install ./lotor-server_<version>_<arch>.deb`. Le paquet
+   demande où se trouve la base, l'e-mail du premier administrateur, le nom public du site, le
+   serveur web et le certificat.
+4. **Mot de passe temporaire** : copier celui qui s'affiche, une seule fois. Se connecter sur
+   `https://<nom public>/`, enrôler le TOTP, noter les codes de secours, choisir le mot de
+   passe.
+5. **Sauvegarder la clé de chiffrement** : `LOTOR_SECRETS_KEYS` de
+   `/etc/lotor/lotor-server.env`, à part (« Clés de chiffrement des secrets »).
+6. **Certificat** : l'autosigné provoque un avertissement du navigateur, et un agent le refuse
+   sans `server.ca_file`. Le remplacer, par exemple avec `certbot --nginx -d <nom public>`,
+   ou indiquer un certificat existant par `sudo dpkg-reconfigure lotor-server`.
+
+**Ce que le paquet crée.**
+
+| Élément | Emplacement |
+| --- | --- |
+| Rôles `lotor_owner`, `lotor_app` et base `lotor` (mode local) | cluster en marche de plus haute version, 16 ou plus |
+| Configuration | `/etc/lotor/config.yaml` (`0644`), écrite une seule fois |
+| Secrets (DSN, clé de chiffrement) | `/etc/lotor/lotor-server.env` (`0600`), écrits une seule fois |
+| Site du mandataire | `/etc/nginx/sites-available/lotor.conf` ou `/etc/apache2/sites-available/lotor.conf` |
+| Certificat autosigné | `/etc/lotor/tls/<nom public>.crt` et `.key` |
+
+Le serveur écoute sur `127.0.0.1:1758`, la gestion sur `127.0.0.1:1761`, avec
+`web.trusted_proxies: ["127.0.0.1/32"]` et `auth.cookie_secure: on`. Derrière ce mandataire,
+le mTLS des agents est indisponible.
+
+**Base distante.** Choisir « distante » et fournir les deux chaînes de connexion : les rôles et
+la base doivent déjà exister (« Rôles et droits »). Aucun mot de passe de superutilisateur n'est
+demandé. Si une base locale porte déjà ces noms, le mode local n'y touche pas et demande ce mode.
+
+**Sans terminal** (Ansible, etc.) : prérenseigner les réponses, sans quoi la base est locale et
+aucun compte n'est créé. Le mot de passe temporaire n'est alors pas affiché mais écrit dans
+`/etc/lotor/initial-admin-password` (`0600`), **à supprimer** après la première connexion.
+
+```bash
+sudo debconf-set-selections <<'FIN'
+lotor-server lotor-server/admin_email string admin@example.org
+lotor-server lotor-server/server_name string sbom.example.org
+lotor-server lotor-server/web_server select nginx
+FIN
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ./lotor-server_<version>_<arch>.deb
+```
+
+Questions : `database` (`local`, `remote`, `manual`), `db_dsn` et `migration_dsn` (mode distant),
+`admin_email`, `server_name`, `web_server` (`nginx`, `apache2`, `none`), `tls_mode` (`selfsigned`,
+`existing`), `tls_cert` et `tls_key`.
+
+**Terminer ou changer l'installation** : `sudo dpkg-reconfigure lotor-server` repose les questions
+et réécrit le site. C'est la marche à suivre si le paquet a indiqué que PostgreSQL n'était pas
+prêt, ou que le test de configuration du serveur web a échoué (le site lotor est alors retiré,
+et les autres sites restent intacts). Une base déjà configurée n'est pas reposée.
+
+**Mise à jour** : le paquet **ne redémarre pas** le serveur, car un redémarrage applique des
+migrations irréversibles. Installer le nouveau paquet, sauvegarder la base (« Mise à jour »),
+puis `sudo systemctl restart lotor-server`.
+
+**Suppression** : `apt remove` arrête le service et retire le site ; une réinstallation remet le
+site en place, puis attend `sudo systemctl enable --now lotor-server`. `apt purge` retire aussi la
+configuration et le certificat autosigné. **La base PostgreSQL et
+`/etc/lotor/lotor-server.env` restent** : sans la clé de chiffrement, les secrets TOTP sont perdus.
+Ils se suppriment à la main.
+
 ## Installation de production
 
 Une instance = un binaire `lotor-server`, un fichier de configuration et un fichier

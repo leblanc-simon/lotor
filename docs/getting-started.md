@@ -4,7 +4,7 @@
 
 This guide takes you from an installed instance to a first inventoried, queryable fleet:
 sign-in, organization and teams, servers, repositories, reading the results, then triage
-and alerts. Installing the server and the agents is covered in
+and alerts. Installing the server (deb package or by hand) and the agents is covered in
 [`operations.md`](operations.md) (French); detailed usage in
 [`utilisation.md`](utilisation.md) (French).
 
