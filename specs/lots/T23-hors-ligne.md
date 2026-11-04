@@ -53,7 +53,7 @@ Aucun.
 ### 4 novembre 2026
 
 Réalisé à la suite de T19 et T21, sans plan validé au préalable : décisions **[à relire]**
-([ADR 0059](../../docs/adr/0059-mode-hors-ligne.md)).
+([ADR 0060](../../docs/adr/0060-mode-hors-ligne.md)).
 
 - **Format [à relire]** : tar de trois entrées dans l'ordre (manifeste, codes, SBOM gzip),
   paquet `internal/offline` sans dépendance ; nom horodaté avec l'empreinte d'inventaire
@@ -70,7 +70,7 @@ Réalisé à la suite de T19 et T21, sans plan validé au préalable : décision
   équipe), API `POST /api/v1/orgs/{org}/archives` (**seule écriture** de l'API
   utilisateur, exception à l'ADR 0025), répertoire surveillé `offline.watch_dir` (réservation
   par renommage, `done/`, `failed/` et `.error`) ; dédoublonnage par
-  `ingestions.archive_sha256` (migration 026) ; l'import n'est pas un contact de l'agent.
+  `ingestions.archive_sha256` (migration 027) ; l'import n'est pas un contact de l'agent.
 - **Agents [à relire]** : agent serveur `offline.dir` / `offline.only` (sans conteneurs) ;
   agent dépôt `offline.dir` en plus seulement.
 - **Défauts trouvés et corrigés** : `uploadGate` appelait `MultipartReader` sur un corps non

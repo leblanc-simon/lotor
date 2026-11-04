@@ -226,7 +226,7 @@ func NewRouter(o RouterOptions) (http.Handler, error) {
 		return nil, err
 	}
 	r.With(api("api")...).Handle("/api/*", apiNotFound)
-	// Point compatible Dependency-Track (T19, ADR 0057) : hors de /api/v1, qui reste à
+	// Point compatible Dependency-Track (T19, ADR 0058) : hors de /api/v1, qui reste à
 	// l'API du projet.
 	if o.AgentAPI != nil {
 		ao := *o.AgentAPI

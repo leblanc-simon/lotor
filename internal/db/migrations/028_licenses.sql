@@ -1,4 +1,4 @@
--- Licences (T20, ADR 0060) : politique de licences d'une organisation, constats de licence
+-- Licences (T20, ADR 0061) : politique de licences d'une organisation, constats de licence
 -- par référence, expressions de licence rencontrées (recherche « license: »), et sujet
 -- « licence » des règles de politique (T15).
 

@@ -16,7 +16,7 @@ import (
 )
 
 // ArchiveWriter écrit, en plus de l'envoi au serveur, une archive hors ligne par SBOM
-// envoyé (T23, ADR 0059) : copie transportable vers un autre serveur ou conservée pour un
+// envoyé (T23, ADR 0060) : copie transportable vers un autre serveur ou conservée pour un
 // import ultérieur. L'agent dépôt n'a pas de mode « hors ligne seul » : la liste des
 // dépôts et leur dernier commit viennent du serveur.
 type ArchiveWriter struct {

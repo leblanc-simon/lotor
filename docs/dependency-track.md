@@ -8,7 +8,7 @@ envois de SBOM, ou vivre à côté de lui. Deux sens :
 - **Vers Dependency-Track** : les agents de lotor envoient aussi (ou seulement, pour l'agent
   serveur) leurs SBOM à un Dependency-Track.
 
-Décisions et étude des formats : [ADR 0057](adr/0057-point-compatible-dependency-track.md).
+Décisions et étude des formats : [ADR 0058](adr/0058-point-compatible-dependency-track.md).
 Vérifié avec Dependency-Track 5.2.1 ; les routes employées existent depuis la 4.x.
 
 ## Envoyer à lotor depuis un outil de Dependency-Track

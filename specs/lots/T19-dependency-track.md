@@ -64,7 +64,7 @@ Aucun.
 ### 4 novembre 2026
 
 Réalisation enchaînée avec T20, T21 et T23 à la demande de l'utilisateur, sans plan validé
-au préalable : les décisions ci-dessous sont **[à relire]** ([ADR 0057](../../docs/adr/0057-point-compatible-dependency-track.md)).
+au préalable : les décisions ci-dessous sont **[à relire]** ([ADR 0058](../../docs/adr/0058-point-compatible-dependency-track.md)).
 
 - **Étude préalable** : contrat OpenAPI embarqué dans `dependencytrack/apiserver:5.2.1`
   (routes `PUT`/`POST /v1/bom`, `GET /v1/event/token/{uuid}`, `GET /v1/bom/token/{uuid}`
@@ -75,7 +75,7 @@ au préalable : les décisions ci-dessous sont **[à relire]** ([ADR 0057](../..
   et accepte un SBOM compressé (gzip, zstd) en multipart.
 - **Correspondance [à relire]** : clé = jeton d'agent **dépôt** (agent serveur refusé en
   403) ; nom = dépôt confié à l'agent, nom exact ; version = nouvelle nature de référence
-  `version` (migration 025), sans commit, rangée comme un hôte ; `project` (UUID) =
+  `version` (migration 026), sans commit, rangée comme un hôte ; `project` (UUID) =
   identifiant de la référence version, renvoyé en `projectUuid` et affiché sur la fiche ;
   jeton = identifiant d'ingestion ; jeton inconnu ou d'un autre agent = `processing:
   false`, `status: null`. Étiquettes, parent, `isLatest`, `isActive` ignorés.

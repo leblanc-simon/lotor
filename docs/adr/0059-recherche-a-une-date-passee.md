@@ -1,4 +1,4 @@
-# 0058 — Recherche à une date passée : instantané en vigueur, composants seulement
+# 0059 — Recherche à une date passée : instantané en vigueur, composants seulement
 
 - Statut : Accepté
 - Date : 2026-11-04

@@ -1,4 +1,4 @@
--- Mode hors ligne (T23, ADR 0059) : une ingestion reçue par l'import d'une archive garde
+-- Mode hors ligne (T23, ADR 0060) : une ingestion reçue par l'import d'une archive garde
 -- l'empreinte de son manifeste signé. Une archive importée deux fois retrouve la même
 -- ingestion (un seul instantané), même si son SBOM ou sa référence ont été rangés entre
 -- les deux. Les ingestions purgées par la rétention libèrent leur empreinte.

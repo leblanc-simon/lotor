@@ -3,7 +3,7 @@
 Un réseau isolé (sans route vers le serveur lotor) s'inventorie par fichiers : chaque agent
 serveur écrit, à chaque inventaire changé, une **archive** (`.lotor`) qui contient son SBOM
 et son contexte ; on la transporte à la main (support amovible, passerelle de dépôt) jusqu'au
-serveur, qui l'importe comme un envoi réseau. Décisions : [ADR 0059](adr/0059-mode-hors-ligne.md).
+serveur, qui l'importe comme un envoi réseau. Décisions : [ADR 0060](adr/0060-mode-hors-ligne.md).
 
 Ce qui ne change pas : mêmes bornes, mêmes quotas, même décodage, même analyse quotidienne
 par Grype qu'un envoi réseau. Ce qui change : l'archive se prouve elle-même. Son code

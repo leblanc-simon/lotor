@@ -92,7 +92,7 @@ const (
 	RefTag       RefKind = "tag"
 	RefHost      RefKind = "host"
 	RefContainer RefKind = "container"
-	// RefVersion : version d'un dépôt au sens de Dependency-Track (T19, ADR 0057), sans
+	// RefVersion : version d'un dépôt au sens de Dependency-Track (T19, ADR 0058), sans
 	// commit, rangée comme un hôte.
 	RefVersion RefKind = "version"
 )
@@ -194,7 +194,7 @@ type Input struct {
 	ForgeURL    string
 	Branches    []string
 	Tags        []string
-	// Versions : versions au sens de Dependency-Track (dépôts seulement, ADR 0057).
+	// Versions : versions au sens de Dependency-Track (dépôts seulement, ADR 0058).
 	Versions []string
 	HostRef  string
 }

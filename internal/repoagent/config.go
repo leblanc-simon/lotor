@@ -33,7 +33,7 @@ type Config struct {
 	Catchup CatchupConfig   `yaml:"catchup" env-prefix:"LOTOR_REPO_"`
 	AI      AIConfig        `yaml:"ai"      env-prefix:"LOTOR_REPO_"`
 	Status  StatusConfig    `yaml:"status"  env-prefix:"LOTOR_REPO_"`
-	// DependencyTrack : sortie supplémentaire vers Dependency-Track (T19, ADR 0057).
+	// DependencyTrack : sortie supplémentaire vers Dependency-Track (T19, ADR 0058).
 	DependencyTrack DTConfig `yaml:"dependency_track" env-prefix:"LOTOR_REPO_"`
 	// Offline : archive hors ligne de chaque envoi, en plus de l'envoi réseau (T23).
 	Offline OfflineConfig `yaml:"offline" env-prefix:"LOTOR_REPO_"`

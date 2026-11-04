@@ -22,7 +22,7 @@ import (
 	"leblanc.io/lotor/internal/web/middleware"
 )
 
-// Point compatible Dependency-Track (T19, ADR 0057). Un client configuré pour
+// Point compatible Dependency-Track (T19, ADR 0058). Un client configuré pour
 // Dependency-Track avec l'adresse de base https://<serveur>/dt envoie ses SBOM à
 // /dt/api/v1/bom et suit leur traitement par /dt/api/v1/event/token/{uuid}, avec sa clé
 // d'API dans X-Api-Key : un jeton d'agent dépôt. Rien n'est contourné : l'envoi devient

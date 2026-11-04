@@ -15,7 +15,7 @@ import (
 var ErrVersionsLimit = errors.New("project: trop de versions suivies")
 
 // CreateForAgent crée, dans la transaction de l'appelant, le dépôt d'un envoi au point
-// compatible Dependency-Track (autoCreate, ADR 0057) : nom de l'envoi, slug dérivé et
+// compatible Dependency-Track (autoCreate, ADR 0058) : nom de l'envoi, slug dérivé et
 // rendu unique, confié à l'agent, dans son équipe, sans adresse de forge ni référence.
 // La création est journalisée au nom du jeton de l'agent.
 func CreateForAgent(ctx context.Context, tx *db.OrgTx, actor audit.Actor, name string, agentID, teamID uuid.UUID) (Project, error) {

@@ -55,7 +55,7 @@ Tables d'expressions SPDX ; intégration sur des SBOM d'exemple ; isolement.
 
 ### 2026-11-04 — réalisation (enchaînée avec T19, T21 et T23)
 
-Décisions, toutes **[à relire]** sauf la première (ADR 0060) :
+Décisions, toutes **[à relire]** sauf la première (ADR 0061) :
 
 - **Politique par défaut** (décision de l'utilisateur) : sans réglage, toute licence SPDX
   connue est acceptée. Ce qui reste signalé l'est par la fiche : « une licence inconnue
@@ -87,14 +87,14 @@ Décisions, toutes **[à relire]** sauf la première (ADR 0060) :
   de la sévérité).
 - **Recherche** : `license:<un identifiant>` (sans expression, insensible à la casse) ; la
   table `license_expressions` (expressions distinctes par organisation, remplie par la
-  migration 027 et à chaque nouvel ensemble) est filtrée en Go, puis SQL cherche les
+  migration 028 et à chaque nouvel ensemble) est filtrée en Go, puis SQL cherche les
   éléments qui en portent une ; filtres, export et date passée comme une recherche par
   composant.
 - **Écrans** : page **Licences** de l'organisation (politique, constats filtrés par verdict,
   500 au plus) et onglet **Licences** du projet (licences de l'inventaire courant et leur
   verdict, constats) ; lecture pour tout membre, filtrée par équipe.
 
-Livré : migration `027_licenses.sql` (`license_policies`, `license_findings`,
+Livré : migration `028_licenses.sql` (`license_policies`, `license_findings`,
 `license_expressions`, sujet `license` de `policies` et `policy_violations`),
 `internal/license` (`expression.go`, `policy.go`, `service.go`, `read.go`), sujet licence
 dans `internal/policy`, notifications, recherche, écrans `org/licenses` et

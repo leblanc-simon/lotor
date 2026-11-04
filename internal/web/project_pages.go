@@ -351,7 +351,7 @@ type projectView struct {
 	Branches []string
 	Tags     []string
 	// Versions : références de nature « version » ; leur identifiant est celui qu'un
-	// client Dependency-Track passe en « project » (ADR 0057).
+	// client Dependency-Track passe en « project » (ADR 0058).
 	Versions   []project.Ref
 	HostRef    string
 	Created    *stamp

@@ -1,7 +1,7 @@
 # Échanges avec Dependency-Track
 
 Requêtes et réponses rejouées par les tests du point compatible et du client des agents
-(T19, [ADR 0057](../../docs/adr/0057-point-compatible-dependency-track.md)).
+(T19, [ADR 0058](../../docs/adr/0058-point-compatible-dependency-track.md)).
 
 | Fichier | Origine |
 | --- | --- |

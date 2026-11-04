@@ -17,7 +17,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// DTOptions règle un client de Dependency-Track (T19, ADR 0057) : la sortie
+// DTOptions règle un client de Dependency-Track (T19, ADR 0058) : la sortie
 // supplémentaire des agents, vers un Dependency-Track ou vers le point compatible d'un
 // serveur lotor (adresse de base https://<serveur>/dt).
 type DTOptions struct {

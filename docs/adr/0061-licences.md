@@ -1,4 +1,4 @@
-# 0060 — Licences : évaluation SPDX dans le projet, politique qui accepte tout par défaut
+# 0061 — Licences : évaluation SPDX dans le projet, politique qui accepte tout par défaut
 
 - Statut : Accepté (**[à relire]** : écart à l'architecture, Grant non importé)
 - Date : 2026-11-04
@@ -84,7 +84,7 @@ bloquant.
 
 `license:<identifiant>` (un identifiant SPDX ou `LicenseRef-`, sans expression) : la table
 `license_expressions` (expressions distinctes par organisation, alimentée à l'écriture des
-ensembles et remplie par la migration 027) est lue, Go retient celles qui citent la licence
+ensembles et remplie par la migration 028) est lue, Go retient celles qui citent la licence
 (insensible à la casse, dans une expression ou seule), puis SQL cherche les éléments qui en
 portent une (`i.licenses && $n`), avec les mêmes filtres, la même pagination et les mêmes
 exports que la recherche par composant, à une date passée comprise (T21).

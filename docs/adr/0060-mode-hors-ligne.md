@@ -1,4 +1,4 @@
-# 0059 — Mode hors ligne : archives signées par le jeton, inscription par archive, import
+# 0060 — Mode hors ligne : archives signées par le jeton, inscription par archive, import
 
 - Statut : Accepté
 - Date : 2026-11-04

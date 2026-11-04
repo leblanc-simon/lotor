@@ -58,7 +58,7 @@ Aucun.
 ### 4 novembre 2026
 
 Réalisé à la suite de T19, sans plan validé au préalable : décisions **[à relire]**
-([ADR 0058](../../docs/adr/0058-recherche-a-une-date-passee.md)).
+([ADR 0059](../../docs/adr/0059-recherche-a-une-date-passee.md)).
 
 - **Date [à relire]** : `at=AAAA-MM-JJ` vaut la fin de cette journée en UTC (les
   instantanés scannés ce jour-là comptent, borne exclusive), une date RFC 3339 l'instant

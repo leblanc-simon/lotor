@@ -42,7 +42,7 @@ type Config struct {
 }
 
 // Offline règle l'import des archives hors ligne par un répertoire surveillé (T23, ADR
-// 0059) : chaque archive déposée (*.lotor) est importée au nom de son agent, puis rangée
+// 0060) : chaque archive déposée (*.lotor) est importée au nom de son agent, puis rangée
 // dans done/ ou failed/ (avec un fichier .error qui donne la clé du refus).
 type Offline struct {
 	WatchDir      string        `yaml:"watch_dir"      env:"OFFLINE_WATCH_DIR"      env-description:"Directory watched for offline archives (*.lotor) to import; empty: no watched directory"`

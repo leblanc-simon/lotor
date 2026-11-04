@@ -89,7 +89,7 @@ type Containers struct {
 	Timeout     time.Duration `yaml:"timeout"       env:"LOTOR_HOST_AGENT_CONTAINERS_TIMEOUT"       env-default:"30s"  env-description:"Timeout of one engine API call (image exports excepted)"`
 }
 
-// DependencyTrack règle la sortie vers Dependency-Track (T19, ADR 0057) : le SBOM de
+// DependencyTrack règle la sortie vers Dependency-Track (T19, ADR 0058) : le SBOM de
 // l'hôte, en CycloneDX 1.6, part aussi (ou seulement, avec Only) vers un
 // Dependency-Track, quand son inventaire a changé depuis le dernier envoi accepté. Les
 // conteneurs n'y sont pas envoyés.
@@ -107,7 +107,7 @@ type DependencyTrack struct {
 	Only bool `yaml:"only" env:"LOTOR_HOST_AGENT_DT_ONLY" env-description:"Send to Dependency-Track only, instead of the lotor server (no enrollment, no heartbeat)"`
 }
 
-// Offline règle la sortie « fichier » (T23, ADR 0059) : une archive (SBOM et contexte) par
+// Offline règle la sortie « fichier » (T23, ADR 0060) : une archive (SBOM et contexte) par
 // inventaire changé, écrite dans Dir, à transporter jusqu'au serveur et à importer. Only
 // la substitue à l'envoi réseau : ni inscription, ni signal de vie, ni conteneurs ; un
 // agent jamais inscrit tire alors son jeton d'agent et s'inscrit par sa première archive.

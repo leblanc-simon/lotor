@@ -1,4 +1,4 @@
-// Package offline écrit et lit les archives d'envoi hors ligne (T23, ADR 0059) : un agent
+// Package offline écrit et lit les archives d'envoi hors ligne (T23, ADR 0060) : un agent
 // d'un réseau isolé écrit son SBOM et son contexte dans un fichier transporté à la main
 // jusqu'au serveur, qui l'importe comme un envoi ordinaire.
 //

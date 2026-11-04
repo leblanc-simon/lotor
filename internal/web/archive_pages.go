@@ -9,7 +9,7 @@ import (
 	"leblanc.io/lotor/internal/render"
 )
 
-// Import des archives hors ligne (T23, ADR 0059) : Agents › Importer des archives. Le
+// Import des archives hors ligne (T23, ADR 0060) : Agents › Importer des archives. Le
 // fichier est lu en flux (uploadGate : jeton CSRF en première partie), borné à la taille
 // admise d'une archive, puis importé au nom de l'agent émetteur, que l'archive
 // authentifie elle-même.

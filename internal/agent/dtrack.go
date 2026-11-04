@@ -13,7 +13,7 @@ import (
 	"leblanc.io/lotor/internal/tenant"
 )
 
-// Clés des refus du point compatible Dependency-Track (ADR 0057).
+// Clés des refus du point compatible Dependency-Track (ADR 0058).
 const (
 	KeyDTAgentKind        = "error.dt.agent_kind"
 	KeyDTProjectUnknown   = "error.dt.project_unknown"
@@ -66,7 +66,7 @@ type ResolvedTarget struct {
 
 // ResolveUpload résout la cible d'un envoi au point compatible Dependency-Track, pour un
 // agent dépôt : le projet est un dépôt confié à l'agent, désigné par son nom exact, la
-// version une référence de nature « version » (ADR 0057). Avec AutoCreate et si l'agent
+// version une référence de nature « version » (ADR 0058). Avec AutoCreate et si l'agent
 // y est autorisé (DTAutoCreate, agent d'équipe), le projet et la version manquants sont
 // créés, dans l'équipe de l'agent, et journalisés. La résolution compte comme un contact
 // de l'agent. Le reste des contrôles (référence confiée à l'agent, bornes, quotas) est

@@ -1,4 +1,4 @@
-# 0057 — Compatibilité Dependency-Track : point d'envoi `/dt`, versions de dépôt et sortie des agents
+# 0058 — Compatibilité Dependency-Track : point d'envoi `/dt`, versions de dépôt et sortie des agents
 
 - Statut : Accepté
 - Date : 2026-11-04
@@ -44,7 +44,7 @@ OpenAPI embarqué dans le jar, essais réels) et sur les sources de la 4.x :
 - **Nom de projet → dépôt confié à l'agent**, par son nom exact (sensible à la casse, comme
   Dependency-Track). Deux dépôts homonymes du même agent rendent la cible ambiguë (`409`).
 - **Version de projet → référence suivie de nature `version`**, nouvelle nature réservée
-  aux dépôts (migration 025). Elle n'a pas de commit ; elle est rangée comme un hôte : un
+  aux dépôts (migration 026). Elle n'a pas de commit ; elle est rangée comme un hôte : un
   inventaire identique au courant n'avance que la date de dernière analyse, un inventaire
   changé crée un instantané. Les versions ne sont jamais remises à l'agent dépôt
   (`GET /api/v1/agent/projects` les omet) : aucun commit à analyser. Un dépôt peut ne suivre

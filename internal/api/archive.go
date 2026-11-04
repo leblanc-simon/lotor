@@ -17,7 +17,7 @@ import (
 // keyForbidden : droit manquant (403), comme l'interface.
 const keyForbidden = "error.forbidden"
 
-// ImportArchive importe une archive hors ligne (T23, ADR 0059) : corps brut borné à la
+// ImportArchive importe une archive hors ligne (T23, ADR 0060) : corps brut borné à la
 // taille admise d'une archive, propriétaire du jeton autorisé à gérer des agents, puis
 // import au nom de l'agent que l'archive authentifie.
 func (h *userAPI) ImportArchive(w http.ResponseWriter, r *http.Request, _ userapi.Org) {

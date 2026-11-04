@@ -10,7 +10,7 @@ appliquées automatiquement, sans retour arrière.
 
 **Mise à jour** : `notify.public_url` devient **`web.public_url`** (`LOTOR_PUBLIC_URL`) ;
 déplacer la clé sous `web:` avant de redémarrer : l'ancienne est ignorée (messages sans
-lien). Les migrations 024 à 027 s'appliquent au démarrage ; l'instance reste privée.
+lien). Les migrations 024 à 028 s'appliquent au démarrage ; l'instance reste privée.
 
 ### Ajouté
 
@@ -26,7 +26,7 @@ lien). Les migrations 024 à 027 s'appliquent au démarrage ; l'instance reste p
 - Page **Administration › Inscription** (mode, envoi de courriels, codes).
 - Courriels en HTML (notifications et inscription) : gabarit commun vérifié dans
   Thunderbird en clair et en sombre, logo joint au message, version texte conservée.
-- Point compatible Dependency-Track (T19, ADR 0057) : les outils configurés pour
+- Point compatible Dependency-Track (T19, ADR 0058) : les outils configurés pour
   Dependency-Track envoient à `https://<serveur>/dt` (`PUT`/`POST /api/v1/bom`, suivi par
   `/api/v1/event/token/{uuid}`), avec le jeton d'un agent dépôt comme clé d'API ; le nom
   du projet désigne un dépôt confié à l'agent, la version une **version** du dépôt
@@ -38,7 +38,7 @@ lien). Les migrations 024 à 027 s'appliquent au démarrage ; l'instance reste p
   en plus de lotor ou à sa place (`only: true`) ; l'agent dépôt envoie le SBOM du commit de
   tête de chaque référence après lotor. Clé d'API en fichier `0600` ou credential systemd
   `dependency-track-api-key`. `make test-dtrack` : recette contre un vrai Dependency-Track 5.
-- Mode hors ligne (T23, ADR 0059, guide `docs/site-isole.md`) : l'agent serveur écrit une
+- Mode hors ligne (T23, ADR 0060, guide `docs/site-isole.md`) : l'agent serveur écrit une
   archive (`.lotor`, SBOM et contexte signés par l'empreinte de son jeton) à chaque
   inventaire changé, en plus de ses envois (`offline.dir`) ou à leur place
   (`offline.only`, sans réseau ; un agent jamais inscrit s'inscrit par sa première
@@ -46,13 +46,13 @@ lien). Les migrations 024 à 027 s'appliquent au démarrage ; l'instance reste p
   **Agents › Importer des archives**, par `POST /api/v1/orgs/{org}/archives` (jeton
   personnel d'un compte qui gère des agents) ou par un répertoire surveillé
   (`offline.watch_dir`) ; une archive importée deux fois ne crée rien.
-- Recherche à une date passée (T21, ADR 0058) : champ **À la date du** de l'écran de
+- Recherche à une date passée (T21, ADR 0059) : champ **À la date du** de l'écran de
   recherche et paramètre `at` de l'API (`AAAA-MM-JJ`, fin de journée UTC, ou RFC 3339).
   Pour chaque référence, l'instantané en vigueur à cette date, projets archivés et
   références retirées compris, avec sa date ; composants seulement (les constats d'alors ne
   sont pas conservés) ; avertissement « résultat partiel » avant l'horizon de la rétention
   (`partial` et `retention_horizon` dans l'API).
-- Licences (T20, ADR 0060) : politique de licences par organisation (page **Licences** :
+- Licences (T20, ADR 0061) : politique de licences par organisation (page **Licences** :
   licences refusées, à revoir, acceptées, règle des licences SPDX non citées, composant sans
   licence à revoir ou non) ; **par défaut, toute licence SPDX connue est acceptée**, une
   licence inconnue ou en texte libre est à revoir. Expressions SPDX évaluées

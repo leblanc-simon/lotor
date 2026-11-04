@@ -570,7 +570,7 @@ paths:
         qu'un envoi réseau. La première archive d'un agent jamais connecté l'inscrit avec le
         jeton qu'il a tiré. Une archive déjà importée renvoie la même réception (200). Exige
         un jeton dont le propriétaire peut gérer des agents (`agent.manage`) ; c'est la seule
-        écriture de l'API utilisateur : elle ne range que ce que l'archive prouve (ADR 0059).
+        écriture de l'API utilisateur : elle ne range que ce que l'archive prouve (ADR 0060).
       security:
         - personalToken: []
       parameters:

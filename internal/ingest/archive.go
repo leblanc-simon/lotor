@@ -14,7 +14,7 @@ import (
 	"leblanc.io/lotor/internal/tenant"
 )
 
-// Importer importe les archives hors ligne (T23, ADR 0059) : lecture bornée, émetteur
+// Importer importe les archives hors ligne (T23, ADR 0060) : lecture bornée, émetteur
 // authentifié par agent.Service.ArchiveSender (code de l'archive, organisation du jeton,
 // inscription hors ligne), puis réception ordinaire (Receive) au nom de l'agent émetteur,
 // avec la date de scan de l'archive : mêmes contrôles qu'un envoi réseau. Une archive

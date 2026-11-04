@@ -794,7 +794,7 @@ l'ingestion décrite ci-dessous (bornes, quotas, file, limitation par jeton, mTL
 mandataire inverse doit transmettre `/dt/` comme `/api/` ; pour l'action GitHub
 `gh-upload-sbom`, qui n'accepte qu'un nom d'hôte, un nom dédié qui préfixe `/dt`.
 Correspondance, refus, migration et sortie des agents vers Dependency-Track :
-[`dependency-track.md`](dependency-track.md) ([ADR 0057](adr/0057-point-compatible-dependency-track.md)).
+[`dependency-track.md`](dependency-track.md) ([ADR 0058](adr/0058-point-compatible-dependency-track.md)).
 
 ## Archives hors ligne
 
@@ -804,7 +804,7 @@ répertoire surveillé `offline.watch_dir` (sondé toutes les `offline.watch_int
 archive est rangée dans `done/` ou dans `failed/` avec un fichier `.error` donnant la clé du
 refus). L'archive s'authentifie elle-même (HMAC de clé l'empreinte du jeton de l'agent) ;
 l'import suit l'ingestion ci-dessous. Procédure complète, refus et retour en ligne :
-[`site-isole.md`](site-isole.md) ([ADR 0059](adr/0059-mode-hors-ligne.md)).
+[`site-isole.md`](site-isole.md) ([ADR 0060](adr/0060-mode-hors-ligne.md)).
 
 ## Ingestion
 
@@ -1055,7 +1055,7 @@ organisation). Les notifications (ADR 0046) partent par le job `notify.send` d'u
 le résumé quotidien par `notify.digest_all` à `notify.digest_hour`. Il faut une instance à
 workers. Format des messages et du webhook : [`notifications.md`](notifications.md).
 
-Les **licences** (ADR 0060) s'évaluent dans la même transaction que l'analyse d'une
+Les **licences** (ADR 0061) s'évaluent dans la même transaction que l'analyse d'une
 référence, juste avant la mise en file de `policy.evaluate_project` ; un changement de
 politique de licences met en file `license.evaluate_org`, qui réévalue toutes les
 références de l'organisation (une transaction par projet). Aucun réglage d'instance : la

@@ -236,7 +236,7 @@ type agentView struct {
 	Error     formError
 	// Host : contexte de l'hôte d'un agent serveur.
 	Host *hostAgentView
-	// DT : point compatible Dependency-Track d'un agent dépôt (ADR 0057).
+	// DT : point compatible Dependency-Track d'un agent dépôt (ADR 0058).
 	DT *agentDTView
 }
 

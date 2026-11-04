@@ -201,7 +201,7 @@ func ParseRefNames(s, field string) ([]string, error) {
 	return out, nil
 }
 
-// MaxVersions borne les versions suivies d'un dépôt (ADR 0057) : chaque envoi d'une
+// MaxVersions borne les versions suivies d'un dépôt (ADR 0058) : chaque envoi d'une
 // nouvelle version par le point compatible Dependency-Track en crée une.
 const MaxVersions = 200
 

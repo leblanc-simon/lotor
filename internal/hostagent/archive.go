@@ -16,7 +16,7 @@ import (
 	"leblanc.io/lotor/internal/offline"
 )
 
-// writeArchive écrit l'inventaire dans une archive hors ligne (T23, ADR 0059) du
+// writeArchive écrit l'inventaire dans une archive hors ligne (T23, ADR 0060) du
 // répertoire offline.dir, s'il a changé depuis la dernière archive écrite (empreinte
 // d'inventaire). L'archive porte le jeton d'agent (identifiant public) et son code ; pour
 // un agent qui a tiré son jeton lui-même, l'inscription hors ligne. Écriture atomique :

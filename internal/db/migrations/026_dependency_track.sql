@@ -1,4 +1,4 @@
--- Point compatible Dependency-Track (T19, ADR 0057).
+-- Point compatible Dependency-Track (T19, ADR 0058).
 --
 -- Une version de projet au sens de Dependency-Track devient une référence suivie de nature
 -- « version » d'un dépôt : sans commit, rangée comme un hôte (un inventaire identique au

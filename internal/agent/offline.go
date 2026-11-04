@@ -15,7 +15,7 @@ import (
 	"leblanc.io/lotor/internal/tenant"
 )
 
-// Clés des refus d'une archive hors ligne (T23, ADR 0059).
+// Clés des refus d'une archive hors ligne (T23, ADR 0060).
 const (
 	KeyArchiveInvalid = "error.archive.invalid"
 	KeyArchiveForeign = "error.archive.foreign"

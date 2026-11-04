@@ -99,7 +99,7 @@ type Agent struct {
 	TeamID   *uuid.UUID
 	TeamName string
 	// DTAutoCreate : l'agent dépôt peut créer projets et versions par le point
-	// compatible Dependency-Track (ADR 0057) ; sans effet sans équipe.
+	// compatible Dependency-Track (ADR 0058) ; sans effet sans équipe.
 	DTAutoCreate bool
 	ProjectCount int
 	ActiveTokens int
