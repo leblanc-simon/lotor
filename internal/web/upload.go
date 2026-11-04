@@ -42,7 +42,7 @@ const (
 // isUpload désigne les requêtes dont uploadGate borne le corps : téléversement d'une
 // archive de la base, import d'un VEX.
 func isUpload(r *http.Request) bool {
-	return r.Method == http.MethodPost && (r.URL.Path == pathVulnDBImport || isVEXImport(r))
+	return r.Method == http.MethodPost && (r.URL.Path == pathVulnDBImport || isVEXImport(r) || isArchiveImport(r))
 }
 
 // isVEXImport désigne l'import d'un VEX (T14) : /o/{slug}/projects/{project}/vex/import
@@ -93,12 +93,19 @@ func (id *identity) uploadGate(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		if v := viewerFrom(r); !v.authenticated() || !v.admin() {
+		limit := id.VulnDB.MaxArchive + uploadOverhead
+		allowed := viewerFrom(r).authenticated() && viewerFrom(r).admin()
+		if isArchiveImport(r) {
+			// Archive hors ligne (T23) : un compte authentifié ; la garde de la route vérifie
+			// ensuite le droit de gérer les agents.
+			limit, allowed = id.Ingest.MaxArchive()+uploadOverhead, viewerFrom(r).authenticated()
+		}
+		if !allowed {
 			r.Body = http.MaxBytesReader(w, r.Body, maxFormBytes)
 			next.ServeHTTP(w, r)
 			return
 		}
-		r.Body = http.MaxBytesReader(w, r.Body, id.VulnDB.MaxArchive+uploadOverhead)
+		r.Body = http.MaxBytesReader(w, r.Body, limit)
 		rc := http.NewResponseController(w)
 		deadline := time.Now().Add(id.VulnDB.UploadTimeout)
 		if err := rc.SetReadDeadline(deadline); err != nil {
@@ -106,6 +113,12 @@ func (id *identity) uploadGate(next http.Handler) http.Handler {
 		}
 		if err := rc.SetWriteDeadline(deadline); err != nil {
 			id.logger.Debug("délai d'écriture du téléversement", "err", err)
+		}
+		// MultipartReader marque la requête comme lue en flux : sur un autre corps, csrfx ne
+		// pourrait plus lire le jeton du formulaire ; on ne l'appelle que pour du multipart.
+		if !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
+			next.ServeHTTP(w, r)
+			return
 		}
 		mr, err := r.MultipartReader()
 		if err != nil {

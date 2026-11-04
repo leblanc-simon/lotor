@@ -41,6 +41,7 @@ type Config struct {
 	Scan                Scan              `yaml:"scan"`
 	Containers          Containers        `yaml:"containers"`
 	DependencyTrack     DependencyTrack   `yaml:"dependency_track"`
+	Offline             Offline           `yaml:"offline"`
 	Resources           Resources         `yaml:"resources"`
 	Logging             appconf.Logging   `yaml:"logging" env-prefix:"LOTOR_HOST_AGENT_"`
 }
@@ -106,6 +107,15 @@ type DependencyTrack struct {
 	Only bool `yaml:"only" env:"LOTOR_HOST_AGENT_DT_ONLY" env-description:"Send to Dependency-Track only, instead of the lotor server (no enrollment, no heartbeat)"`
 }
 
+// Offline règle la sortie « fichier » (T23, ADR 0059) : une archive (SBOM et contexte) par
+// inventaire changé, écrite dans Dir, à transporter jusqu'au serveur et à importer. Only
+// la substitue à l'envoi réseau : ni inscription, ni signal de vie, ni conteneurs ; un
+// agent jamais inscrit tire alors son jeton d'agent et s'inscrit par sa première archive.
+type Offline struct {
+	Dir  string `yaml:"dir"  env:"LOTOR_HOST_AGENT_OFFLINE_DIR"  env-description:"Directory receiving offline archives (SBOM and context); empty: no file output"`
+	Only bool   `yaml:"only" env:"LOTOR_HOST_AGENT_OFFLINE_ONLY" env-description:"Write archives only, without contacting the server (isolated network)"`
+}
+
 // Enabled dit si la sortie vers Dependency-Track est configurée.
 func (d DependencyTrack) Enabled() bool { return d.URL != "" }
 
@@ -150,7 +160,7 @@ func (c Config) Validate() error {
 	if !slices.Contains([]string{ModeDaemon, ModeOneshot}, c.Mode) {
 		fail("mode", "%q invalide (daemon ou oneshot)", c.Mode)
 	}
-	if !c.DependencyTrack.Only {
+	if !c.DependencyTrack.Only && !c.Offline.Only {
 		if u, err := url.Parse(c.Server.URL); err != nil || u.Scheme != "https" || u.Host == "" || u.RawQuery != "" || u.User != nil {
 			fail("server.url", "adresse https://hôte attendue")
 		}
@@ -174,6 +184,19 @@ func (c Config) Validate() error {
 	}
 	if c.Server.ClientKeyFile != "" && c.Server.ClientCertFile == "" {
 		fail("server.client_cert_file", "obligatoire avec server.client_key_file")
+	}
+	if c.Offline.Dir != "" && !filepath.IsAbs(c.Offline.Dir) {
+		fail("offline.dir", "chemin absolu attendu")
+	}
+	if c.Offline.Only {
+		switch {
+		case c.Offline.Dir == "":
+			fail("offline.dir", "obligatoire avec offline.only")
+		case c.DependencyTrack.Only:
+			fail("offline.only", "incompatible avec dependency_track.only")
+		case c.Containers.Enabled:
+			fail("containers.enabled", "sans effet avec offline.only : les conteneurs ne vont qu'au serveur lotor")
+		}
 	}
 	if !filepath.IsAbs(c.StateDir) {
 		fail("state_dir", "chemin absolu attendu")

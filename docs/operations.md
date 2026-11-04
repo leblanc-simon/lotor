@@ -640,6 +640,10 @@ le binaire de l'archive `lotor-host-agent_<version>_linux_<arch>.tar.gz` en
 
 ### Fonctionnement
 
+- **Hors ligne** (`offline.*`, désactivé par défaut) : une archive par inventaire changé
+  dans `offline.dir` (créé en `0700` ; sous le répertoire d'état pour l'unité fournie), en
+  plus des envois, ou seule avec `offline.only` (ni serveur, ni conteneurs ; un agent jamais
+  inscrit tire son jeton et s'inscrit par sa première archive) ([`site-isole.md`](site-isole.md)).
 - **Dependency-Track** (`dependency_track.*`, désactivé par défaut) : le SBOM de l'hôte part
   aussi en CycloneDX 1.6 vers un Dependency-Track quand son inventaire change, ou
   seulement vers lui avec `only: true` (ni inscription, ni signal de vie, ni conteneurs) ;
@@ -791,6 +795,16 @@ mandataire inverse doit transmettre `/dt/` comme `/api/` ; pour l'action GitHub
 `gh-upload-sbom`, qui n'accepte qu'un nom d'hôte, un nom dédié qui préfixe `/dt`.
 Correspondance, refus, migration et sortie des agents vers Dependency-Track :
 [`dependency-track.md`](dependency-track.md) ([ADR 0057](adr/0057-point-compatible-dependency-track.md)).
+
+## Archives hors ligne
+
+Les agents d'un réseau isolé écrivent des archives (`.lotor`) que l'on importe par
+**Agents › Importer des archives**, par `POST /api/v1/orgs/{org}/archives` ou par le
+répertoire surveillé `offline.watch_dir` (sondé toutes les `offline.watch_interval` ; chaque
+archive est rangée dans `done/` ou dans `failed/` avec un fichier `.error` donnant la clé du
+refus). L'archive s'authentifie elle-même (HMAC de clé l'empreinte du jeton de l'agent) ;
+l'import suit l'ingestion ci-dessous. Procédure complète, refus et retour en ligne :
+[`site-isole.md`](site-isole.md) ([ADR 0059](adr/0059-mode-hors-ligne.md)).
 
 ## Ingestion
 
@@ -1279,6 +1293,8 @@ invisible` cache aux autres comptes.
 - `GET /healthz` sur l'écoute du récepteur sert de sonde de vie.
 - Arrêt sur SIGTERM : le récepteur termine ses requêtes (10 s), les clonages en cours
   sont tués et leurs répertoires supprimés ; le travail perdu est rattrapé au démarrage.
+- Archives hors ligne (`offline.dir`, désactivé par défaut) : une archive par SBOM envoyé,
+  en plus de l'envoi ([`site-isole.md`](site-isole.md)).
 - Sortie vers Dependency-Track (`dependency_track.*`, désactivée par défaut) : le SBOM du
   commit de tête de chaque référence part aussi vers un Dependency-Track après lotor ;
   clé `credential:dependency-track-api-key` ([`dependency-track.md`](dependency-track.md)).

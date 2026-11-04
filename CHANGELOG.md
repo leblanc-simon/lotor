@@ -10,7 +10,7 @@ appliquées automatiquement, sans retour arrière.
 
 **Mise à jour** : `notify.public_url` devient **`web.public_url`** (`LOTOR_PUBLIC_URL`) ;
 déplacer la clé sous `web:` avant de redémarrer : l'ancienne est ignorée (messages sans
-lien). Les migrations 024 et 025 s'appliquent au démarrage ; l'instance reste privée.
+lien). Les migrations 024 à 026 s'appliquent au démarrage ; l'instance reste privée.
 
 ### Ajouté
 
@@ -38,6 +38,14 @@ lien). Les migrations 024 et 025 s'appliquent au démarrage ; l'instance reste p
   en plus de lotor ou à sa place (`only: true`) ; l'agent dépôt envoie le SBOM du commit de
   tête de chaque référence après lotor. Clé d'API en fichier `0600` ou credential systemd
   `dependency-track-api-key`. `make test-dtrack` : recette contre un vrai Dependency-Track 5.
+- Mode hors ligne (T23, ADR 0059, guide `docs/site-isole.md`) : l'agent serveur écrit une
+  archive (`.lotor`, SBOM et contexte signés par l'empreinte de son jeton) à chaque
+  inventaire changé, en plus de ses envois (`offline.dir`) ou à leur place
+  (`offline.only`, sans réseau ; un agent jamais inscrit s'inscrit par sa première
+  archive) ; l'agent dépôt peut aussi en écrire une par envoi. Le serveur les importe par
+  **Agents › Importer des archives**, par `POST /api/v1/orgs/{org}/archives` (jeton
+  personnel d'un compte qui gère des agents) ou par un répertoire surveillé
+  (`offline.watch_dir`) ; une archive importée deux fois ne crée rien.
 - Recherche à une date passée (T21, ADR 0058) : champ **À la date du** de l'écran de
   recherche et paramètre `at` de l'API (`AAAA-MM-JJ`, fin de journée UTC, ou RFC 3339).
   Pour chaque référence, l'instantané en vigueur à cette date, projets archivés et

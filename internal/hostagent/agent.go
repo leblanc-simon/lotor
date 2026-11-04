@@ -28,6 +28,8 @@ const (
 	// OutcomeUnchanged : inventaire inchangé depuis le dernier envoi à Dependency-Track
 	// (sortie seule vers Dependency-Track).
 	OutcomeUnchanged Outcome = "unchanged"
+	// OutcomeArchived : inventaire écrit en archive hors ligne (sortie seule hors ligne).
+	OutcomeArchived Outcome = "archived"
 )
 
 // Options réunit les dépendances d'un agent.
@@ -67,8 +69,9 @@ type Agent struct {
 // New construit un agent.
 func New(o Options) (*Agent, error) {
 	only := o.Config.DependencyTrack.Only
-	if (o.Client == nil && !only) || (only && o.DT == nil) || o.Scanner == nil || o.Store == nil || o.Logger == nil ||
-		(len(o.Engines) > 0 && (o.ImageScanner == nil || only)) {
+	noServer := only || o.Config.Offline.Only
+	if (o.Client == nil && !noServer) || (only && o.DT == nil) || o.Scanner == nil || o.Store == nil || o.Logger == nil ||
+		(len(o.Engines) > 0 && (o.ImageScanner == nil || noServer)) {
 		return nil, errors.New("hostagent: dépendances incomplètes")
 	}
 	if o.Now == nil {
@@ -122,6 +125,8 @@ type Result struct {
 	Containers *ContainersResult
 	// DTSent : le SBOM est aussi parti vers Dependency-Track pendant ce cycle.
 	DTSent bool
+	// Archive : chemin de l'archive hors ligne écrite pendant ce cycle.
+	Archive string
 }
 
 // hostname renvoie le nom annoncé, tel que le serveur le range (minuscules).
@@ -195,6 +200,9 @@ func (a *Agent) Cycle(ctx context.Context) (Result, error) {
 	if a.o.Config.DependencyTrack.Only {
 		return a.dtOnlyCycle(ctx)
 	}
+	if a.o.Config.Offline.Only {
+		return a.offlineCycle(ctx)
+	}
 	c, err := a.authenticated(ctx)
 	if err != nil {
 		return Result{}, err
@@ -236,6 +244,7 @@ func (a *Agent) Cycle(ctx context.Context) (Result, error) {
 				return res, err
 			}
 			a.alsoDT(ctx, inv, &res)
+			a.alsoArchive(ctx, inv, &res)
 			return a.withContainers(ctx, c, res), nil
 		}
 		a.o.Logger.InfoContext(ctx, "inventaire inchangé mais inconnu du serveur : envoi du SBOM")
@@ -250,6 +259,7 @@ func (a *Agent) Cycle(ctx context.Context) (Result, error) {
 		return res, err
 	}
 	a.alsoDT(ctx, inv, &res)
+	a.alsoArchive(ctx, inv, &res)
 	return a.withContainers(ctx, c, res), nil
 }
 
@@ -392,7 +402,7 @@ func (a *Agent) Run(ctx context.Context) error {
 		if err := a.o.Sleep(ctx, wait); err != nil {
 			return nil
 		}
-		if a.o.Now().Before(next) && !a.o.Config.DependencyTrack.Only {
+		if a.o.Now().Before(next) && !a.o.Config.DependencyTrack.Only && !a.o.Config.Offline.Only {
 			var err error
 			if requested, err = a.Heartbeat(ctx); err != nil && ctx.Err() == nil {
 				a.o.Logger.WarnContext(ctx, "signal de vie en échec", "err", err.Error())

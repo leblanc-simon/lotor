@@ -47,6 +47,12 @@ type State struct {
 	DTFingerprint string    `json:"dt_fingerprint,omitempty"`
 	DTTarget      string    `json:"dt_target,omitempty"`
 	DTLastSent    time.Time `json:"dt_last_sent,omitzero"`
+	// ArchiveFingerprint est l'empreinte du dernier inventaire écrit en archive hors
+	// ligne ; OfflineEnrollment, un jeton d'agent tiré par l'agent lui-même, que le serveur
+	// apprend par l'inscription portée par chaque archive (T23).
+	ArchiveFingerprint string    `json:"archive_fingerprint,omitempty"`
+	LastArchive        time.Time `json:"last_archive,omitzero"`
+	OfflineEnrollment  bool      `json:"offline_enrollment,omitempty"`
 }
 
 // fingerprint renvoie l'empreinte retenue, si elle est lisible.

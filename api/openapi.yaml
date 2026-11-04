@@ -558,6 +558,57 @@ paths:
           $ref: "#/components/responses/Problem"
         "429":
           $ref: "#/components/responses/Problem"
+  /orgs/{org}/archives:
+    post:
+      operationId: importArchive
+      tags: [user]
+      summary: Import d'une archive hors ligne
+      description: |
+        Importe une archive (`.lotor`) écrite par un agent d'un réseau isolé (T23) : elle est
+        rangée comme un envoi de l'agent émetteur, que son code authentifie (HMAC du
+        manifeste, de clé l'empreinte du secret du jeton de l'agent), avec les mêmes contrôles
+        qu'un envoi réseau. La première archive d'un agent jamais connecté l'inscrit avec le
+        jeton qu'il a tiré. Une archive déjà importée renvoie la même réception (200). Exige
+        un jeton dont le propriétaire peut gérer des agents (`agent.manage`) ; c'est la seule
+        écriture de l'API utilisateur : elle ne range que ce que l'archive prouve (ADR 0059).
+      security:
+        - personalToken: []
+      parameters:
+        - $ref: "#/components/parameters/Org"
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "201":
+          description: Archive importée.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArchiveImport"
+        "200":
+          description: Archive déjà importée.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArchiveImport"
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "413":
+          $ref: "#/components/responses/Problem"
+        "422":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
   /orgs/{org}/projects/{project}/vex:
     get:
       operationId: exportProjectVEX
@@ -1498,6 +1549,28 @@ components:
           type: array
           items:
             type: object
+    ArchiveImport:
+      type: object
+      required: [ingestion_id, status, project_id, agent, duplicate, enrolled]
+      properties:
+        ingestion_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          description: "État de la réception : queued, processing, done ou failed (décodage asynchrone, comme un envoi réseau)."
+        project_id:
+          type: string
+          format: uuid
+        agent:
+          type: string
+          description: Nom de l'agent émetteur.
+        duplicate:
+          type: boolean
+          description: Archive déjà importée ; la réception est celle du premier import.
+        enrolled:
+          type: boolean
+          description: L'archive a inscrit l'agent (inscription hors ligne).
     SnapshotPage:
       type: object
       required: [snapshots, page]

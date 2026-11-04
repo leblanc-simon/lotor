@@ -225,6 +225,13 @@ containers:
   purge_after: 4320h          # 180 jours
   max_per_host: 1000          # projets de conteneurs (actifs ou archivés) par hôte ; au-delà, signalement refusé
 
+# Archives hors ligne (T23, docs/site-isole.md, ADR 0059) : les archives (*.lotor)
+# déposées dans watch_dir sont importées au nom de leur agent, puis rangées dans done/ ou
+# failed/ (avec un fichier .error). Vide : seulement l'import par l'interface et l'API.
+offline:
+  watch_dir: ""               # LOTOR_OFFLINE_WATCH_DIR, chemin absolu (0700 conseillé)
+  watch_interval: 1m
+
 # Notifications des politiques (T15, docs/notifications.md, ADR 0046). Les canaux sont
 # créés par organisation dans l'interface ; leurs secrets sont chiffrés par secrets.keys.
 notify:

@@ -38,6 +38,15 @@ type Config struct {
 	SMTP       SMTP            `yaml:"smtp"       env-prefix:"LOTOR_"`
 	Containers Containers      `yaml:"containers" env-prefix:"LOTOR_"`
 	Signup     Signup          `yaml:"signup"     env-prefix:"LOTOR_"`
+	Offline    Offline         `yaml:"offline"    env-prefix:"LOTOR_"`
+}
+
+// Offline règle l'import des archives hors ligne par un répertoire surveillé (T23, ADR
+// 0059) : chaque archive déposée (*.lotor) est importée au nom de son agent, puis rangée
+// dans done/ ou failed/ (avec un fichier .error qui donne la clé du refus).
+type Offline struct {
+	WatchDir      string        `yaml:"watch_dir"      env:"OFFLINE_WATCH_DIR"      env-description:"Directory watched for offline archives (*.lotor) to import; empty: no watched directory"`
+	WatchInterval time.Duration `yaml:"watch_interval" env:"OFFLINE_WATCH_INTERVAL" env-default:"1m" env-description:"Time between two scans of the watched directory"`
 }
 
 // Web complète le fragment d'appconf de l'URL publique du serveur (T28) : liens des

@@ -65,7 +65,7 @@ sur les choix techniques ; une fiche de lot précise le quoi et le comment d'une
 | [T20](lots/T20-licences.md) | Licences avec Grant | 3 | T18 | À faire |
 | [T21](lots/T21-recherche-historique.md) | Recherche à une date passée | 3 | T18 | Terminé |
 | [T22](lots/T22-agent-windows.md) | Agent serveur Windows | 3 | T18 | À faire |
-| [T23](lots/T23-hors-ligne.md) | Mode hors ligne | 3 | T18 | À faire |
+| [T23](lots/T23-hors-ligne.md) | Mode hors ligne | 3 | T18 | Terminé |
 | [T24](lots/T24-sbom-signes.md) | SBOM signés | 3 | T19, T23 | À faire |
 | [T25](lots/T25-sso-oidc.md) | SSO OIDC | 3 | T18 | À faire |
 | [T27](lots/T27-paquet-serveur.md) | Paquet deb du serveur | 3 | T18 | Terminé |

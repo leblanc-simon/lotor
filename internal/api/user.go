@@ -15,10 +15,12 @@ import (
 	"leblanc.io/open-go-base/ratelimit"
 
 	"leblanc.io/lotor/internal/account"
+	"leblanc.io/lotor/internal/agent"
 	"leblanc.io/lotor/internal/api/gen/userapi"
 	"leblanc.io/lotor/internal/api/problem"
 	"leblanc.io/lotor/internal/db"
 	"leblanc.io/lotor/internal/finding"
+	"leblanc.io/lotor/internal/ingest"
 	"leblanc.io/lotor/internal/inventory"
 	"leblanc.io/lotor/internal/locale"
 	"leblanc.io/lotor/internal/org"
@@ -44,9 +46,13 @@ type UserOptions struct {
 	History   *inventory.History
 	Findings  *finding.Service
 	Triage    *triage.Service
-	Version   string
-	Catalog   *locale.Catalog
-	Logger    *slog.Logger
+	// Agents et Ingest servent l'import des archives hors ligne (T23) ; sans eux, la route
+	// n'est pas montée.
+	Agents  *agent.Service
+	Ingest  *ingest.Service
+	Version string
+	Catalog *locale.Catalog
+	Logger  *slog.Logger
 	// RateLimit borne les requêtes par minute et par jeton personnel (0 : sans limite).
 	RateLimit int
 	// FailureRateLimit borne les jetons refusés par minute et par IP (0 : sans limite).
@@ -94,6 +100,9 @@ func MountUser(r chi.Router, o UserOptions) error {
 		r.Get("/projects/{project}/vex", gen.ExportProjectVEX)
 		r.Get("/projects/{project}/snapshots", gen.ListProjectSnapshots)
 		r.Get("/projects/{project}/compare", gen.CompareSnapshots)
+		if o.Agents != nil && o.Ingest != nil {
+			r.Post("/archives", gen.ImportArchive)
+		}
 	})
 	return nil
 }

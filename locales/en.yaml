@@ -652,6 +652,22 @@ admin_org:
   unarchive: Reactivate
 
 error:
+  archive:
+    invalid:
+      title: Unreadable archive
+      text: "The file is not a readable lotor offline archive (format, entries, SBOM hash or size)."
+    foreign:
+      title: Archive of another organisation
+      text: The agent that wrote this archive does not belong to this organisation.
+    unknown_agent:
+      title: Unknown agent
+      text: "The token of the agent that wrote this archive is unknown, and the archive carries no enrollment: enroll the agent, or give it an enrollment token of this organisation."
+    forged:
+      title: Archive not authentic
+      text: "The archive code does not match the agent token: it was modified, or does not come from this agent."
+    project:
+      title: Project not found
+      text: "The archive designates no project entrusted to this agent."
   dt:
     agent_kind:
       title: API key of a host agent
@@ -1058,6 +1074,22 @@ agents:
   expiry_none: No expiry
   col_team: "Team"
   org_wide: "Organization (all teams)"
+
+archive_import:
+  title: Import archives
+  heading: Import offline archives
+  link: Import archives
+  lead: "An archive (.lotor) written by an agent of an isolated network, carried here, is stored as an upload of that agent: its code proves it comes from it. The first archive of a never-connected agent enrolls it."
+  form_title: Archive
+  file: Archive file (.lotor)
+  file_hint: "One archive per upload; the same archive imported twice creates a single reception. For many archives, the operator can configure a watched directory."
+  submit: Import
+  missing: Choose an archive file.
+  done_title: Archive imported
+  duplicate_title: Archive already imported
+  done_text: "Upload of agent {{.Agent}}: {{.Status}}."
+  enrolled: The archive enrolled the agent.
+  snapshots: "See the snapshots of {{.Project}}"
 
 agent:
   dt_title: Dependency-Track endpoint

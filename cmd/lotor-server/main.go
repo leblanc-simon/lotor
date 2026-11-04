@@ -260,6 +260,8 @@ func run(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
 			History:          history,
 			Findings:         findings,
 			Triage:           triager,
+			Agents:           agents,
+			Ingest:           ingester,
 			Version:          version,
 			RateLimit:        cfg.UserAPI.RateLimit,
 			FailureRateLimit: cfg.UserAPI.FailureRateLimit,
@@ -355,6 +357,14 @@ func run(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
 			return err
 		}
 		services = append(services, runner.Run, scheduler.Run, vulndb.Run)
+	}
+	if dir := cfg.Offline.WatchDir; dir != "" {
+		// Répertoire surveillé des archives hors ligne (T23) : l'import ne fait que ranger
+		// une ingestion ; son décodage passe par la file, comme un envoi réseau.
+		watcher := &ingest.Watcher{Importer: &ingest.Importer{Ingest: ingester, Agents: agents, Logger: logger},
+			Dir: dir, Interval: cfg.Offline.WatchInterval}
+		services = append(services, watcher.Run)
+		logger.Info("répertoire d'archives surveillé", "dir", dir, "interval", cfg.Offline.WatchInterval.String())
 	}
 	return runAll(ctx, services...)
 }

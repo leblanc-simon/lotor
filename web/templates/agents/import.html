@@ -1,0 +1,39 @@
+{{define "content" -}}
+<div class="stack stack--lg">
+  <div class="page-head">
+    <nav class="breadcrumb" aria-label="{{T "common.breadcrumb"}}">
+      <ol>
+        <li><a href="{{.Base}}/agents">{{T "nav.agents"}}</a></li>
+        <li><span aria-current="page">{{T "archive_import.heading"}}</span></li>
+      </ol>
+    </nav>
+    <div class="page-head__row">
+      <h1 class="page-head__title">{{T "archive_import.heading"}}</h1>
+    </div>
+    <p class="page-head__lead">{{T "archive_import.lead"}}</p>
+  </div>
+  {{template "form_error" .Error}}
+  {{- with .Result}}
+  <div class="callout callout--success" role="status">
+    <div class="callout__body">
+      <p class="callout__title">{{if .Duplicate}}{{T "archive_import.duplicate_title"}}{{else}}{{T "archive_import.done_title"}}{{end}}</p>
+      <p class="callout__text">{{T "archive_import.done_text" "Agent" .AgentName "Status" (T .StatusKey)}}{{if .Enrolled}} {{T "archive_import.enrolled"}}{{end}}</p>
+      {{- if .Snapshots}}<p class="callout__text"><a href="{{.Snapshots}}">{{T "archive_import.snapshots" "Project" .ProjectRef}}</a></p>{{end}}
+    </div>
+  </div>
+  {{- end}}
+  <section class="panel" aria-labelledby="archive-form">
+    <div class="panel__head"><h2 class="panel__title" id="archive-form">{{T "archive_import.form_title"}}</h2></div>
+    {{- /* Le jeton CSRF doit précéder le fichier : le serveur le lit avant le fichier, en flux. */}}
+    <form class="panel__body stack" method="post" action="{{.Base}}/agents/import" enctype="multipart/form-data">
+      {{csrfField .Page.CSRFToken}}
+      <div class="field">
+        <label class="field__label" for="archive-file">{{T "archive_import.file"}}</label>
+        <input class="input input--file" id="archive-file" name="archive" type="file" accept=".lotor" required aria-describedby="archive-file-hint"{{if eq .Error.Field "archive"}} aria-invalid="true"{{end}}>
+        <p class="field__hint" id="archive-file-hint">{{T "archive_import.file_hint"}}</p>
+      </div>
+      <p><button type="submit" class="btn btn--primary">{{T "archive_import.submit"}}</button></p>
+    </form>
+  </section>
+</div>
+{{- end}}

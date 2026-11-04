@@ -1062,3 +1062,24 @@ les pièges découverts, pour ne pas les reproduire. Une entrée = le constat, p
 - **Texte de contrôle d'un écran** : « Critique » figure aussi dans les filtres de la
   page ; un test qui vérifie l'absence des vulnérabilités doit chercher un texte propre aux
   colonnes masquées (« Corrigée en »), pas un libellé présent ailleurs.
+
+## Mode hors ligne (T23)
+
+- **`MultipartReader` marque la requête** : appelé sur un corps qui n'est pas multipart, il
+  échoue mais pose `r.MultipartForm` à sa sentinelle ; `PostFormValue` (donc csrfx) ne lit
+  plus rien et la requête part en 403. Règle : vérifier le `Content-Type` avant d'appeler
+  `MultipartReader` dans un middleware ; le harnais des droits par route (formulaires
+  ordinaires) l'a montré.
+- **Fichier nommé à la seconde** : deux archives écrites dans la même seconde
+  s'écrasaient. Règle : tout nom de fichier horodaté porte aussi un discriminant du
+  contenu (empreinte).
+- **Répertoire de sortie configuré** : les tests créaient le répertoire, le vrai agent non.
+  Règle : un agent crée lui-même (`0700`) tout répertoire qu'il écrit, et un test part d'un
+  répertoire absent.
+- **Paquet d'un domaine sans `net/http`** : `ingest` ne peut pas tester
+  `*http.MaxBytesError` (règle d'architecture) ; la couche web traduit la borne du corps en
+  `ingest.ErrUploadTooLarge` par un lecteur enveloppe, et les erreurs de lecture sont
+  enveloppées par `%w` jusqu'au domaine.
+- **Utilisateur d'un paquet** : l'agent serveur tourne sous `lotor-agent` (sysusers), pas
+  sous le nom du paquet ; le lire dans `deploy/host-agent/sysusers.conf` avant de scripter
+  une recette.

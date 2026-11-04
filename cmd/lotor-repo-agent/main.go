@@ -63,13 +63,19 @@ func run(ctx context.Context, cfg repoagent.Config, log *slog.Logger) error {
 	if err != nil {
 		return err
 	}
+	var archives *repoagent.ArchiveWriter
+	if cfg.Offline.Dir != "" {
+		if archives, err = repoagent.NewArchiveWriter(cfg.Offline.Dir, string(token)); err != nil {
+			return err
+		}
+	}
 	local, external, err := cfg.AI.Models()
 	if err != nil {
 		return err
 	}
 	agent, err := repoagent.New(repoagent.Options{
 		Server: server, Forges: forges, Logger: log, Version: version, Work: cfg.Work, Catchup: cfg.Catchup, Status: cfg.Status,
-		AI: cfg.AI, LocalModel: local, ExternalModel: external, DT: dt, DTConfig: cfg.DependencyTrack,
+		AI: cfg.AI, LocalModel: local, ExternalModel: external, DT: dt, DTConfig: cfg.DependencyTrack, Archive: archives,
 	})
 	if err != nil {
 		return err

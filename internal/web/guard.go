@@ -130,6 +130,8 @@ func orgRoutes(id *identity) []orgRoute {
 		{get, "/agents/{agentID}/disable", tenant.PermAgentManage, targetAgent, id.confirmDisableAgent},
 		{post, "/agents/{agentID}/disable", tenant.PermAgentManage, targetAgent, id.disableAgent},
 		{post, "/agents/{agentID}/dt-auto-create", tenant.PermAgentManage, targetAgent, id.setAgentDTAutoCreate},
+		{get, "/agents/import", tenant.PermAgentManage, targetAnyTeam, id.archiveImportPage},
+		{post, "/agents/import", tenant.PermAgentManage, targetAnyTeam, id.importArchive},
 		{get, "/enrollment-tokens/new", tenant.PermAgentManage, targetAnyTeam, id.newEnrollment},
 		{post, "/enrollment-tokens", tenant.PermAgentManage, targetAnyTeam, id.createEnrollment},
 		{get, "/enrollment-tokens/{tokenID}/revoke", tenant.PermAgentManage, targetEnrollment, id.confirmRevokeEnrollment},

@@ -39,7 +39,7 @@ var anchoreImporters = map[string][]string{
 var domainPackages = []string{
 	"internal/account", "internal/agent", "internal/audit", "internal/benchdata", "internal/dashboard",
 	"internal/db", "internal/finding", "internal/ingest", "internal/inventory",
-	"internal/jobs", "internal/license", "internal/locale", "internal/mailer", "internal/notify", "internal/org",
+	"internal/jobs", "internal/license", "internal/locale", "internal/mailer", "internal/notify", "internal/offline", "internal/org",
 	"internal/pagination", "internal/policy", "internal/project", "internal/sbom", "internal/search",
 	"internal/secret", "internal/signup", "internal/team", "internal/tenant", "internal/token", "internal/triage",
 	"internal/version", "internal/vuln",

@@ -29,7 +29,7 @@ import (
 
 // dtRequest envoie une requête au point compatible Dependency-Track, clé d'API dans
 // X-Api-Key comme les clients de Dependency-Track.
-func (a *app) dtRequest(method, path, key, contentType string, body []byte) apiResponse {
+func (a *app) dtRequest(method, path, key, contentType string, body []byte, headers ...string) apiResponse {
 	a.t.Helper()
 	req, err := http.NewRequest(method, a.srv.URL+path, bytes.NewReader(body))
 	if err != nil {
@@ -40,6 +40,9 @@ func (a *app) dtRequest(method, path, key, contentType string, body []byte) apiR
 	}
 	if key != "" {
 		req.Header.Set("X-Api-Key", key)
+	}
+	for i := 0; i+1 < len(headers); i += 2 {
+		req.Header.Set(headers[i], headers[i+1])
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {

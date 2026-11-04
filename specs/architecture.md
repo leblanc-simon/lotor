@@ -68,7 +68,8 @@ internal/
   sbom/                  # modèle interne, normalisation purl, empreinte d'inventaire
     syft/                # décodage et encodage via Syft
   inventory/             # composants, ensembles d'inventaire, instantanés, différences, rétention
-  ingest/                # réception, stockage brut, pipeline de décodage
+  ingest/                # réception, stockage brut, pipeline de décodage, import des archives hors ligne
+  offline/               # format des archives hors ligne (T23), sans dépendance : agents et serveur
   version/               # comparaison de versions par écosystème, analyse de `vers`
     grypeversion/        # adaptateur vers les comparateurs de Grype
   vuln/                  # base de vulnérabilités, catalogue, interface Matcher
@@ -535,7 +536,13 @@ grandes tables par `org_id` donnerait la même séparation physique en gardant l
    un inventaire identique au courant met seulement à jour la date de dernière analyse. L'instantané courant est le plus récent par date de scan.
 4. Si l'ensemble courant de la référence a changé, job `analysis.ref` (charge
    `{"ref_id"}`, clé `ref:<id>`, priorité haute) mis en file dans la même transaction.
-5. `GET /api/v1/agent/ingestions/{id}` expose le statut (`queued`, `processing`, `done`,
+5. Archives hors ligne (T23, ADR 0059, `internal/offline`, `ingest.Importer`) : un tar
+   manifeste, codes et SBOM, authentifié par un HMAC de clé l'empreinte du jeton de
+   l'agent ; importé par l'écran, `POST /api/v1/orgs/{org}/archives` ou `offline.watch_dir`,
+   puis `Authorize` et `Receive` au nom de l'agent ; dédoublonné par l'empreinte du
+   manifeste (`ingestions.archive_sha256`). La première archive d'un agent serveur jamais
+   connecté l'inscrit avec le jeton qu'il a tiré.
+6. `GET /api/v1/agent/ingestions/{id}` expose le statut (`queued`, `processing`, `done`,
    `failed` + clé d'erreur traduisible) et l'instantané produit.
 
 Formats acceptés : CycloneDX JSON 1.5 à 1.7, SPDX JSON 2.3, Syft JSON. Pas de XML.
@@ -826,7 +833,7 @@ qu'aucune mesure ne la justifie (ADR 0015).
   et confirmées par le serveur. Sortie vers Dependency-Track (T19, ADR 0057) : SBOM réencodé
   en CycloneDX 1.6 et envoyé quand l'empreinte diffère du dernier envoi accepté, en plus de
   lotor ou à sa place (`dependency_track.only`). Suite : T22 (Windows, containerd), T23
-  (hors ligne).
+  (hors ligne, fait : ADR 0059, `offline.dir` et `offline.only`, inscription par archive).
 - `lotor-repo-agent` : service externe qui détient seul les secrets des forges. Il reçoit les
   webhooks, clone, analyse, envoie, puis attend le verdict du serveur pour publier le statut
   de commit (T15, ADR 0047 : attente bornée par `status.timeout`, statut « en attente »

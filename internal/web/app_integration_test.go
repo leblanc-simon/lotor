@@ -223,7 +223,7 @@ func newApp(t *testing.T, opts ...appOption) *app {
 		AgentAPI: &apiv1.AgentOptions{Agents: a.agents, Ingest: a.ingest, Verdicts: a.policies},
 		UserAPI: &apiv1.UserOptions{Pool: tdb.App, Accounts: a.accounts, Orgs: a.orgs, Search: a.search,
 			Exports: search.NewExportLimiter(2, time.Minute), Projects: a.projects, Inventory: a.inv, History: a.history,
-			Findings: finding.NewService(tdb.App), Triage: a.triage, Version: "test"},
+			Findings: finding.NewService(tdb.App), Triage: a.triage, Agents: a.agents, Ingest: a.ingest, Version: "test"},
 	}
 	if o.Identity.Signup, err = signup.NewService(signup.Options{Pool: tdb.App, Accounts: a.accounts, Secrets: box,
 		Mode: signup.Private}); err != nil {

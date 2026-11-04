@@ -51,7 +51,7 @@ func run() error {
 	defer stop()
 
 	var client *agentclient.Client
-	if !cfg.DependencyTrack.Only {
+	if !cfg.DependencyTrack.Only && !cfg.Offline.Only {
 		if client, err = hostagent.NewClient(cfg, version, logger); err != nil {
 			return err
 		}

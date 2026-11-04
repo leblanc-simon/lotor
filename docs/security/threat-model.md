@@ -143,6 +143,8 @@ dans les Journaux de T11 et de T18 (ADR 0051).
 | Injection SQL | requêtes paramétrées uniquement (ADR 0004) | tous |
 | Saturation de l'API par un hôte | limitation par jeton (`agent_api.rate_limit`), sans gêner les autres hôtes de la même IP | T04 |
 | Point compatible Dependency-Track (`/dt`) comme contournement | mêmes middlewares que l'API des agents (limiteurs, refus uniformes, mTLS), jeton d'agent dépôt seul (agent serveur refusé), envoi passé par `ingest.Authorize` et `ingest.Receive` ; corps borné (SBOM admis × 4/3 en JSON base64) ; jeton de suivi d'un autre agent répondu comme inconnu (ADR 0057) | T19 |
+| Archive hors ligne forgée, modifiée ou d'une autre organisation (T23) | HMAC-SHA256 du manifeste (qui couvre le SBOM par son empreinte), de clé l'empreinte du secret du jeton de l'agent, vérifié en temps constant ; organisation du jeton égale à celle de l'import ; jeton actif ; puis mêmes contrôles qu'un envoi réseau ; lecture bornée et entrées dans l'ordre ; import réservé à qui gère des agents (écran, API) ; répertoire surveillé réservé à l'exploitant (ADR 0059) | T23 |
+| Inscription d'un faux hôte par archive | bloc d'inscription signé par l'empreinte du jeton d'inscription (même jeton, mêmes bornes de durée et d'utilisations qu'en ligne) ; jeton d'agent proposé refusé s'il existe déjà ; rejeu d'une archive dédoublonné par l'empreinte de son manifeste | T23 |
 | Agent dépôt compromis qui crée des projets à volonté (`autoCreate`) | création refusée par défaut, autorisée par agent par qui gère les agents, seulement pour un agent d'équipe (projet dans son équipe), auditée ; 200 versions actives au plus par dépôt ; verrou par agent contre les doublons simultanés | T19 |
 
 ### Serveur — recherche et API utilisateur

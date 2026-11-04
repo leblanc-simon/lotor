@@ -602,6 +602,24 @@ func (s *Service) Get(ctx context.Context, org tenant.OrgID, vis tenant.Visibili
 	return p, wrap("lecture d'un projet", err)
 }
 
+// GetByID renvoie un projet visible par son identifiant ; ErrNotFound comme Get.
+func (s *Service) GetByID(ctx context.Context, org tenant.OrgID, vis tenant.Visibility, id uuid.UUID) (Project, error) {
+	var p Project
+	err := s.pool.InOrg(ctx, org, func(tx *db.OrgTx) error {
+		var slug string
+		err := tx.QueryRowContext(ctx, `SELECT slug FROM projects WHERE id = $1 AND lotor_team_visible(team_id)`, id).Scan(&slug)
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		if err != nil {
+			return err
+		}
+		p, err = load(ctx, tx, slug, false, true)
+		return err
+	}, db.ReadOnly(), db.Visible(vis))
+	return p, wrap("lecture d'un projet", err)
+}
+
 // Update modifie un projet : nom, description, étiquettes, et selon sa nature URL de
 // forge et références, ou référence d'hôte. Nature et slug ne changent pas.
 //

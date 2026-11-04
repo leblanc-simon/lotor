@@ -251,6 +251,15 @@ func (s *Service) Enroll(ctx context.Context, p Principal, req EnrollRequest, ip
 	if p.Kind != KindEnrollment {
 		return Enrollment{}, errInvalid
 	}
+	actor := audit.Actor{Email: DisplayPrefix(KindEnrollment, p.PublicID), IP: ip, RequestID: requestID}
+	return s.enroll(ctx, p.Org, p.PublicID, func(r enrollmentRow) error { return r.check(p.hash, s.Now()) }, req, nil, actor)
+}
+
+// enroll inscrit un agent serveur avec le jeton d'inscription publicID, vérifié par
+// verify sous verrou. proposed, s'il n'est pas nul, est le jeton d'agent que l'agent a tiré
+// lui-même (inscription hors ligne, T23) ; sinon un jeton est tiré ici.
+func (s *Service) enroll(ctx context.Context, org tenant.OrgID, publicID string, verify func(enrollmentRow) error,
+	req EnrollRequest, proposed *ProposedToken, actor audit.Actor) (Enrollment, error) {
 	host, err := project.NormalizeHostRef(req.Hostname)
 	if err != nil {
 		return Enrollment{}, err
@@ -261,14 +270,13 @@ func (s *Service) Enroll(ctx context.Context, p Principal, req EnrollRequest, ip
 	if _, err := mergeLabels(nil, req.Labels); err != nil {
 		return Enrollment{}, err
 	}
-	actor := audit.Actor{Email: DisplayPrefix(KindEnrollment, p.PublicID), IP: ip, RequestID: requestID}
 	var out Enrollment
-	err = s.pool.InOrg(ctx, p.Org, func(tx *db.OrgTx) error {
-		id, r, err := readEnrollment(ctx, tx, p.PublicID, true)
+	err = s.pool.InOrg(ctx, org, func(tx *db.OrgTx) error {
+		id, r, err := readEnrollment(ctx, tx, publicID, true)
 		if err != nil {
 			return err
 		}
-		if err := r.check(p.hash, s.Now()); err != nil {
+		if err := verify(r); err != nil {
 			return err
 		}
 		if r.labels, err = mergeLabels(r.labels, req.Labels); err != nil {
@@ -294,7 +302,12 @@ func (s *Service) Enroll(ctx context.Context, p Principal, req EnrollRequest, ip
 			out.Agent.TeamID = &out.Project.TeamID
 		}
 		var t Token
-		if t, out.Token, err = insertToken(ctx, tx, out.Agent.ID, r.name, nil, 0); err != nil {
+		if proposed != nil {
+			t, err = insertProposedToken(ctx, tx, out.Agent.ID, r.name, *proposed)
+		} else {
+			t, out.Token, err = insertToken(ctx, tx, out.Agent.ID, r.name, nil, 0)
+		}
+		if err != nil {
 			return err
 		}
 		if _, err := tx.ExecContext(ctx, `UPDATE enrollment_tokens SET uses = uses + 1, last_used_at = $2 WHERE id = $1`, id, now); err != nil {

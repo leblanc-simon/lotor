@@ -186,6 +186,12 @@ T21 terminé : recherche à une date passée (`search.Filters.At`, paramètre `a
 instantané en vigueur par référence (fin de journée UTC, `snapshots_ref_idx`), projets
 archivés et références retirées compris, composants seulement, `Result.Partial` avant
 l'horizon de la rétention ; `benchdata.AddHistory`, `TestSearchAtBenchmark`.
+T23 terminé : mode hors ligne (ADR 0059, `docs/site-isole.md`). Format `internal/offline`
+(tar manifeste, codes HMAC de clé l'empreinte du jeton, SBOM), agent serveur `offline.dir`
+et `offline.only` (inscription par la première archive, jeton tiré par l'agent), agent
+dépôt `offline.dir`, import `ingest.Importer` par Agents › Importer des archives,
+`POST /api/v1/orgs/{org}/archives` et `offline.watch_dir`, dédoublonnage
+`ingestions.archive_sha256` (migration 026).
 
 ## Règles de travail
 

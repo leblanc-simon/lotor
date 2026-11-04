@@ -668,6 +668,23 @@ func (e ExportSearchParamsTriage) Valid() bool {
 	}
 }
 
+// ArchiveImport defines model for ArchiveImport.
+type ArchiveImport struct {
+	// Agent Nom de l'agent émetteur.
+	Agent string `json:"agent"`
+
+	// Duplicate Archive déjà importée ; la réception est celle du premier import.
+	Duplicate bool `json:"duplicate"`
+
+	// Enrolled L'archive a inscrit l'agent (inscription hors ligne).
+	Enrolled    bool               `json:"enrolled"`
+	IngestionId openapi_types.UUID `json:"ingestion_id"`
+	ProjectId   openapi_types.UUID `json:"project_id"`
+
+	// Status État de la réception : queued, processing, done ou failed (décodage asynchrone, comme un envoi réseau).
+	Status string `json:"status"`
+}
+
 // ChangeCounts defines model for ChangeCounts.
 type ChangeCounts struct {
 	Added      int `json:"added"`
@@ -1208,6 +1225,9 @@ type ExportSearchParamsTriage string
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// ImportArchive Import d'une archive hors ligne
+	// (POST /orgs/{org}/archives)
+	ImportArchive(w http.ResponseWriter, r *http.Request, org Org)
 	// CompareSnapshots Comparaison de deux instantanés d'un projet
 	// (GET /orgs/{org}/projects/{project}/compare)
 	CompareSnapshots(w http.ResponseWriter, r *http.Request, org Org, project Project, params CompareSnapshotsParams)
@@ -1228,6 +1248,12 @@ type ServerInterface interface {
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
 
 type Unimplemented struct{}
+
+// ImportArchive Import d'une archive hors ligne
+// (POST /orgs/{org}/archives)
+func (_ Unimplemented) ImportArchive(w http.ResponseWriter, r *http.Request, org Org) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
 
 // CompareSnapshots Comparaison de deux instantanés d'un projet
 // (GET /orgs/{org}/projects/{project}/compare)
@@ -1267,6 +1293,32 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// ImportArchive operation middleware
+func (siw *ServerInterfaceWrapper) ImportArchive(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "org" -------------
+	var org Org
+
+	err = runtime.BindStyledParameterWithOptions("simple", "org", chi.URLParam(r, "org"), &org, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "org", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ImportArchive(w, r, org)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // CompareSnapshots operation middleware
 func (siw *ServerInterfaceWrapper) CompareSnapshots(w http.ResponseWriter, r *http.Request) {
@@ -2019,6 +2071,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/orgs/{org}/projects/{project}/compare", wrapper.CompareSnapshots)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/orgs/{org}/archives", wrapper.ImportArchive)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/orgs/{org}/projects/{project}/vex", wrapper.ExportProjectVEX)

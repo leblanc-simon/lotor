@@ -35,6 +35,8 @@ type Config struct {
 	Status  StatusConfig    `yaml:"status"  env-prefix:"LOTOR_REPO_"`
 	// DependencyTrack : sortie supplémentaire vers Dependency-Track (T19, ADR 0057).
 	DependencyTrack DTConfig `yaml:"dependency_track" env-prefix:"LOTOR_REPO_"`
+	// Offline : archive hors ligne de chaque envoi, en plus de l'envoi réseau (T23).
+	Offline OfflineConfig `yaml:"offline" env-prefix:"LOTOR_REPO_"`
 	// Forges ne se déclarent que dans le fichier de configuration.
 	Forges []Forge `yaml:"forges"`
 }
@@ -118,6 +120,12 @@ type ExternalAIConfig struct {
 	BaseURL    string        `yaml:"base_url"     env:"AI_EXTERNAL_BASE_URL"     env-default:"https://api.anthropic.com" env-description:"API URL of the external provider"`
 	Timeout    time.Duration `yaml:"timeout"      env:"AI_EXTERNAL_TIMEOUT"      env-default:"5m" env-description:"Maximum duration of one request to the provider"`
 	Retries    int           `yaml:"retries"      env:"AI_EXTERNAL_RETRIES"      env-default:"2"  env-description:"Retries of one request (429, 5xx, network errors)"`
+}
+
+// OfflineConfig règle la sortie « fichier » de l'agent dépôt : une archive par SBOM envoyé
+// au serveur, écrite dans Dir (vide : désactivée).
+type OfflineConfig struct {
+	Dir string `yaml:"dir" env:"OFFLINE_DIR" env-description:"Directory receiving an offline archive of every uploaded SBOM, besides the upload; empty: no file output"`
 }
 
 // DTConfig règle la sortie vers Dependency-Track : le SBOM du commit de tête de chaque
@@ -272,6 +280,9 @@ func (c Config) Validate() error {
 	}
 	errs = append(errs, c.AI.validate()...)
 	errs = append(errs, c.DependencyTrack.validate()...)
+	if d := c.Offline.Dir; d != "" && !strings.HasPrefix(d, "/") {
+		errs = append(errs, errors.New("offline.dir : chemin absolu attendu"))
+	}
 	if len(c.Forges) == 0 {
 		errs = append(errs, errors.New("forges : au moins une forge"))
 	}

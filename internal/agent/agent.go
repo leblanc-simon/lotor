@@ -227,6 +227,14 @@ func wrap(what string, err error) error {
 	return fmt.Errorf("agent: %s : %w", what, err)
 }
 
+func pgCode(err error) string {
+	var pg *pgconn.PgError
+	if errors.As(err, &pg) {
+		return pg.Code
+	}
+	return ""
+}
+
 func pgConstraint(err error) string {
 	var pg *pgconn.PgError
 	if errors.As(err, &pg) {
@@ -297,6 +305,31 @@ func newAgent(ctx context.Context, tx *db.OrgTx, kind Kind, name, version string
 }
 
 // insertToken enregistre un jeton tiré pour agentID.
+// ProposedToken est un jeton d'agent tiré par l'agent lui-même (inscription hors ligne,
+// T23) : le serveur n'en reçoit que l'identifiant public et l'empreinte du secret.
+type ProposedToken struct {
+	PublicID string
+	Hash     SecretHash
+}
+
+// insertProposedToken enregistre le jeton proposé par l'agent ; un identifiant public déjà
+// pris est refusé comme un jeton invalide.
+func insertProposedToken(ctx context.Context, tx *db.OrgTx, agentID uuid.UUID, name string, p ProposedToken) (Token, error) {
+	id, err := uuid.NewV7()
+	if err != nil {
+		return Token{}, err
+	}
+	t := Token{ID: id, PublicID: p.PublicID, Name: name}
+	err = tx.QueryRowContext(ctx, `
+		INSERT INTO agent_tokens (org_id, id, agent_id, public_id, secret_hash, name)
+		VALUES ($1, $2, $3, $4, $5, $6) RETURNING created_at`,
+		tx.OrgID(), id, agentID, p.PublicID, p.Hash[:], name).Scan(&t.CreatedAt)
+	if pgCode(err) == "23505" {
+		return Token{}, errInvalid
+	}
+	return t, err
+}
+
 func insertToken(ctx context.Context, tx *db.OrgTx, agentID uuid.UUID, name string, expires *time.Time, createdBy int64) (Token, IssuedToken, error) {
 	issued, err := NewToken(KindAgent)
 	if err != nil {

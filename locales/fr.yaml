@@ -652,6 +652,22 @@ admin_org:
   unarchive: Réactiver
 
 error:
+  archive:
+    invalid:
+      title: Archive illisible
+      text: "Le fichier n'est pas une archive hors ligne de lotor lisible (format, entrées, empreinte du SBOM ou taille)."
+    foreign:
+      title: Archive d'une autre organisation
+      text: L'agent qui a écrit cette archive n'appartient pas à cette organisation.
+    unknown_agent:
+      title: Agent inconnu
+      text: "Le jeton de l'agent qui a écrit cette archive est inconnu, et l'archive ne porte pas d'inscription : inscrivez l'agent, ou donnez-lui un jeton d'inscription de cette organisation."
+    forged:
+      title: Archive non authentique
+      text: "Le code de l'archive ne correspond pas au jeton de l'agent : elle a été modifiée, ou ne vient pas de cet agent."
+    project:
+      title: Projet introuvable
+      text: "L'archive ne désigne aucun projet confié à cet agent."
   dt:
     agent_kind:
       title: Clé d'API d'un agent serveur
@@ -1058,6 +1074,22 @@ agents:
   expiry_none: Sans expiration
   col_team: "Équipe"
   org_wide: "Organisation (toutes les équipes)"
+
+archive_import:
+  title: Importer des archives
+  heading: Importer des archives hors ligne
+  link: Importer des archives
+  lead: "Une archive (.lotor) écrite par un agent d'un réseau isolé, transportée jusqu'ici, est rangée comme un envoi de l'agent : son code prouve qu'elle vient de lui. La première archive d'un agent jamais connecté l'inscrit."
+  form_title: Archive
+  file: Fichier d'archive (.lotor)
+  file_hint: "Une archive par envoi ; la même archive importée deux fois ne crée qu'une réception. Pour un grand nombre d'archives, l'exploitant peut configurer un répertoire surveillé."
+  submit: Importer
+  missing: Choisissez un fichier d'archive.
+  done_title: Archive importée
+  duplicate_title: Archive déjà importée
+  done_text: "Envoi de l'agent {{.Agent}} : {{.Status}}."
+  enrolled: L'archive a inscrit l'agent.
+  snapshots: "Voir les instantanés de {{.Project}}"
 
 agent:
   dt_title: Point Dependency-Track

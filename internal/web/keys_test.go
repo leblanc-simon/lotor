@@ -60,6 +60,9 @@ func TestDynamicKeysExist(t *testing.T) {
 	// Point compatible Dependency-Track (T19).
 	want = append(want, agent.DTValidationKeys()...)
 	want = append(want, apiv1.KeyDTBase64)
+	for _, k := range agent.ArchiveErrorKeys() {
+		want = append(want, k+".title", k+".text")
+	}
 	for _, k := range agent.DTErrorKeys() {
 		want = append(want, k+".title", k+".text")
 	}

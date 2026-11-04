@@ -50,6 +50,15 @@ type fakeServer struct {
 	childWaiting map[string]string // ingestion → identité
 	ignored      map[string]bool
 	reports      []gen.ContainerReport
+	// token : jeton d'agent remis à l'inscription (défaut lotor_agt_jeton).
+	token string
+}
+
+func (f *fakeServer) agentToken() string {
+	if f.token == "" {
+		return "lotor_agt_jeton"
+	}
+	return f.token
 }
 
 func (f *fakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -67,8 +76,8 @@ func (f *fakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		f.enrollments++
-		write(http.StatusCreated, gen.EnrollmentResult{AgentId: uuid.New(), Token: "lotor_agt_jeton", Project: gen.ProjectRef{Id: f.projectID, Slug: "srv-test"}})
-	case r.Header.Get("Authorization") != "Bearer lotor_agt_jeton":
+		write(http.StatusCreated, gen.EnrollmentResult{AgentId: uuid.New(), Token: f.agentToken(), Project: gen.ProjectRef{Id: f.projectID, Slug: "srv-test"}})
+	case r.Header.Get("Authorization") != "Bearer "+f.agentToken():
 		write(http.StatusUnauthorized, gen.Problem{Type: "error.token.invalid", Status: 401})
 	case r.URL.Path == "/api/v1/agent/projects":
 		list := gen.AgentProjectList{Projects: []gen.AgentProject{}}

@@ -935,6 +935,23 @@ type AgentProjectList struct {
 	Projects []AgentProject `json:"projects"`
 }
 
+// ArchiveImport defines model for ArchiveImport.
+type ArchiveImport struct {
+	// Agent Nom de l'agent émetteur.
+	Agent string `json:"agent"`
+
+	// Duplicate Archive déjà importée ; la réception est celle du premier import.
+	Duplicate bool `json:"duplicate"`
+
+	// Enrolled L'archive a inscrit l'agent (inscription hors ligne).
+	Enrolled    bool               `json:"enrolled"`
+	IngestionId openapi_types.UUID `json:"ingestion_id"`
+	ProjectId   openapi_types.UUID `json:"project_id"`
+
+	// Status État de la réception : queued, processing, done ou failed (décodage asynchrone, comme un envoi réseau).
+	Status string `json:"status"`
+}
+
 // ChangeCounts defines model for ChangeCounts.
 type ChangeCounts struct {
 	Added      int `json:"added"`
