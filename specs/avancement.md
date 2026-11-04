@@ -325,7 +325,7 @@ Le mandataire git de la session refuse les pushs d'étiquettes (HTTP 403). Dans 
    avant d'activer l'IA sur des projets. Facultatif : la même mesure avec Ollama.
 4. **Publier la préversion `v0.2.0`**, après les étapes 1 et 2 (et 3 si le résultat doit
    figurer dans les notes) :
-   1. vérifier la section `## [0.2.0] - 2026-11-03` de `CHANGELOG.md` (date du jour de la
+   1. vérifier la section `## [0.2.0] - 2026-11-04` de `CHANGELOG.md` (date du jour de la
       pose ; ajouter le résultat de l'IA s'il y a lieu) et la CI de `main` ;
    2. `git fetch origin && git tag -a v0.2.0 origin/main -m "lotor 0.2.0 — préversion du lot 2"` ;
    3. `git push origin v0.2.0` ;
