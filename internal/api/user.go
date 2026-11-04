@@ -286,6 +286,10 @@ func SearchResult(res search.Result) userapi.SearchResult {
 		next := res.NextCursor
 		out.Page.NextCursor = &next
 	}
+	if res.Partial {
+		partial := true
+		out.Partial, out.RetentionHorizon = &partial, res.Horizon
+	}
 	for _, t := range res.Query.Tokens() {
 		out.Tokens = append(out.Tokens, userapi.SearchToken{Kind: userapi.SearchTokenKind(strings.TrimPrefix(t.KindKey, "search.kind_")),
 			Value: t.Value})

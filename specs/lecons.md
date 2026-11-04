@@ -1048,3 +1048,17 @@ les pièges découverts, pour ne pas les reproduire. Une entrée = le constat, p
 - **Nom déjà pris dans un paquet** : `writeJSON` existait dans `internal/api` (API
   utilisateur) avec une autre signature. Règle : chercher le nom (`grep -n "func nom"`)
   avant d'ajouter un assistant à un paquet partagé.
+
+## Recherche à une date passée (T21)
+
+- **Mesure et autres travaux en parallèle** : une mesure partage les quatre cœurs de la
+  session ; une CI ou des compilations simultanées faussent les centiles. Règle : lancer
+  `make bench-search` seul, ne rien compiler pendant (préparer le lot suivant hors du
+  dépôt, ou dans un worktree, sans le compiler), et noter la machine dans
+  `docs/benchmarks.md`.
+- **Travailler pendant une longue CI** : modifier le dépôt pendant `make ci` peut faire
+  tester un état mêlé. Règle : un `git worktree` séparé pour le lot suivant, rapatrié par
+  `cherry-pick` puis `reset --soft` une fois la CI finie.
+- **Texte de contrôle d'un écran** : « Critique » figure aussi dans les filtres de la
+  page ; un test qui vérifie l'absence des vulnérabilités doit chercher un texte propre aux
+  colonnes masquées (« Corrigée en »), pas un libellé présent ailleurs.

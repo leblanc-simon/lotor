@@ -182,6 +182,10 @@ T19 terminé : point compatible Dependency-Track (`internal/api/dtrack.go`, ADR 
 client `agentclient.DTClient`, sortie `dependency_track.*` des deux agents (agent serveur :
 CycloneDX 1.6, `only`), `docs/dependency-track.md`, `make test-dtrack` (vrai
 Dependency-Track 5, hors CI). Reste à l'utilisateur : exécution réelle de l'action GitHub.
+T21 terminé : recherche à une date passée (`search.Filters.At`, paramètre `at`, ADR 0058) :
+instantané en vigueur par référence (fin de journée UTC, `snapshots_ref_idx`), projets
+archivés et références retirées compris, composants seulement, `Result.Partial` avant
+l'horizon de la rétention ; `benchdata.AddHistory`, `TestSearchAtBenchmark`.
 
 ## Règles de travail
 

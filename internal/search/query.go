@@ -51,13 +51,18 @@ const (
 	// KeyTriageVulnOnly : le filtre de triage ne vaut que pour une recherche par
 	// vulnérabilité (un constat a un statut de triage, un composant non).
 	KeyTriageVulnOnly = "error.search.triage_vulnerability_only"
+	// KeyAtInvalid : date « à la date du » illisible ou dans le futur (T21).
+	KeyAtInvalid = "error.search.at_invalid"
+	// KeyAtComponentsOnly : à une date passée, la recherche porte sur les composants ; les
+	// constats d'alors ne sont pas conservés (T21).
+	KeyAtComponentsOnly = "error.search.at_components_only"
 )
 
 // ErrorKeys liste les clés d'erreur du paquet (tests de traduction).
 func ErrorKeys() []string {
 	return []string{KeyEmpty, KeyTooLong, KeyPURLInvalid, KeyRangeNeedsPURL, KeyRangeAndVersion, KeyVersInvalid,
 		KeyVersScheme, KeyVersDuplicate, KeyVersVersion, KeyVersMismatch, KeyVulnInvalid, KeyHashInvalid, KeyLicense,
-		KeyFilterInvalid, KeyTriageVulnOnly}
+		KeyFilterInvalid, KeyTriageVulnOnly, KeyAtInvalid, KeyAtComponentsOnly}
 }
 
 // Error est une requête ou un filtre refusés, avec une clé traduisible.

@@ -17,6 +17,7 @@ import (
 	"leblanc.io/lotor/internal/db"
 	"leblanc.io/lotor/internal/db/crossorg"
 	"leblanc.io/lotor/internal/finding"
+	"leblanc.io/lotor/internal/inventory"
 	"leblanc.io/lotor/internal/pagination"
 	"leblanc.io/lotor/internal/project"
 	"leblanc.io/lotor/internal/sbom"
@@ -44,11 +45,37 @@ const (
 type Service struct {
 	pool *db.Pool
 	cmp  version.Comparer
+	now  func() time.Time
 }
 
 // NewService construit le service ; cmp compare les versions (grypeversion).
 func NewService(pool *db.Pool, cmp version.Comparer) *Service {
-	return &Service{pool: pool, cmp: cmp}
+	return &Service{pool: pool, cmp: cmp, now: time.Now}
+}
+
+// WithClock remplace l'horloge qui borne les dates de recherche (tests).
+func (s *Service) WithClock(now func() time.Time) *Service {
+	cp := *s
+	cp.now = now
+	return &cp
+}
+
+// partial signale une date antérieure à l'horizon de la rétention (ADR 0039) : avant lui,
+// seul le dernier instantané de chaque mois est gardé. Sans passage de la rétention,
+// l'historique est complet.
+func partial(ctx context.Context, tx *db.OrgTx, f Filters, res *Result) error {
+	if f.At == nil {
+		return nil
+	}
+	st, ok, err := inventory.ReadRetention(ctx, tx)
+	if err != nil || !ok {
+		return err
+	}
+	if f.At.Before(st.Horizon) {
+		h := st.Horizon
+		res.Partial, res.Horizon = true, &h
+	}
+	return nil
 }
 
 // Comparer renvoie le comparateur de versions du service.
@@ -149,6 +176,11 @@ type Result struct {
 	// Unreadable : versions du paquet illisibles selon l'écosystème, donc ni dans la plage
 	// ni hors d'elle (non montrées, mais signalées).
 	Unreadable []VersionCount
+	// Partial : la date demandée (Filters.At) précède l'horizon de la rétention (T17) ;
+	// il ne reste de cette période que le dernier instantané de chaque mois, le résultat
+	// est partiel. Horizon est la date de coupure appliquée.
+	Partial bool
+	Horizon *time.Time
 }
 
 // target est ce que désigne une requête : des composants, ou des constats.
@@ -178,6 +210,9 @@ func (s *Service) Search(ctx context.Context, org tenant.OrgID, vis tenant.Visib
 	if err := checkFilters(q, req.Filters); err != nil {
 		return Result{}, err
 	}
+	if err := checkAt(req.Filters, s.now()); err != nil {
+		return Result{}, err
+	}
 	if req.Sort == "" {
 		req.Sort = SortRisk
 	}
@@ -204,6 +239,9 @@ func (s *Service) Search(ctx context.Context, org tenant.OrgID, vis tenant.Visib
 			return err
 		}
 		res.Truncated, res.Approx = t.truncated, t.approx
+		if err := partial(ctx, tx, req.Filters, &res); err != nil {
+			return err
+		}
 		if err := s.page(ctx, tx, t, req, after, limit, &res); err != nil {
 			return err
 		}
@@ -220,6 +258,19 @@ func (s *Service) Search(ctx context.Context, org tenant.OrgID, vis tenant.Visib
 func checkFilters(q Query, f Filters) error {
 	if len(f.Triage) > 0 && q.Kind != KindVulnerability {
 		return refuse(KeyTriageVulnOnly)
+	}
+	// À une date passée, seuls les composants : ni constat, ni sévérité, ni KEV d'alors.
+	if f.At != nil && (q.Kind == KindVulnerability || f.KEV || len(f.Severities) > 0 || f.Resolved) {
+		return refuse(KeyAtComponentsOnly)
+	}
+	return nil
+}
+
+// checkAt refuse une date dans le futur (au-delà de l'horloge du serveur et de la journée
+// en cours) : l'état demandé n'existe pas encore.
+func checkAt(f Filters, now time.Time) error {
+	if f.At != nil && f.At.After(now.UTC().Truncate(24*time.Hour).AddDate(0, 0, 1)) {
+		return refuse(KeyAtInvalid)
 	}
 	return nil
 }
@@ -480,7 +531,7 @@ func (s *Service) details(ctx context.Context, tx *db.OrgTx, t target, f Filters
 	query := `WITH hits AS (` + hits + `)
 	SELECT * FROM (` + hitColumns + `,
 	       row_number() OVER (PARTITION BY h.project_id ORDER BY ` + hitOrder + `) AS rn
-	  ` + hitJoins(t) + `) x
+	  ` + hitJoins(t, f) + `) x
 	 WHERE rn <= ` + a.add(MaxGroupHits) + ` ORDER BY project_id, rn`
 	rows, err := tx.QueryContext(ctx, query, a.list...)
 	if err != nil {

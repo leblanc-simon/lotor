@@ -38,6 +38,12 @@ lien). Les migrations 024 et 025 s'appliquent au démarrage ; l'instance reste p
   en plus de lotor ou à sa place (`only: true`) ; l'agent dépôt envoie le SBOM du commit de
   tête de chaque référence après lotor. Clé d'API en fichier `0600` ou credential systemd
   `dependency-track-api-key`. `make test-dtrack` : recette contre un vrai Dependency-Track 5.
+- Recherche à une date passée (T21, ADR 0058) : champ **À la date du** de l'écran de
+  recherche et paramètre `at` de l'API (`AAAA-MM-JJ`, fin de journée UTC, ou RFC 3339).
+  Pour chaque référence, l'instantané en vigueur à cette date, projets archivés et
+  références retirées compris, avec sa date ; composants seulement (les constats d'alors ne
+  sont pas conservés) ; avertissement « résultat partiel » avant l'horizon de la rétention
+  (`partial` et `retention_horizon` dans l'API).
 
 ### Modifié
 

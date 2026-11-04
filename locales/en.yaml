@@ -732,6 +732,12 @@ error:
     triage_vulnerability_only:
       title: "Triage filter not applicable"
       text: "A triage status belongs to a finding: it only filters a vulnerability search (CVE-… or GHSA-…). Remove this filter."
+    at_invalid:
+      title: Unreadable date
+      text: "Give a past date or today, as YYYY-MM-DD (or an RFC 3339 date and time)."
+    at_components_only:
+      title: "Search at a past date: components only"
+      text: "Vulnerability findings of a past date are not kept: at a past date, search for a component, a purl or a hash, without severity, exploitation or resolution filters."
   client_cert_required:
     title: Client certificate required
     text: This server requires a valid client certificate (mTLS) for the agent API. Configure the agent's certificate and key.
@@ -1552,6 +1558,14 @@ admin_jobs:
   not_found: This job is no longer failed (already retried or discarded).
 
 search:
+  at_label: As of date
+  at_hint: "Empty: current state. At a past date, the snapshot of each reference in force that day, without vulnerabilities."
+  at_chip: "As of {{.Date}}"
+  at_title: "Inventories as of {{.Date}}"
+  at_text: "For each reference, the snapshot shown is the last one scanned on that day at the latest (end of day, UTC), archived projects and removed references included. Vulnerabilities of that time are not shown."
+  at_partial_title: Partial result
+  at_partial: "The date precedes the snapshot retention ({{.Horizon}} UTC): before it, only the last snapshot of each month remains, and the state shown may be older than the requested date."
+  col_snapshot: Snapshot shown
   title_query: "Search “{{.Query}}”"
   title: Search
   heading: Cross-project search

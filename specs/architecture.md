@@ -643,6 +643,12 @@ qu'aucune mesure ne la justifie (ADR 0015).
   constats « non affecté » ou « faux positif » (T18, ADR 0050).
 - Cible : moins de 2 s au 95e centile pour 1 000 projets et 1 million de liens, **RLS
   active**, selon le protocole de `docs/benchmarks.md`.
+- À une date passée (T21, ADR 0058, paramètre `at`, `Filters.At`) : pour chaque référence,
+  l'instantané en vigueur (le dernier scanné avant l'instant, fin de journée UTC pour une
+  date) est lu par `snapshots_ref_idx`, au lieu de `ref_current` ; projets archivés et
+  références retirées compris ; composants seulement (ni constats, ni sévérité, ni KEV) ;
+  avertissement « partiel » avant l'horizon de la rétention (`inventory.ReadRetention`).
+  Cible : moins de 5 s au 95e centile avec 12 mois d'historique hebdomadaire.
 
 ## 14. Interface web
 

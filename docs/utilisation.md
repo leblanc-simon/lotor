@@ -71,6 +71,26 @@ projet, triés par risque, par nom ou par instantané le plus récent, vingt pro
 Requête, filtres et ordre sont dans l'adresse de la page : la copier suffit pour partager
 exactement le même résultat avec un autre membre de l'organisation.
 
+### À une date passée
+
+Le champ **À la date du** (paramètre `at=AAAA-MM-JJ`) répond à « quels projets utilisaient
+ce composant à telle date ? », par exemple pour mesurer une exposition passée pendant une
+réponse à incident. Pour chaque référence, la recherche porte sur l'instantané **en
+vigueur ce jour-là** : le dernier scanné au plus tard à la fin de la journée (UTC). Chaque
+occurrence indique la date de l'instantané retenu. Une date et heure précise s'écrit aussi
+en RFC 3339 (`at=2026-09-10T12:00:00Z`, instant exclu).
+
+- Les projets archivés et les références retirées depuis comptent : la question porte sur
+  l'état d'alors.
+- Les vulnérabilités ne sont pas montrées : la base de vulnérabilités et les constats de
+  l'époque ne sont pas conservés. Une recherche par vulnérabilité, ou les filtres de
+  sévérité, d'exploitation (KEV) et de résolution, sont refusés à une date passée ;
+  cherchez le composant, puis ouvrez la recherche sans date pour l'état actuel.
+- Les anciens instantanés sont éclaircis par la rétention (90 jours complets, puis le
+  dernier instantané de chaque mois) : une date antérieure à la dernière coupure affiche
+  l'avertissement **Résultat partiel**, car l'état retenu peut alors être celui de la fin
+  du mois précédent ou plus ancien.
+
 ### Export
 
 « Exporter en CSV » et « Exporter en JSON » donnent toutes les occurrences de la

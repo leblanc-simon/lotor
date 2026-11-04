@@ -78,6 +78,24 @@ const componentHits = `
 	          AND f.triage_status <> ALL(%HIDDEN%::text[])) v ON true
 	 WHERE i.component_id = ANY(%IDS%::uuid[])`
 
+// componentHitsAt : composants désignés dans l'instantané en vigueur à une date de chaque
+// référence (le dernier scanné avant elle, par snapshots_ref_idx), des projets visibles.
+// Projets archivés et références retirées depuis comptent : la question porte sur l'état
+// d'alors. Sans vulnérabilités : les constats d'alors ne sont pas conservés (T21).
+const componentHitsAt = `
+	SELECT i.org_id, p.id AS project_id, r.id AS ref_id, i.component_id, i.origin, i.confidence, i.weak_id,
+	       s.id AS snapshot_id, NULL::uuid AS finding_id, ''::text AS vuln_id, ''::text AS status, ''::text AS triage,
+	       0 AS open, NULL::int AS sev, false AS kev, 0::float8 AS risk,
+	       p.kind, p.labels, p.team_id
+	  FROM tracked_refs r
+	  JOIN projects p ON p.org_id = r.org_id AND p.id = r.project_id AND lotor_team_visible(p.team_id)
+	  CROSS JOIN LATERAL (
+	       SELECT s.id, s.set_id FROM snapshots s
+	        WHERE s.org_id = r.org_id AND s.ref_id = r.id AND s.scanned_at < %AT%::timestamptz
+	        ORDER BY s.scanned_at DESC, s.id DESC LIMIT 1) s
+	  JOIN component_set_items i ON i.org_id = r.org_id AND i.set_id = s.set_id
+	 WHERE i.component_id = ANY(%IDS%::uuid[])`
+
 // vulnHits : constats des vulnérabilités désignées, sur les références actives des projets
 // actifs et visibles, avec l'élément de l'inventaire courant s'il contient encore le composant,
 // et le statut de triage effectif du constat (tous les statuts : la question « qui est
@@ -106,6 +124,8 @@ func hitsSQL(t target, f Filters, projectIDs []uuid.UUID, a *args) string {
 		}
 		base = strings.NewReplacer("%RANK%", rankSQL("f.severity"), "%IDS%", a.add(t.vulnIDs),
 			"%STATUS%", a.add(statuses)).Replace(vulnHits)
+	} else if f.At != nil {
+		base = strings.NewReplacer("%IDS%", a.add(t.components), "%AT%", a.add(*f.At)).Replace(componentHitsAt)
 	} else {
 		base = strings.NewReplacer("%RANK%", rankSQL("f.severity"), "%IDS%", a.add(t.components),
 			"%HIDDEN%", a.add(hiddenStatuses())).Replace(componentHits)
@@ -180,13 +200,17 @@ const hitColumns = `SELECT h.project_id, h.ref_id, r.kind, r.name, s.id, s.scann
 	       h.open, h.sev, h.kev, h.risk, fx.fixed, h.vuln_id, h.status, h.triage, h.finding_id`
 
 // hitJoins : jointures des colonnes d'une occurrence. Versions corrigées : celles des
-// vulnérabilités ouvertes du composant dans la référence, ou celles du constat.
-func hitJoins(t target) string {
+// vulnérabilités ouvertes du composant dans la référence, ou celles du constat ; aucune à
+// une date passée (f.At), faute de constats d'alors.
+func hitJoins(t target, f Filters) string {
 	fixed := `SELECT array_agg(DISTINCT fv) AS fixed FROM findings f CROSS JOIN LATERAL unnest(f.fixed_versions) fv
 	           WHERE f.org_id = h.org_id AND f.ref_id = h.ref_id AND f.component_id = h.component_id AND f.status = 'open'
 	             AND f.triage_status NOT IN ('` + strings.Join(hiddenStatuses(), "', '") + `')`
-	if t.vulnIDs != nil {
+	switch {
+	case t.vulnIDs != nil:
 		fixed = `SELECT f.fixed_versions AS fixed FROM findings f WHERE f.org_id = h.org_id AND f.id = h.finding_id`
+	case f.At != nil:
+		fixed = `SELECT NULL::text[] AS fixed`
 	}
 	return `FROM hits h
 	  JOIN tracked_refs r ON r.org_id = h.org_id AND r.id = h.ref_id

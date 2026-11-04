@@ -852,11 +852,17 @@ type SearchResult struct {
 	// Page Pagination d'une liste.
 	Page PageInfo `json:"page"`
 
+	// Partial Recherche à une date passée (`at`) antérieure à l'horizon de la rétention des instantanés ; il ne reste de cette période que le dernier instantané de chaque mois.
+	Partial *bool `json:"partial,omitempty"`
+
 	// Projects Projets concernés, toutes pages.
 	Projects int `json:"projects"`
 
 	// Query Requête normalisée (espaces ramenés à un seul).
 	Query string `json:"query"`
+
+	// RetentionHorizon Horizon de la rétention, quand `partial` est vrai.
+	RetentionHorizon *time.Time `json:"retention_horizon,omitempty"`
 
 	// Tokens La requête telle qu'elle a été comprise.
 	Tokens []SearchToken `json:"tokens"`
@@ -974,6 +980,9 @@ type Org = string
 // Project defines model for Project.
 type Project = string
 
+// SearchAt defines model for SearchAt.
+type SearchAt = string
+
 // SearchContainers defines model for SearchContainers.
 type SearchContainers string
 
@@ -1084,6 +1093,14 @@ type SearchOrganizationParams struct {
 	// des constats retenus.
 	Triage *SearchTriage `form:"triage,omitempty" json:"triage,omitempty"`
 
+	// At État des inventaires à une date passée (T21) : `AAAA-MM-JJ` (fin de cette journée,
+	// UTC) ou date et heure RFC 3339. Pour chaque référence, l'instantané retenu est le
+	// dernier scanné avant cet instant, projets archivés et références retirées compris ;
+	// les vulnérabilités ne sont pas renvoyées (recherche par vulnérabilité, `severity`,
+	// `kev` et `resolved` refusés : 400 `error.search.at_components_only`). Une date
+	// future est refusée (400 `error.search.at_invalid`).
+	At *SearchAt `form:"at,omitempty" json:"at,omitempty"`
+
 	// Sort Ordre des projets (risque maximal décroissant par défaut).
 	Sort *SearchOrganizationParamsSort `form:"sort,omitempty" json:"sort,omitempty"`
 
@@ -1155,6 +1172,14 @@ type ExportSearchParams struct {
 	// Triage Recherche par vulnérabilité seulement (400 sinon) : statuts de triage effectifs
 	// des constats retenus.
 	Triage *SearchTriage `form:"triage,omitempty" json:"triage,omitempty"`
+
+	// At État des inventaires à une date passée (T21) : `AAAA-MM-JJ` (fin de cette journée,
+	// UTC) ou date et heure RFC 3339. Pour chaque référence, l'instantané retenu est le
+	// dernier scanné avant cet instant, projets archivés et références retirées compris ;
+	// les vulnérabilités ne sont pas renvoyées (recherche par vulnérabilité, `severity`,
+	// `kev` et `resolved` refusés : 400 `error.search.at_components_only`). Une date
+	// future est refusée (400 `error.search.at_invalid`).
+	At *SearchAt `form:"at,omitempty" json:"at,omitempty"`
 }
 
 // ExportSearchParamsFormat defines parameters for ExportSearch.
@@ -1622,6 +1647,19 @@ func (siw *ServerInterfaceWrapper) SearchOrganization(w http.ResponseWriter, r *
 		return
 	}
 
+	// ------------- Optional query parameter "at" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "at", r.URL.Query(), &params.At, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "at"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "at", Err: err})
+		}
+		return
+	}
+
 	// ------------- Optional query parameter "sort" -------------
 
 	err = runtime.BindQueryParameterWithOptions("form", true, false, "sort", r.URL.Query(), &params.Sort, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
@@ -1829,6 +1867,19 @@ func (siw *ServerInterfaceWrapper) ExportSearch(w http.ResponseWriter, r *http.R
 			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "triage"})
 		} else {
 			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "triage", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "at" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "at", r.URL.Query(), &params.At, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "at"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "at", Err: err})
 		}
 		return
 	}

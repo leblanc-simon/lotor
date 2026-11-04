@@ -19,6 +19,11 @@
 //  3. une page de projets (curseur par ordre : risque, nom, instantané), puis leurs
 //     occurrences (MaxGroupHits par projet).
 //
+// À une date passée (Filters.At, paramètre at, T21, ADR 0058), l'étape 2 lit pour chaque
+// référence l'instantané en vigueur à cet instant (le dernier scanné avant lui) au lieu de
+// ref_current, projets archivés et références retirées compris, sans vulnérabilités ;
+// Result.Partial signale une date antérieure à l'horizon de la rétention.
+//
 // Les occurrences du paquet hors de la plage, et les versions illisibles dans
 // l'écosystème, sont comptées et signalées, jamais ignorées en silence. Export (CSV, JSON)
 // : lecture et écriture en flux, ligne à ligne.

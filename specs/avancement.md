@@ -16,6 +16,8 @@ toutes les licences (T20).
 | --- | --- | --- |
 | T19 | Terminé (exécution de l'action GitHub réelle : action de l'utilisateur) | Clé = jeton d'agent dépôt, agent serveur refusé ; nom exact du dépôt confié ; version = nouvelle nature de référence `version` sans commit, rangée comme un hôte ; `project` = identifiant de la version ; création automatique par agent d'équipe, réglage sur la fiche de l'agent, 200 versions par dépôt ; champs Dependency-Track ignorés ; sortie des agents (serveur : CycloneDX 1.6, `only` ; dépôt : commit de tête seulement) ; mandataire pour l'action GitHub, qui ignore le chemin — tous **[à relire]** ([T19](lots/T19-dependency-track.md#journal), [ADR 0057](../docs/adr/0057-point-compatible-dependency-track.md)) |
 
+| T21 | Terminé | Fin de journée UTC, borne exclusive ; projets archivés et références retirées compris ; composants seulement (recherche par vulnérabilité, sévérité, KEV, résolution refusées) ; avertissement avant l'horizon de la rétention ; mesure sur 12 mois d'historique hebdomadaire synthétique — tous **[à relire]** ([T21](lots/T21-recherche-historique.md#journal), [ADR 0058](../docs/adr/0058-recherche-a-une-date-passee.md)) |
+
 ### Actions pour l'utilisateur (lot 3)
 
 1. **T19** : enregistrer une exécution réelle de l'action `DependencyTrack/gh-upload-sbom`

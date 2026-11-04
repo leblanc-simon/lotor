@@ -98,6 +98,11 @@
         </fieldset>
         {{- end}}
         <div class="facet">
+          <label class="field__label" for="f-at">{{T "search.at_label"}}</label>
+          <input class="input input--sm" id="f-at" name="at" type="date" value="{{.At}}" max="{{.Today}}" aria-describedby="f-at-hint">
+          <p class="field__hint" id="f-at-hint">{{T "search.at_hint"}}</p>
+        </div>
+        <div class="facet">
           <label class="field__label" for="sort">{{T "search.sort_by"}}</label>
           <select class="select select--sm" id="sort" name="sort">
             {{- range .Sorts}}
@@ -133,18 +138,24 @@
         <div class="cluster">
           <span class="muted">{{T "search.active_filters"}}</span>
           {{- range .Chips}}
-          <span class="chip chip--filter"><span>{{if .LabelKey}}{{T .LabelKey}}{{else}}{{.Label}}{{end}}</span><a class="chip__remove" href="{{.Href}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"></path></svg><span class="visually-hidden">{{T "search.remove_filter"}} {{if .LabelKey}}{{T .LabelKey}}{{else}}{{.Label}}{{end}}</span></a></span>
+          <span class="chip chip--filter"><span>{{if .Date}}{{T "search.at_chip" "Date" .Date}}{{else if .LabelKey}}{{T .LabelKey}}{{else}}{{.Label}}{{end}}</span><a class="chip__remove" href="{{.Href}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"></path></svg><span class="visually-hidden">{{T "search.remove_filter"}} {{if .Date}}{{T "search.at_chip" "Date" .Date}}{{else if .LabelKey}}{{T .LabelKey}}{{else}}{{.Label}}{{end}}</span></a></span>
           {{- end}}
         </div>
         {{- end}}
         {{- if .Truncated}}
         <div class="callout callout--warning" role="status"><div class="callout__body"><p class="callout__title">{{T "search.truncated_title"}}</p><p class="callout__text">{{T "search.truncated"}}</p></div></div>
         {{- end}}
+        {{- if and .Searched .AtMode}}
+        <div class="callout" role="status"><div class="callout__body"><p class="callout__title">{{T "search.at_title" "Date" .At}}</p><p class="callout__text">{{T "search.at_text"}}</p></div></div>
+        {{- end}}
+        {{- with .Horizon}}
+        <div class="callout callout--warning" role="status"><div class="callout__body"><p class="callout__title">{{T "search.at_partial_title"}}</p><p class="callout__text">{{T "search.at_partial" "Horizon" .Display}}</p></div></div>
+        {{- end}}
         {{- if .Approx}}
         <div class="callout" role="status"><div class="callout__body"><p class="callout__title">{{T "search.approximate_title"}}</p><p class="callout__text">{{T "search.approximate"}}</p></div></div>
         {{- end}}
 
-        {{- $vuln := .VulnMode}}
+        {{- $vuln := .VulnMode}}{{$at := .AtMode}}
         {{- range .Groups}}
         <section class="result-group" aria-labelledby="{{.ID}}">
           <div class="result-group__head">
@@ -165,9 +176,13 @@
                   <th scope="col">{{T "search.col_version"}}</th>
                   <th scope="col">{{T "search.col_ref"}}</th>
                   <th scope="col">{{T "search.col_origin"}}</th>
+                  {{- if $at}}
+                  <th scope="col">{{T "search.col_snapshot"}}</th>
+                  {{- else}}
                   <th scope="col">{{if $vuln}}{{T "search.col_vulnerability"}}{{else}}{{T "search.col_vulnerabilities"}}{{end}}</th>
                   <th scope="col">{{T "search.col_fixed_in"}}</th>
                   <th scope="col" class="num">{{T "search.col_risk"}}</th>
+                  {{- end}}
                 </tr>
               </thead>
               <tbody>
@@ -177,6 +192,9 @@
                   <td class="version">{{.Version}}</td>
                   <td><span class="cell-stack"><span>{{.RefName}}</span>{{with .CommitShort}}<span class="mono muted">{{.}}</span>{{end}}</span></td>
                   <td>{{if .Origin}}<span class="origin origin--{{.Origin}}">{{T (print "origin." .Origin)}}{{with .Confidence}} {{T "search.confidence" "Pct" .}}{{end}}</span>{{if .Weak}} <span class="muted">{{T "search.weak"}}</span>{{end}}{{else}}<span class="muted">{{T "search.not_in_inventory"}}</span>{{end}}</td>
+                  {{- if $at}}
+                  <td>{{with .Scanned}}{{template "stamp" .}}{{end}}</td>
+                  {{- else}}
                   <td>
                     <span class="cluster">
                     {{- if .VulnID}}
@@ -190,6 +208,7 @@
                   </td>
                   <td>{{if .Fixed}}<span class="cluster">{{range .Fixed}}<span class="version">{{.}}</span>{{end}}</span>{{else}}<span class="muted">{{T "search.no_fix"}}</span>{{end}}</td>
                   <td class="num">{{template "risk" .Risk}}</td>
+                  {{- end}}
                 </tr>
                 {{- end}}
               </tbody>

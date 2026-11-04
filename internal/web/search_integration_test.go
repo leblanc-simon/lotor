@@ -55,12 +55,14 @@ func TestSearchScreenAndAPI(t *testing.T) {
 	queries := []string{"", "q=log4j-core", "q=CVE-2021-44228", "q=CVE-2021-44228&resolved=1&kev=1&severity=critical",
 		"q=pkg%3Amaven%2Forg.apache.logging.log4j%2Flog4j-core+vers%3Amaven%2F%3C2.15.0", "q=log4j&type=repo&origin=syft&sort=name",
 		"q=absent-zzz", "q=lodash+vers%3Anpm%2F%3C1", "q=license%3AMIT", "q=CVE-2021-44228&triage=in_triage&team=" + general,
-		"q=log4j-core&triage=affected"}
+		"q=log4j-core&triage=affected", "q=log4j-core&at=" + time.Now().UTC().Format(time.DateOnly), "q=log4j-core&at=2026-01-01",
+		"q=log4j-core&at=2099-01-01", "q=CVE-2021-44228&at=2026-01-01"}
 	for _, lang := range []string{"fr", "en"} {
 		for _, q := range queries {
 			pg := b.get("/o/org-a/search?" + q + "&lang=" + lang)
 			want := http.StatusOK
-			if strings.Contains(q, "vers%3Anpm") || strings.Contains(q, "license") || strings.Contains(q, "log4j-core&triage") {
+			if strings.Contains(q, "vers%3Anpm") || strings.Contains(q, "license") || strings.Contains(q, "log4j-core&triage") ||
+				strings.Contains(q, "at=2099") || strings.Contains(q, "CVE-2021-44228&at") {
 				want = http.StatusBadRequest
 			}
 			if pg.status != want {
@@ -69,6 +71,19 @@ func TestSearchScreenAndAPI(t *testing.T) {
 			webtest.AssertAccessible(t, []byte(pg.body))
 			webtest.AssertNoInlineCode(t, []byte(pg.body))
 		}
+	}
+	// À la date du jour : l'instantané courant, daté, sans vulnérabilités ; avant lui, rien.
+	at := unescape(b.get("/o/org-a/search?q=log4j-core&at=" + time.Now().UTC().Format(time.DateOnly)).body)
+	for _, want := range []string{"État des inventaires au", "Instantané retenu", "2.14.1", "dans 1 projet"} {
+		if !strings.Contains(at, want) {
+			t.Errorf("écran à une date sans %q", want)
+		}
+	}
+	if strings.Contains(at, "Corrigée en") {
+		t.Error("vulnérabilités montrées à une date passée")
+	}
+	if before := unescape(b.get("/o/org-a/search?q=log4j-core&at=2026-01-01").body); !strings.Contains(before, "Aucun") {
+		t.Error("résultat avant le premier instantané")
 	}
 	body := unescape(b.get("/o/org-a/search?q=pkg%3Amaven%2Forg.apache.logging.log4j%2Flog4j-core+vers%3Amaven%2F%3C2.15.0").body)
 	for _, want := range []string{"Interprété comme", "vers:maven/<2.15.0", "Portail client", "log4j-core", "2.14.1", "Critique",
@@ -164,7 +179,8 @@ func TestSearchScreenAndAPI(t *testing.T) {
 	// L'API renvoie exactement les mêmes résultats que l'écran.
 	for _, q := range []string{"q=log4j-core", "q=CVE-2021-44228&resolved=1", "q=GHSA-jfh8-c2jp-5v3q", "q=log4j-core&team=" + general,
 		"q=CVE-2021-44228&triage=in_triage",
-		"q=pkg%3Amaven%2Forg.apache.logging.log4j%2Flog4j-core+vers%3Amaven%2F%3C2.15.0", "q=log4j&type=host"} {
+		"q=pkg%3Amaven%2Forg.apache.logging.log4j%2Flog4j-core+vers%3Amaven%2F%3C2.15.0", "q=log4j&type=host",
+		"q=log4j-core&at=" + time.Now().UTC().Format(time.DateOnly)} {
 		pg := a.apiGet(token, "/api/v1/orgs/org-a/search?"+q)
 		if pg.status != http.StatusOK {
 			t.Fatalf("API %s : %d %s", q, pg.status, pg.body)
@@ -206,7 +222,8 @@ func TestSearchScreenAndAPI(t *testing.T) {
 	}
 	for q, key := range map[string]string{"q=": "error.search.empty", "q=lodash+vers%3Anpm%2F%3C1": "error.search.range_needs_purl",
 		"q=x&type=container": "error.search.filter_invalid", "q=x&team=moi": "error.invalid_request",
-		"q=log4j&triage=affected": "error.search.triage_vulnerability_only", "q=x&cursor=illisible": "error.invalid_cursor", "q=x&limit=500": "error.invalid_limit"} {
+		"q=log4j&triage=affected": "error.search.triage_vulnerability_only", "q=log4j&at=hier": "error.search.at_invalid",
+		"q=CVE-2021-44228&at=2026-01-01": "error.search.at_components_only", "q=x&cursor=illisible": "error.invalid_cursor", "q=x&limit=500": "error.invalid_limit"} {
 		if pg := a.apiGet(token, "/api/v1/orgs/org-a/search?"+q); pg.status != http.StatusBadRequest || !strings.Contains(pg.body, key) {
 			t.Errorf("API %s : %d %s", q, pg.status, pg.body)
 		}

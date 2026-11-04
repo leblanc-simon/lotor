@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -60,12 +61,16 @@ type Filters struct {
 	// Triage : statuts de triage effectifs retenus (recherche par vulnérabilité seulement,
 	// KeyTriageVulnOnly sinon) ; tous si vide.
 	Triage []triage.Status
+	// At : état des inventaires à cette date (T21) ; nil : inventaires courants. Pour
+	// chaque référence, l'instantané retenu est le dernier scanné avant At ; les
+	// vulnérabilités ne sont pas montrées (les constats d'alors ne sont pas conservés).
+	At *time.Time
 }
 
 // Active indique si un filtre au moins est posé.
 func (f Filters) Active() bool {
 	return len(f.ProjectKinds) > 0 || f.Containers || len(f.Teams) > 0 || len(f.Labels) > 0 || len(f.Origins) > 0 || f.KEV ||
-		len(f.Severities) > 0 || f.Resolved || len(f.Triage) > 0
+		len(f.Severities) > 0 || f.Resolved || len(f.Triage) > 0 || f.At != nil
 }
 
 // kinds renvoie les natures de projets retenues : celles demandées, ou toutes celles de
@@ -116,9 +121,11 @@ const (
 	ParamSeverity   = "severity"
 	ParamResolved   = "resolved"
 	ParamTriage     = "triage"
-	ParamSort       = "sort"
-	ParamCursor     = "cursor"
-	ParamLimit      = "limit"
+	// ParamAt : « à la date du », AAAA-MM-JJ (fin de la journée UTC) ou RFC 3339.
+	ParamAt     = "at"
+	ParamSort   = "sort"
+	ParamCursor = "cursor"
+	ParamLimit  = "limit"
 )
 
 func severityValues() []string {
@@ -177,6 +184,13 @@ func ParseRequest(v url.Values) (Request, error) {
 	}
 	if r.Filters.Resolved, err = flag(v, ParamResolved); err != nil {
 		return Request{}, err
+	}
+	if s := strings.TrimSpace(v.Get(ParamAt)); s != "" {
+		at, err := ParseAt(s)
+		if err != nil {
+			return Request{}, err
+		}
+		r.Filters.At = &at
 	}
 	if s := v.Get(ParamSort); s != "" {
 		if !slices.Contains(Sorts(), Sort(s)) {
@@ -289,10 +303,37 @@ func (r Request) Values() url.Values {
 	for _, s := range r.Filters.Triage {
 		v.Add(ParamTriage, string(s))
 	}
+	if r.Filters.At != nil {
+		v.Set(ParamAt, FormatAt(*r.Filters.At))
+	}
 	if r.Sort != "" && r.Sort != SortRisk {
 		v.Set(ParamSort, string(r.Sort))
 	}
 	return v
+}
+
+// ParseAt lit une date « à la date du » : AAAA-MM-JJ désigne la fin de cette journée en
+// UTC (les instantanés scannés ce jour-là comptent), une date RFC 3339 l'instant donné.
+// L'instant rendu est exclusif : les instantanés retenus sont scannés avant lui.
+func ParseAt(s string) (time.Time, error) {
+	if d, err := time.Parse(time.DateOnly, s); err == nil {
+		return d.AddDate(0, 0, 1), nil
+	}
+	t, err := time.Parse(time.RFC3339, s)
+	if err != nil || t.Year() < 2000 {
+		return time.Time{}, refuse(KeyAtInvalid)
+	}
+	return t.UTC(), nil
+}
+
+// FormatAt écrit l'instant de ParseAt sous sa forme la plus courte : une date pour une
+// fin de journée UTC, sinon RFC 3339.
+func FormatAt(t time.Time) string {
+	t = t.UTC()
+	if t.Equal(t.Truncate(24 * time.Hour)) {
+		return t.AddDate(0, 0, -1).Format(time.DateOnly)
+	}
+	return t.Format(time.RFC3339)
 }
 
 // Without renvoie les paramètres de la recherche sans la valeur value du filtre param

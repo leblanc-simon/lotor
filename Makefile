@@ -131,7 +131,7 @@ bench: ## Mesures sur le jeu de référence (docs/benchmarks.md)
 
 .PHONY: bench-search
 bench-search: ## Mesures de la recherche sur le jeu de référence, RLS active (docs/benchmarks.md)
-	LOTOR_BENCH=1 $(GO) test -count=1 -timeout 30m -tags integration -run TestSearchBenchmark -v ./internal/search/
+	LOTOR_BENCH=1 $(GO) test -count=1 -timeout 30m -tags integration -run 'TestSearch(At)?Benchmark' -v ./internal/search/
 
 .PHONY: eval-ai
 eval-ai: ## Évalue l'enrichissement IA sur le corpus annoté avec un vrai modèle, hors CI (LOTOR_EVAL_AI_*, docs/operations.md)

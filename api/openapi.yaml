@@ -377,6 +377,7 @@ paths:
         - $ref: "#/components/parameters/SearchSeverity"
         - $ref: "#/components/parameters/SearchResolved"
         - $ref: "#/components/parameters/SearchTriage"
+        - $ref: "#/components/parameters/SearchAt"
         - $ref: "#/components/parameters/SearchSort"
         - $ref: "#/components/parameters/Cursor"
         - name: limit
@@ -432,6 +433,7 @@ paths:
         - $ref: "#/components/parameters/SearchSeverity"
         - $ref: "#/components/parameters/SearchResolved"
         - $ref: "#/components/parameters/SearchTriage"
+        - $ref: "#/components/parameters/SearchAt"
       responses:
         "200":
           description: L'export.
@@ -725,6 +727,19 @@ components:
       schema:
         type: string
         enum: ["1"]
+    SearchAt:
+      name: at
+      in: query
+      description: |
+        État des inventaires à une date passée (T21) : `AAAA-MM-JJ` (fin de cette journée,
+        UTC) ou date et heure RFC 3339. Pour chaque référence, l'instantané retenu est le
+        dernier scanné avant cet instant, projets archivés et références retirées compris ;
+        les vulnérabilités ne sont pas renvoyées (recherche par vulnérabilité, `severity`,
+        `kev` et `resolved` refusés : 400 `error.search.at_components_only`). Une date
+        future est refusée (400 `error.search.at_invalid`).
+      schema:
+        type: string
+        maxLength: 40
     SearchTriage:
       name: triage
       in: query
@@ -1310,6 +1325,13 @@ components:
           description: Versions du paquet illisibles dans son écosystème, ni dans la plage ni hors d'elle (non renvoyées).
           items:
             $ref: "#/components/schemas/SearchVersionCount"
+        partial:
+          type: boolean
+          description: Recherche à une date passée (`at`) antérieure à l'horizon de la rétention des instantanés ; il ne reste de cette période que le dernier instantané de chaque mois.
+        retention_horizon:
+          type: string
+          format: date-time
+          description: Horizon de la rétention, quand `partial` est vrai.
         groups:
           type: array
           items:
