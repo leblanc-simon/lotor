@@ -30,7 +30,12 @@
       "cpes": [
         "cpe:2.3:a:BurntSushi:toml:v1.3.2:*:*:*:*:*:*:*"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/go.mod"
+        }
+      ]
     },
     {
       "purl": "pkg:golang/golang.org/x/text@v0.14.0",
@@ -41,7 +46,12 @@
       "cpes": [
         "cpe:2.3:a:golang:text:v0.14.0:*:*:*:*:*:*:*"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/go.mod"
+        }
+      ]
     },
     {
       "purl": "pkg:npm/%40babel/runtime@7.24.7",
@@ -55,7 +65,12 @@
       "licenses": [
         "MIT"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/package-lock.json"
+        }
+      ]
     },
     {
       "purl": "pkg:npm/express@4.19.2",
@@ -72,7 +87,12 @@
       "hashes": [
         "sha512:18a980a29abd8c92f3994580f63d7c4d8c1427b874a809c5e16caf2ff822327127547bdb941d7cd3c6516e7d55c909ea2a3192843e3e1ed88266e9a299601544"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/package-lock.json"
+        }
+      ]
     },
     {
       "purl": "pkg:npm/jquery@3.4.1",
@@ -125,7 +145,12 @@
         "MIT"
       ],
       "origin": "syft",
-      "scope": "required"
+      "scope": "required",
+      "locations": [
+        {
+          "path": "/package-lock.json"
+        }
+      ]
     },
     {
       "purl": "pkg:npm/portail-client@2.3.0",
@@ -144,7 +169,12 @@
       "licenses": [
         "MIT"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/package-lock.json"
+        }
+      ]
     },
     {
       "purl": "pkg:pypi/django-extensions@3.2.3?repository_url=https:%2F%2Fpypi.org%2Fsimple",
@@ -175,7 +205,12 @@
         "cpe:2.3:a:python_django:python-django:4.2.11:*:*:*:*:*:*:*",
         "cpe:2.3:a:python_django:python_django:4.2.11:*:*:*:*:*:*:*"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/requirements.txt"
+        }
+      ]
     },
     {
       "purl": "pkg:pypi/pyyaml@6.0.1",
@@ -197,7 +232,12 @@
         "cpe:2.3:a:pyyaml:python_pyyaml:6.0.1:*:*:*:*:*:*:*",
         "cpe:2.3:a:pyyaml:pyyaml:6.0.1:*:*:*:*:*:*:*"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/requirements.txt"
+        }
+      ]
     },
     {
       "purl": "pkg:pypi/requests@2.31.0",
@@ -208,7 +248,12 @@
       "cpes": [
         "cpe:2.3:a:python:requests:2.31.0:*:*:*:*:*:*:*"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/requirements.txt"
+        }
+      ]
     }
   ]
 }

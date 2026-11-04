@@ -76,8 +76,9 @@ exactement le même résultat avec un autre membre de l'organisation.
 « Exporter en CSV » et « Exporter en JSON » donnent toutes les occurrences de la
 recherche (pas seulement la page affichée), avec projet, référence, commit, composant,
 version, purl, origine, vulnérabilités ouvertes, sévérité, KEV, risque, versions
-corrigées, et, en fin de ligne, équipe et statut de triage (colonnes `team` et
-`triage_status`). Dans le CSV, une cellule qui commencerait par `=`, `+`, `-` ou `@` est préfixée
+corrigées, et, en fin de ligne, équipe, statut de triage et emplacements (colonnes
+`team`, `triage_status` et `locations` : chemins principaux séparés par « ; » ; l'export
+JSON donne la liste entière). Dans le CSV, une cellule qui commencerait par `=`, `+`, `-` ou `@` est préfixée
 d'une apostrophe, pour qu'un tableur ne l'interprète pas comme une formule.
 
 ### Par l'API
@@ -96,6 +97,22 @@ d'accès » : il expire (7 jours à 1 an), il est affiché une seule fois, il se
 tout moment, et il ne donne que la lecture de ce que votre compte voit, dans les
 organisations dont vous êtes membre au moment de chaque requête. Le contrat de l'API est
 dans `api/openapi.yaml` (opérations `searchOrganization` et `exportSearch`).
+
+## Emplacements des composants
+
+Chaque composant trouvé par Syft garde les fichiers qui l'ont fait trouver : base de
+paquets (`/var/lib/dpkg/status`, `/lib/apk/db/installed`…), manifeste (`go.mod`,
+`package-lock.json`…), archive (`.jar`) ou binaire. Les listes de constats, la recherche,
+les composants d'un instantané et la fiche d'un composant montrent les emplacements
+principaux (trois au plus, puis le nombre des autres) ; la fiche d'un constat les montre
+tous, avec le chemin par lequel l'analyse a atteint le fichier s'il diffère (lien
+symbolique), la couche de l'image et la mention « secondaire » pour les fichiers d'appoint
+d'un paquet (copyright, listes de fichiers). Un constat résolu garde les emplacements où il
+était.
+
+Les emplacements viennent du SBOM : complets en Syft JSON (agent serveur), sans chemin
+d'accès en CycloneDX (agent dépôt), absents en SPDX (« Non renseigné »). Les inventaires
+reçus avant la version qui les garde n'en ont pas : ils apparaissent au scan suivant.
 
 ## Historique et comparaison des instantanés
 

@@ -9,11 +9,11 @@ import (
 
 // fingerprintVersion préfixe la sérialisation : changer les règles de l'empreinte change
 // ce préfixe, et donc toutes les empreintes, plutôt que de réutiliser à tort un ensemble.
-const fingerprintVersion = "lotor-inventory-v1\n"
+const fingerprintVersion = "lotor-inventory-v2\n"
 
 // Fingerprint est l'empreinte d'inventaire : SHA-256 de la liste triée des composants et
 // de ce qui fait un élément d'ensemble (purl canonique, origine, confiance, modèle,
-// portée, identification faible, licences, preuve). Les CPE et empreintes de fichier,
+// portée, identification faible, licences, preuve, emplacements). Les CPE et empreintes de fichier,
 // attachés au composant lui-même, n'en font pas partie ; ni les horodatages, ni le numéro
 // de série, ni l'outil, ni l'ordre des composants du document.
 func Fingerprint(components []Component) [32]byte {
@@ -44,6 +44,13 @@ func Fingerprint(components []Component) [32]byte {
 			field(&b, l)
 		}
 		field(&b, string(c.Evidence))
+		field(&b, strconv.Itoa(len(c.Locations)))
+		for _, l := range c.Locations {
+			field(&b, l.Path)
+			field(&b, l.AccessPath)
+			field(&b, l.Layer)
+			field(&b, strconv.FormatBool(l.Supporting))
+		}
 		b.WriteByte('\n')
 		h.Write([]byte(b.String()))
 	}

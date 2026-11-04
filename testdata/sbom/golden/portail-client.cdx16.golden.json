@@ -11,7 +11,12 @@
       "cpes": [
         "cpe:2.3:a:BurntSushi:toml:v1.3.2:*:*:*:*:*:*:*"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/go.mod"
+        }
+      ]
     },
     {
       "purl": "pkg:golang/golang.org/x/text@v0.14.0",
@@ -22,7 +27,12 @@
       "cpes": [
         "cpe:2.3:a:golang:text:v0.14.0:*:*:*:*:*:*:*"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/go.mod"
+        }
+      ]
     },
     {
       "purl": "pkg:npm/%40babel/runtime@7.24.7",
@@ -36,7 +46,12 @@
       "licenses": [
         "MIT"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/package-lock.json"
+        }
+      ]
     },
     {
       "purl": "pkg:npm/express@4.19.2",
@@ -50,7 +65,12 @@
       "licenses": [
         "MIT"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/package-lock.json"
+        }
+      ]
     },
     {
       "purl": "pkg:npm/lodash@4.17.21",
@@ -64,7 +84,12 @@
       "licenses": [
         "MIT"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/package-lock.json"
+        }
+      ]
     },
     {
       "purl": "pkg:npm/portail-client@2.3.0",
@@ -83,7 +108,12 @@
       "licenses": [
         "MIT"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/package-lock.json"
+        }
+      ]
     },
     {
       "purl": "pkg:pypi/django@4.2.11",
@@ -105,7 +135,12 @@
         "cpe:2.3:a:python_django:python-django:4.2.11:*:*:*:*:*:*:*",
         "cpe:2.3:a:python_django:python_django:4.2.11:*:*:*:*:*:*:*"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/requirements.txt"
+        }
+      ]
     },
     {
       "purl": "pkg:pypi/pyyaml@6.0.1",
@@ -127,7 +162,12 @@
         "cpe:2.3:a:pyyaml:python_pyyaml:6.0.1:*:*:*:*:*:*:*",
         "cpe:2.3:a:pyyaml:pyyaml:6.0.1:*:*:*:*:*:*:*"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/requirements.txt"
+        }
+      ]
     },
     {
       "purl": "pkg:pypi/requests@2.31.0",
@@ -138,7 +178,12 @@
       "cpes": [
         "cpe:2.3:a:python:requests:2.31.0:*:*:*:*:*:*:*"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/requirements.txt"
+        }
+      ]
     }
   ]
 }

@@ -12,6 +12,7 @@ import (
 
 	"leblanc.io/lotor/internal/db"
 	"leblanc.io/lotor/internal/pagination"
+	"leblanc.io/lotor/internal/sbom"
 	"leblanc.io/lotor/internal/tenant"
 	"leblanc.io/lotor/internal/triage"
 	"leblanc.io/lotor/internal/vuln"
@@ -59,13 +60,19 @@ type Row struct {
 	TriageDecisionID  uuid.UUID
 	ComponentPURLBase string
 	ComponentType     string
+	// Locations : emplacements du composant dans le dernier instantané qui a constaté la
+	// vulnérabilité (sbom.Location), vides pour un inventaire antérieur à la migration 025.
+	Locations []sbom.Location
 }
 
 const rowColumns = `
 	f.id, f.project_id, p.slug, p.name, p.kind, f.ref_id, r.kind, r.name, f.component_id, c.name, c.version, c.purl,
 	f.vuln_id, f.severity, f.cvss_score, f.epss, f.epss_percentile, f.kev, f.risk, f.fixed_versions, f.fix_state,
 	f.match_type, f.status, coalesce(f.resolution, ''), f.first_seen_at, f.last_seen_at, f.resolved_at,
-	f.triage_status, f.triage_decision_id, c.purl_base, c.type`
+	f.triage_status, f.triage_decision_id, c.purl_base, c.type,
+	(SELECT i.locations FROM snapshots ls
+	   JOIN component_set_items i ON i.org_id = ls.org_id AND i.set_id = ls.set_id
+	  WHERE ls.org_id = f.org_id AND ls.id = f.snapshot_id AND i.component_id = f.component_id)`
 
 const rowFrom = `
 	  FROM findings f
@@ -82,14 +89,16 @@ func scanRow(s scanner) (Row, error) {
 	var resolved sql.NullTime
 	var triageStatus string
 	var decision uuid.NullUUID
+	var locations []byte
 	err := s.Scan(&r.ID, &r.ProjectID, &r.ProjectSlug, &r.ProjectName, &r.ProjectKind, &r.RefID, &r.RefKind, &r.RefName,
 		&r.ComponentID, &r.ComponentName, &r.ComponentVersion, &r.ComponentPURL, &r.VulnID, &sev, &cvss, &epss, &pct,
 		&r.KEV, &r.Risk, db.Array(&r.FixedVersions), &state, &mtype, &status, &res, &r.FirstSeen, &r.LastSeen, &resolved,
-		&triageStatus, &decision, &r.ComponentPURLBase, &r.ComponentType)
+		&triageStatus, &decision, &r.ComponentPURLBase, &r.ComponentType, &locations)
 	if err != nil {
 		return Row{}, err
 	}
 	r.TriageStatus, r.TriageDecisionID = triage.Status(triageStatus), decision.UUID
+	r.Locations = sbom.ParseLocations(locations)
 	r.Severity, r.FixState, r.MatchType, r.Status, r.Resolution = vuln.Severity(sev), vuln.FixState(state),
 		vuln.MatchType(mtype), Status(status), Resolution(res)
 	r.CVSS, r.EPSS, r.EPSSPercentile = nullFloat(cvss), nullFloat(epss), nullFloat(pct)

@@ -176,6 +176,12 @@ chaque invitation d'organisation (`/invitation/{jeton}`, tous modes). Courriels
 transactionnels `internal/mailer` (job `mail.send` chiffré) et gabarit HTML commun des
 courriels (`internal/delivery/mailhtml.go`, contraintes du mode sombre de Thunderbird dans
 son commentaire). `web.public_url` remplace `notify.public_url`.
+Emplacements des composants, hors lot (ADR 0057) : `sbom.Location` (chemin, chemin
+d'accès, couche, secondaire) lu par l'adaptateur Syft, rangé dans
+`component_set_items.locations` (migration 025), compté par l'empreinte
+(`lotor-inventory-v2`) ; affiché dans les constats, la recherche, les instantanés et la
+fiche composant (gabarits `location_short`, `location_list`) ; `locations` dans l'API de
+recherche et l'export.
 
 ## Règles de travail
 

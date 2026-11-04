@@ -15,6 +15,7 @@ import (
 
 	"leblanc.io/lotor/internal/db"
 	"leblanc.io/lotor/internal/project"
+	"leblanc.io/lotor/internal/sbom"
 	"leblanc.io/lotor/internal/tenant"
 )
 
@@ -35,6 +36,8 @@ var exportColumns = []string{
 	"open_vulnerabilities", "max_severity", "kev", "risk", "fixed_versions", "vulnerability", "status",
 	// Ajoutées en T18, en fin de ligne pour ne pas décaler les colonnes existantes.
 	"team", "triage_status",
+	// Ajoutée avec les emplacements (ADR 0057) : chemins principaux séparés par « ; ».
+	"locations",
 }
 
 // ExportRow est une occurrence exportée, avec son projet.
@@ -127,7 +130,17 @@ func (r ExportRow) cells() []string {
 		r.Name, r.Version, r.PURL, r.Type, string(r.Origin), conf, strconv.FormatBool(r.Weak),
 		strconv.Itoa(r.Open), string(r.Severity), strconv.FormatBool(r.KEV), strconv.FormatFloat(r.Risk, 'f', -1, 64),
 		strings.Join(r.Fixed, " "), r.VulnID, string(r.Status), r.Project.Team.Name, string(r.Triage),
+		mainPaths(r.Locations),
 	}
+}
+
+// mainPaths joint les chemins des emplacements principaux (sbom.MainLocations).
+func mainPaths(ls []sbom.Location) string {
+	paths := make([]string, 0, len(ls))
+	for _, l := range sbom.MainLocations(ls) {
+		paths = append(paths, l.Path)
+	}
+	return strings.Join(paths, "; ")
 }
 
 type csvEncoder struct {
@@ -169,31 +182,32 @@ func defuse(s string) string {
 
 // jsonRow est une occurrence exportée en JSON.
 type jsonRow struct {
-	Project             string    `json:"project"`
-	ProjectName         string    `json:"project_name"`
-	ProjectType         string    `json:"project_type"`
-	RefType             string    `json:"ref_type"`
-	Ref                 string    `json:"ref"`
-	Commit              string    `json:"commit,omitempty"`
-	ScannedAt           *string   `json:"scanned_at,omitempty"`
-	Component           string    `json:"component"`
-	Version             string    `json:"version"`
-	PURL                string    `json:"purl"`
-	ComponentType       string    `json:"component_type"`
-	Origin              string    `json:"origin,omitempty"`
-	Confidence          *float64  `json:"confidence,omitempty"`
-	WeakIdentification  bool      `json:"weak_identification"`
-	OpenVulnerabilities int       `json:"open_vulnerabilities"`
-	MaxSeverity         string    `json:"max_severity,omitempty"`
-	KEV                 bool      `json:"kev"`
-	Risk                float64   `json:"risk"`
-	FixedVersions       []string  `json:"fixed_versions"`
-	Vulnerability       string    `json:"vulnerability,omitempty"`
-	Status              string    `json:"status,omitempty"`
-	ComponentID         uuid.UUID `json:"component_id"`
-	Team                string    `json:"team"`
-	TeamID              uuid.UUID `json:"team_id"`
-	TriageStatus        string    `json:"triage_status,omitempty"`
+	Project             string          `json:"project"`
+	ProjectName         string          `json:"project_name"`
+	ProjectType         string          `json:"project_type"`
+	RefType             string          `json:"ref_type"`
+	Ref                 string          `json:"ref"`
+	Commit              string          `json:"commit,omitempty"`
+	ScannedAt           *string         `json:"scanned_at,omitempty"`
+	Component           string          `json:"component"`
+	Version             string          `json:"version"`
+	PURL                string          `json:"purl"`
+	ComponentType       string          `json:"component_type"`
+	Origin              string          `json:"origin,omitempty"`
+	Confidence          *float64        `json:"confidence,omitempty"`
+	WeakIdentification  bool            `json:"weak_identification"`
+	OpenVulnerabilities int             `json:"open_vulnerabilities"`
+	MaxSeverity         string          `json:"max_severity,omitempty"`
+	KEV                 bool            `json:"kev"`
+	Risk                float64         `json:"risk"`
+	FixedVersions       []string        `json:"fixed_versions"`
+	Vulnerability       string          `json:"vulnerability,omitempty"`
+	Status              string          `json:"status,omitempty"`
+	ComponentID         uuid.UUID       `json:"component_id"`
+	Team                string          `json:"team"`
+	TeamID              uuid.UUID       `json:"team_id"`
+	TriageStatus        string          `json:"triage_status,omitempty"`
+	Locations           []sbom.Location `json:"locations,omitempty"`
 }
 
 type jsonEncoder struct {
@@ -226,7 +240,7 @@ func (e *jsonEncoder) row(r ExportRow) error {
 		ComponentType: r.Type, Origin: string(r.Origin), Confidence: r.Confidence, WeakIdentification: r.Weak,
 		OpenVulnerabilities: r.Open, MaxSeverity: string(r.Severity), KEV: r.KEV, Risk: r.Risk, FixedVersions: r.Fixed,
 		Vulnerability: r.VulnID, Status: string(r.Status), ComponentID: r.ComponentID,
-		Team: r.Project.Team.Name, TeamID: r.Project.Team.ID, TriageStatus: string(r.Triage)}
+		Team: r.Project.Team.Name, TeamID: r.Project.Team.ID, TriageStatus: string(r.Triage), Locations: r.Locations}
 	if j.FixedVersions == nil {
 		j.FixedVersions = []string{}
 	}

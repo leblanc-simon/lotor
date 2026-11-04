@@ -93,6 +93,8 @@ type Hit struct {
 	Origin     sbom.Origin
 	Confidence *float64
 	Weak       bool
+	// Locations : emplacements du composant dans cet inventaire (sbom.Location).
+	Locations []sbom.Location
 
 	// Open : vulnérabilités ouvertes de l'occurrence ; Severity, KEV, Risk : la pire
 	// d'entre elles (Severity vide sans vulnérabilité). Recherche par vulnérabilité : ceux

@@ -20,7 +20,12 @@
       "licenses": [
         "GPLv3+"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     },
     {
       "purl": "pkg:rpm/redhat/curl@7.61.1-22.el8?arch=s390x\u0026distro=rhel-8.6\u0026upstream=curl-7.61.1-22.el8.src.rpm",
@@ -35,7 +40,12 @@
       "licenses": [
         "MIT"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     },
     {
       "purl": "pkg:rpm/redhat/dbus-libs@1.12.8-18.el8?arch=s390x\u0026distro=rhel-8.6\u0026epoch=1\u0026upstream=dbus-1.12.8-18.el8.src.rpm",
@@ -56,7 +66,12 @@
       "licenses": [
         "(GPLv2+ or AFL) and GPLv2+"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     },
     {
       "purl": "pkg:rpm/redhat/device-mapper-libs@1.02.181-3.el8?arch=s390x\u0026distro=rhel-8.6\u0026epoch=8\u0026upstream=lvm2-2.03.14-3.el8.src.rpm",
@@ -81,7 +96,12 @@
       "licenses": [
         "LGPLv2"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     },
     {
       "purl": "pkg:rpm/redhat/glibc-common@2.28-189.1.el8?arch=s390x\u0026distro=rhel-8.6\u0026upstream=glibc-2.28-189.1.el8.src.rpm",
@@ -102,7 +122,12 @@
       "licenses": [
         "LGPLv2+ and LGPLv2+ with exceptions and GPLv2+ and GPLv2+ with exceptions and BSD and Inner-Net and ISC and Public Domain and GFDL"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     },
     {
       "purl": "pkg:rpm/redhat/glibc@2.28-189.1.el8?arch=s390x\u0026distro=rhel-8.6\u0026upstream=glibc-2.28-189.1.el8.src.rpm",
@@ -117,7 +142,12 @@
       "licenses": [
         "LGPLv2+ and LGPLv2+ with exceptions and GPLv2+ and GPLv2+ with exceptions and BSD and Inner-Net and ISC and Public Domain and GFDL"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     },
     {
       "purl": "pkg:rpm/redhat/krb5-libs@1.18.2-14.el8?arch=s390x\u0026distro=rhel-8.6\u0026upstream=krb5-1.18.2-14.el8.src.rpm",
@@ -138,7 +168,12 @@
       "licenses": [
         "MIT"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     },
     {
       "purl": "pkg:rpm/redhat/libcurl@7.61.1-22.el8?arch=s390x\u0026distro=rhel-8.6\u0026upstream=curl-7.61.1-22.el8.src.rpm",
@@ -153,7 +188,12 @@
       "licenses": [
         "MIT"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     },
     {
       "purl": "pkg:rpm/redhat/libgcc@8.5.0-10.el8?arch=s390x\u0026distro=rhel-8.6\u0026upstream=gcc-8.5.0-10.el8.src.rpm",
@@ -168,7 +208,12 @@
       "licenses": [
         "GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     },
     {
       "purl": "pkg:rpm/redhat/openssl-libs@1.1.1k-6.el8_5?arch=s390x\u0026distro=rhel-8.6\u0026epoch=1\u0026upstream=openssl-1.1.1k-6.el8_5.src.rpm",
@@ -189,7 +234,12 @@
       "licenses": [
         "OpenSSL and ASL 2.0"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     },
     {
       "purl": "pkg:rpm/redhat/python3-libs@3.6.8-45.el8?arch=s390x\u0026distro=rhel-8.6\u0026upstream=python3-3.6.8-45.el8.src.rpm",
@@ -210,7 +260,12 @@
       "licenses": [
         "Python"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     },
     {
       "purl": "pkg:rpm/redhat/python3-requests@2.20.0-2.1.el8_1?arch=noarch\u0026distro=rhel-8.6\u0026upstream=python-requests-2.20.0-2.1.el8_1.src.rpm",
@@ -231,7 +286,12 @@
       "licenses": [
         "ASL 2.0"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     },
     {
       "purl": "pkg:rpm/redhat/redhat-release@8.6-0.1.el8?arch=s390x\u0026distro=rhel-8.6\u0026upstream=redhat-release-8.6-0.1.el8.src.rpm",
@@ -250,7 +310,12 @@
       "licenses": [
         "GPLv2"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     },
     {
       "purl": "pkg:rpm/redhat/shadow-utils@4.6-16.el8?arch=s390x\u0026distro=rhel-8.6\u0026epoch=2\u0026upstream=shadow-utils-4.6-16.el8.src.rpm",
@@ -271,7 +336,12 @@
       "licenses": [
         "BSD and GPLv2+"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     },
     {
       "purl": "pkg:rpm/redhat/systemd-libs@239-58.el8?arch=s390x\u0026distro=rhel-8.6\u0026upstream=systemd-239-58.el8.src.rpm",
@@ -292,7 +362,12 @@
       "licenses": [
         "LGPLv2+ and MIT"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     },
     {
       "purl": "pkg:rpm/redhat/tar@1.30-5.el8?arch=s390x\u0026distro=rhel-8.6\u0026epoch=2\u0026upstream=tar-1.30-5.el8.src.rpm",
@@ -307,7 +382,12 @@
       "licenses": [
         "GPLv3+"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     },
     {
       "purl": "pkg:rpm/redhat/vim-minimal@8.0.1763-16.el8_5.13?arch=s390x\u0026distro=rhel-8.6\u0026epoch=2\u0026upstream=vim-8.0.1763-16.el8_5.13.src.rpm",
@@ -328,7 +408,12 @@
       "licenses": [
         "Vim and MIT"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     },
     {
       "purl": "pkg:rpm/redhat/xz-libs@5.2.4-4.el8_6?arch=s390x\u0026distro=rhel-8.6\u0026upstream=xz-5.2.4-4.el8_6.src.rpm",
@@ -349,7 +434,12 @@
       "licenses": [
         "Public Domain"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     },
     {
       "purl": "pkg:rpm/redhat/zlib@1.2.11-18.el8_5?arch=s390x\u0026distro=rhel-8.6\u0026upstream=zlib-1.2.11-18.el8_5.src.rpm",
@@ -364,7 +454,12 @@
       "licenses": [
         "zlib and Boost"
       ],
-      "origin": "syft"
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/rpm/Packages"
+        }
+      ]
     }
   ]
 }

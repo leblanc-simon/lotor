@@ -96,6 +96,7 @@
             <th scope="col">{{T "snapshot.col_type"}}</th>
             <th scope="col">{{T "snapshot.col_purl"}}</th>
             <th scope="col">{{T "snapshot.col_licenses"}}</th>
+            <th scope="col">{{T "snapshot.col_location"}}</th>
           </tr>
         </thead>
         <tbody>
@@ -115,6 +116,7 @@
             <td class="mono">{{.Type}}</td>
             <td class="mono wrap purl">{{.PURL}}</td>
             <td class="wrap">{{if .Licenses}}{{range $i, $l := .Licenses}}{{if $i}}, {{end}}{{$l}}{{end}}{{else}}<span class="muted">{{T "snapshot.no_license"}}</span>{{end}}</td>
+            <td>{{if .Locations.Shown}}{{template "location_short" .Locations}}{{else}}<span class="muted">{{T "locations.none"}}</span>{{end}}</td>
           </tr>
           {{- end}}
         </tbody>

@@ -58,6 +58,7 @@ type searchHitRow struct {
 	TriageHref    string
 	Fixed         []string
 	Risk          int
+	Locations     locationsView
 }
 
 type searchGroupRow struct {
@@ -317,7 +318,8 @@ func (id *identity) searchResults(view *searchView, req search.Request, res sear
 			row := searchHitRow{ComponentHref: base + "/components/" + h.ComponentID.String(), Name: h.Name, PURL: h.PURL,
 				Version: h.Version, RefKind: h.RefKind, RefName: h.RefName, CommitShort: shortCommit(h.Commit),
 				Origin: string(h.Origin), Weak: h.Weak, Open: h.Open, KEV: h.KEV, Fixed: h.Fixed, Risk: riskOf(h.Risk),
-				Status: string(h.Status), FindingsHref: base + "/projects/" + g.Project.Slug + "/findings?ref=" + h.RefID.String()}
+				Status: string(h.Status), FindingsHref: base + "/projects/" + g.Project.Slug + "/findings?ref=" + h.RefID.String(),
+				Locations: locationsOf(h.Locations)}
 			if h.Confidence != nil {
 				pct := int(math.Round(*h.Confidence * 100))
 				row.Confidence = &pct

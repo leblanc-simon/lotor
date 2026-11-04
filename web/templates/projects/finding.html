@@ -37,6 +37,8 @@
         <dd><span class="mono">{{$f.RefName}}</span> <span class="muted">{{T (print "ref_kind." $f.RefKind)}}</span></dd>
         <dt>{{T "triage.component"}}</dt>
         <dd><a href="{{$f.ComponentHref}}">{{$f.Component}}</a> <span class="mono purl">{{.PURL}}</span></dd>
+        <dt>{{T "triage.locations"}}</dt>
+        <dd>{{template "location_list" $f.Locations}}</dd>
         <dt>{{T "triage.fixed_in"}}</dt>
         <dd>{{template "fixed" $f}}</dd>
         <dt>{{T "triage.first_seen"}}</dt>

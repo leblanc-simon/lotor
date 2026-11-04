@@ -116,6 +116,9 @@ type Component struct {
 	// Evidence est le champ evidence de CycloneDX, en JSON canonique (clés triées).
 	Evidence json.RawMessage `json:"evidence,omitempty"`
 	Scope    Scope           `json:"scope,omitempty"`
+	// Locations sont les emplacements où l'analyse l'a trouvé, principaux d'abord (voir
+	// Location) ; vide si le document n'en donne pas.
+	Locations []Location `json:"locations,omitempty"`
 	// WeakID signale un composant sans purl utilisable, identifié par
 	// pkg:generic/<nom>@<version>.
 	WeakID bool `json:"weak_id,omitempty"`
@@ -150,6 +153,7 @@ func (c Component) clone() Component {
 	c.CPEs = slices.Clone(c.CPEs)
 	c.Licenses = slices.Clone(c.Licenses)
 	c.Hashes = slices.Clone(c.Hashes)
+	c.Locations = slices.Clone(c.Locations)
 	if c.Confidence != nil {
 		v := *c.Confidence
 		c.Confidence = &v
