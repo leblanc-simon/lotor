@@ -330,6 +330,7 @@ const (
 	SearchRefKindContainer SearchRefKind = "container"
 	SearchRefKindHost      SearchRefKind = "host"
 	SearchRefKindTag       SearchRefKind = "tag"
+	SearchRefKindVersion   SearchRefKind = "version"
 )
 
 // Valid indicates whether the value is a known member of the SearchRefKind enum.
@@ -342,6 +343,8 @@ func (e SearchRefKind) Valid() bool {
 	case SearchRefKindHost:
 		return true
 	case SearchRefKindTag:
+		return true
+	case SearchRefKindVersion:
 		return true
 	default:
 		return false
@@ -932,6 +935,23 @@ type AgentProjectList struct {
 	Projects []AgentProject `json:"projects"`
 }
 
+// ArchiveImport defines model for ArchiveImport.
+type ArchiveImport struct {
+	// Agent Nom de l'agent émetteur.
+	Agent string `json:"agent"`
+
+	// Duplicate Archive déjà importée ; la réception est celle du premier import.
+	Duplicate bool `json:"duplicate"`
+
+	// Enrolled L'archive a inscrit l'agent (inscription hors ligne).
+	Enrolled    bool               `json:"enrolled"`
+	IngestionId openapi_types.UUID `json:"ingestion_id"`
+	ProjectId   openapi_types.UUID `json:"project_id"`
+
+	// Status État de la réception : queued, processing, done ou failed (décodage asynchrone, comme un envoi réseau).
+	Status string `json:"status"`
+}
+
 // ChangeCounts defines model for ChangeCounts.
 type ChangeCounts struct {
 	Added      int `json:"added"`
@@ -1354,12 +1374,14 @@ type SearchProjectKind string
 
 // SearchRef defines model for SearchRef.
 type SearchRef struct {
-	Id   openapi_types.UUID `json:"id"`
-	Kind SearchRefKind      `json:"kind"`
-	Name string             `json:"name"`
+	Id openapi_types.UUID `json:"id"`
+
+	// Kind Nature de la référence : `version` pour une version reçue par le point compatible Dependency-Track (sans commit).
+	Kind SearchRefKind `json:"kind"`
+	Name string        `json:"name"`
 }
 
-// SearchRefKind defines model for SearchRef.Kind.
+// SearchRefKind Nature de la référence : `version` pour une version reçue par le point compatible Dependency-Track (sans commit).
 type SearchRefKind string
 
 // SearchResult defines model for SearchResult.
@@ -1378,11 +1400,17 @@ type SearchResult struct {
 	// Page Pagination d'une liste.
 	Page PageInfo `json:"page"`
 
+	// Partial Recherche à une date passée (`at`) antérieure à l'horizon de la rétention des instantanés ; il ne reste de cette période que le dernier instantané de chaque mois.
+	Partial *bool `json:"partial,omitempty"`
+
 	// Projects Projets concernés, toutes pages.
 	Projects int `json:"projects"`
 
 	// Query Requête normalisée (espaces ramenés à un seul).
 	Query string `json:"query"`
+
+	// RetentionHorizon Horizon de la rétention, quand `partial` est vrai.
+	RetentionHorizon *time.Time `json:"retention_horizon,omitempty"`
 
 	// Tokens La requête telle qu'elle a été comprise.
 	Tokens []SearchToken `json:"tokens"`
@@ -1547,6 +1575,9 @@ type Org = string
 // Project defines model for Project.
 type Project = string
 
+// SearchAt defines model for SearchAt.
+type SearchAt = string
+
 // SearchContainers defines model for SearchContainers.
 type SearchContainers string
 
@@ -1674,6 +1705,14 @@ type SearchOrganizationParams struct {
 	// des constats retenus.
 	Triage *SearchTriage `form:"triage,omitempty" json:"triage,omitempty"`
 
+	// At État des inventaires à une date passée (T21) : `AAAA-MM-JJ` (fin de cette journée,
+	// UTC) ou date et heure RFC 3339. Pour chaque référence, l'instantané retenu est le
+	// dernier scanné avant cet instant, projets archivés et références retirées compris ;
+	// les vulnérabilités ne sont pas renvoyées (recherche par vulnérabilité, `severity`,
+	// `kev` et `resolved` refusés : 400 `error.search.at_components_only`). Une date
+	// future est refusée (400 `error.search.at_invalid`).
+	At *SearchAt `form:"at,omitempty" json:"at,omitempty"`
+
 	// Sort Ordre des projets (risque maximal décroissant par défaut).
 	Sort *SearchOrganizationParamsSort `form:"sort,omitempty" json:"sort,omitempty"`
 
@@ -1745,6 +1784,14 @@ type ExportSearchParams struct {
 	// Triage Recherche par vulnérabilité seulement (400 sinon) : statuts de triage effectifs
 	// des constats retenus.
 	Triage *SearchTriage `form:"triage,omitempty" json:"triage,omitempty"`
+
+	// At État des inventaires à une date passée (T21) : `AAAA-MM-JJ` (fin de cette journée,
+	// UTC) ou date et heure RFC 3339. Pour chaque référence, l'instantané retenu est le
+	// dernier scanné avant cet instant, projets archivés et références retirées compris ;
+	// les vulnérabilités ne sont pas renvoyées (recherche par vulnérabilité, `severity`,
+	// `kev` et `resolved` refusés : 400 `error.search.at_components_only`). Une date
+	// future est refusée (400 `error.search.at_invalid`).
+	At *SearchAt `form:"at,omitempty" json:"at,omitempty"`
 }
 
 // ExportSearchParamsFormat defines parameters for ExportSearch.

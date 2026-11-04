@@ -1,0 +1,44 @@
+{{define "content" -}}
+{{- $p := .Project}}
+<div class="stack">
+  <div class="page-head">
+    <nav class="breadcrumb" aria-label="{{T "common.breadcrumb"}}">
+      <ol>
+        <li><a href="{{.Base}}/projects">{{T "nav.projects"}}</a></li>
+        <li><a href="{{.Base}}/projects/{{$p.Slug}}">{{$p.Name}}</a></li>
+        <li><span aria-current="page">{{T "project.tab_licenses"}}</span></li>
+      </ol>
+    </nav>
+    <div class="page-head__row">
+      <h1 class="page-head__title">{{$p.Name}}</h1>
+      {{template "project_kind" $p.Kind}}
+    </div>
+  </div>
+  {{template "project_tabs" .Tabs}}
+  <section class="panel" aria-labelledby="license-usage">
+    <div class="panel__head"><h2 class="panel__title" id="license-usage">{{T "licenses.usage_title"}}</h2></div>
+    {{- if .Usages}}
+    <div class="panel__body panel__body--flush">
+      <div class="table-wrap" role="group" aria-labelledby="license-usage" tabindex="0">
+        <table class="data-table">
+          <caption class="visually-hidden">{{T "licenses.usage_caption"}}</caption>
+          <thead><tr><th scope="col">{{T "licenses.col_license"}}</th><th scope="col">{{T "licenses.col_components"}}</th><th scope="col">{{T "licenses.col_verdict"}}</th></tr></thead>
+          <tbody>
+            {{- range .Usages}}
+            <tr>
+              <th scope="row"><span class="cell-stack">{{if .Expression}}<span class="mono">{{.Expression}}</span>{{else}}<span class="muted">{{T "licenses.no_license"}}</span>{{end}}{{if .Unknown}}<span class="muted">{{T "licenses.unknown"}}</span>{{end}}</span></th>
+              <td>{{.Components}}</td>
+              <td><span class="status{{if .Denied}} status--danger{{else if .Review}} status--warning{{else}} status--active{{end}}">{{T .StatusKey}}</span></td>
+            </tr>
+            {{- end}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {{- else}}
+    <div class="panel__body"><p class="muted">{{T "licenses.no_usage"}}</p></div>
+    {{- end}}
+  </section>
+  {{template "license_findings" .Findings}}
+</div>
+{{- end}}

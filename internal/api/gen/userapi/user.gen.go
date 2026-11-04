@@ -137,6 +137,7 @@ const (
 	SearchRefKindContainer SearchRefKind = "container"
 	SearchRefKindHost      SearchRefKind = "host"
 	SearchRefKindTag       SearchRefKind = "tag"
+	SearchRefKindVersion   SearchRefKind = "version"
 )
 
 // Valid indicates whether the value is a known member of the SearchRefKind enum.
@@ -149,6 +150,8 @@ func (e SearchRefKind) Valid() bool {
 	case SearchRefKindHost:
 		return true
 	case SearchRefKindTag:
+		return true
+	case SearchRefKindVersion:
 		return true
 	default:
 		return false
@@ -665,6 +668,23 @@ func (e ExportSearchParamsTriage) Valid() bool {
 	}
 }
 
+// ArchiveImport defines model for ArchiveImport.
+type ArchiveImport struct {
+	// Agent Nom de l'agent émetteur.
+	Agent string `json:"agent"`
+
+	// Duplicate Archive déjà importée ; la réception est celle du premier import.
+	Duplicate bool `json:"duplicate"`
+
+	// Enrolled L'archive a inscrit l'agent (inscription hors ligne).
+	Enrolled    bool               `json:"enrolled"`
+	IngestionId openapi_types.UUID `json:"ingestion_id"`
+	ProjectId   openapi_types.UUID `json:"project_id"`
+
+	// Status État de la réception : queued, processing, done ou failed (décodage asynchrone, comme un envoi réseau).
+	Status string `json:"status"`
+}
+
 // ChangeCounts defines model for ChangeCounts.
 type ChangeCounts struct {
 	Added      int `json:"added"`
@@ -841,12 +861,14 @@ type SearchProjectKind string
 
 // SearchRef defines model for SearchRef.
 type SearchRef struct {
-	Id   openapi_types.UUID `json:"id"`
-	Kind SearchRefKind      `json:"kind"`
-	Name string             `json:"name"`
+	Id openapi_types.UUID `json:"id"`
+
+	// Kind Nature de la référence : `version` pour une version reçue par le point compatible Dependency-Track (sans commit).
+	Kind SearchRefKind `json:"kind"`
+	Name string        `json:"name"`
 }
 
-// SearchRefKind defines model for SearchRef.Kind.
+// SearchRefKind Nature de la référence : `version` pour une version reçue par le point compatible Dependency-Track (sans commit).
 type SearchRefKind string
 
 // SearchResult defines model for SearchResult.
@@ -865,11 +887,17 @@ type SearchResult struct {
 	// Page Pagination d'une liste.
 	Page PageInfo `json:"page"`
 
+	// Partial Recherche à une date passée (`at`) antérieure à l'horizon de la rétention des instantanés ; il ne reste de cette période que le dernier instantané de chaque mois.
+	Partial *bool `json:"partial,omitempty"`
+
 	// Projects Projets concernés, toutes pages.
 	Projects int `json:"projects"`
 
 	// Query Requête normalisée (espaces ramenés à un seul).
 	Query string `json:"query"`
+
+	// RetentionHorizon Horizon de la rétention, quand `partial` est vrai.
+	RetentionHorizon *time.Time `json:"retention_horizon,omitempty"`
 
 	// Tokens La requête telle qu'elle a été comprise.
 	Tokens []SearchToken `json:"tokens"`
@@ -987,6 +1015,9 @@ type Org = string
 // Project defines model for Project.
 type Project = string
 
+// SearchAt defines model for SearchAt.
+type SearchAt = string
+
 // SearchContainers defines model for SearchContainers.
 type SearchContainers string
 
@@ -1097,6 +1128,14 @@ type SearchOrganizationParams struct {
 	// des constats retenus.
 	Triage *SearchTriage `form:"triage,omitempty" json:"triage,omitempty"`
 
+	// At État des inventaires à une date passée (T21) : `AAAA-MM-JJ` (fin de cette journée,
+	// UTC) ou date et heure RFC 3339. Pour chaque référence, l'instantané retenu est le
+	// dernier scanné avant cet instant, projets archivés et références retirées compris ;
+	// les vulnérabilités ne sont pas renvoyées (recherche par vulnérabilité, `severity`,
+	// `kev` et `resolved` refusés : 400 `error.search.at_components_only`). Une date
+	// future est refusée (400 `error.search.at_invalid`).
+	At *SearchAt `form:"at,omitempty" json:"at,omitempty"`
+
 	// Sort Ordre des projets (risque maximal décroissant par défaut).
 	Sort *SearchOrganizationParamsSort `form:"sort,omitempty" json:"sort,omitempty"`
 
@@ -1168,6 +1207,14 @@ type ExportSearchParams struct {
 	// Triage Recherche par vulnérabilité seulement (400 sinon) : statuts de triage effectifs
 	// des constats retenus.
 	Triage *SearchTriage `form:"triage,omitempty" json:"triage,omitempty"`
+
+	// At État des inventaires à une date passée (T21) : `AAAA-MM-JJ` (fin de cette journée,
+	// UTC) ou date et heure RFC 3339. Pour chaque référence, l'instantané retenu est le
+	// dernier scanné avant cet instant, projets archivés et références retirées compris ;
+	// les vulnérabilités ne sont pas renvoyées (recherche par vulnérabilité, `severity`,
+	// `kev` et `resolved` refusés : 400 `error.search.at_components_only`). Une date
+	// future est refusée (400 `error.search.at_invalid`).
+	At *SearchAt `form:"at,omitempty" json:"at,omitempty"`
 }
 
 // ExportSearchParamsFormat defines parameters for ExportSearch.
@@ -1196,6 +1243,9 @@ type ExportSearchParamsTriage string
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// ImportArchive Import d'une archive hors ligne
+	// (POST /orgs/{org}/archives)
+	ImportArchive(w http.ResponseWriter, r *http.Request, org Org)
 	// CompareSnapshots Comparaison de deux instantanés d'un projet
 	// (GET /orgs/{org}/projects/{project}/compare)
 	CompareSnapshots(w http.ResponseWriter, r *http.Request, org Org, project Project, params CompareSnapshotsParams)
@@ -1216,6 +1266,12 @@ type ServerInterface interface {
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
 
 type Unimplemented struct{}
+
+// ImportArchive Import d'une archive hors ligne
+// (POST /orgs/{org}/archives)
+func (_ Unimplemented) ImportArchive(w http.ResponseWriter, r *http.Request, org Org) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
 
 // CompareSnapshots Comparaison de deux instantanés d'un projet
 // (GET /orgs/{org}/projects/{project}/compare)
@@ -1255,6 +1311,32 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// ImportArchive operation middleware
+func (siw *ServerInterfaceWrapper) ImportArchive(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "org" -------------
+	var org Org
+
+	err = runtime.BindStyledParameterWithOptions("simple", "org", chi.URLParam(r, "org"), &org, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "org", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ImportArchive(w, r, org)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // CompareSnapshots operation middleware
 func (siw *ServerInterfaceWrapper) CompareSnapshots(w http.ResponseWriter, r *http.Request) {
@@ -1635,6 +1717,19 @@ func (siw *ServerInterfaceWrapper) SearchOrganization(w http.ResponseWriter, r *
 		return
 	}
 
+	// ------------- Optional query parameter "at" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "at", r.URL.Query(), &params.At, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "at"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "at", Err: err})
+		}
+		return
+	}
+
 	// ------------- Optional query parameter "sort" -------------
 
 	err = runtime.BindQueryParameterWithOptions("form", true, false, "sort", r.URL.Query(), &params.Sort, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
@@ -1846,6 +1941,19 @@ func (siw *ServerInterfaceWrapper) ExportSearch(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	// ------------- Optional query parameter "at" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "at", r.URL.Query(), &params.At, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "at"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "at", Err: err})
+		}
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ExportSearch(w, r, org, params)
 	}))
@@ -1981,6 +2089,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/orgs/{org}/projects/{project}/compare", wrapper.CompareSnapshots)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/orgs/{org}/archives", wrapper.ImportArchive)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/orgs/{org}/projects/{project}/vex", wrapper.ExportProjectVEX)

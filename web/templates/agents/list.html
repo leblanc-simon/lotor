@@ -5,6 +5,7 @@
       <h1 class="page-head__title">{{T "agents.heading"}}</h1>
       {{- if .CanAdmin}}
       <div class="page-head__actions">
+        <a class="btn" href="{{.Base}}/agents/import">{{T "archive_import.link"}}</a>
         <a class="btn" href="{{.Base}}/agents/new">{{T "agents.new_repo"}}</a>
         <a class="btn btn--primary" href="{{.Base}}/enrollment-tokens/new">{{T "agents.new_enrollment"}}</a>
       </div>

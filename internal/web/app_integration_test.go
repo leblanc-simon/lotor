@@ -39,6 +39,7 @@ import (
 	"leblanc.io/lotor/internal/ingest"
 	"leblanc.io/lotor/internal/inventory"
 	"leblanc.io/lotor/internal/jobs"
+	"leblanc.io/lotor/internal/license"
 	"leblanc.io/lotor/internal/locale"
 	"leblanc.io/lotor/internal/notify"
 	"leblanc.io/lotor/internal/org"
@@ -96,6 +97,7 @@ type app struct {
 	dash     *dashboard.Service
 	triage   *triage.Service
 	policies *policy.Service
+	licenses *license.Service
 	notify   *notify.Service
 	sent     *notifyRecorder
 	clock    *testClock
@@ -192,6 +194,10 @@ func newApp(t *testing.T, opts ...appOption) *app {
 		t.Fatal(err)
 	}
 	a.policies = policy.NewService(policy.Options{Pool: tdb.App, Compiler: compiler, PublicURL: "https://sbom.example.org", Now: clock.Now})
+	if a.licenses, err = license.NewService(license.Options{Pool: tdb.App, Known: license.KnownFrom(testValidator(t).CycloneDXLicenseIDs("1.6")),
+		Now: clock.Now, OnChange: policy.OnLicenseChange}); err != nil {
+		t.Fatal(err)
+	}
 	a.sent = &notifyRecorder{}
 	a.notify = notify.NewService(notify.Options{Pool: tdb.App, Secrets: box, Sender: a.sent, Loader: a.policies, Catalog: cat,
 		PublicURL: "https://sbom.example.org", Now: clock.Now})
@@ -213,7 +219,7 @@ func newApp(t *testing.T, opts ...appOption) *app {
 			Inventory: a.inv, History: a.history, Ingest: a.ingest, Findings: finding.NewService(tdb.App), Triage: a.triage,
 			Search: a.search, Exports: a.exports, Reencodes: a.reencode,
 			Dashboard: dashboard.NewService(tdb.App, dashboard.WithClock(clock.Now)),
-			Policies:  a.policies, Notify: a.notify,
+			Policies:  a.policies, Licenses: a.licenses, Notify: a.notify,
 			VulnDB: VulnDBOptions{MaxAge: 120 * time.Hour, ListingURL: "https://grype.anchore.io/databases/v6/latest.json",
 				SyncInterval: time.Minute, MaxArchive: 1 << 20, UploadTimeout: time.Minute},
 			Auth:           appconf.Auth{SessionTTL: time.Hour, CookieName: "lotor_session", CookieSecure: "off", BcryptCost: testCost},
@@ -223,7 +229,7 @@ func newApp(t *testing.T, opts ...appOption) *app {
 		AgentAPI: &apiv1.AgentOptions{Agents: a.agents, Ingest: a.ingest, Verdicts: a.policies},
 		UserAPI: &apiv1.UserOptions{Pool: tdb.App, Accounts: a.accounts, Orgs: a.orgs, Search: a.search,
 			Exports: search.NewExportLimiter(2, time.Minute), Projects: a.projects, Inventory: a.inv, History: a.history,
-			Findings: finding.NewService(tdb.App), Triage: a.triage, Version: "test"},
+			Findings: finding.NewService(tdb.App), Triage: a.triage, Agents: a.agents, Ingest: a.ingest, Version: "test"},
 	}
 	if o.Identity.Signup, err = signup.NewService(signup.Options{Pool: tdb.App, Accounts: a.accounts, Secrets: box,
 		Mode: signup.Private}); err != nil {

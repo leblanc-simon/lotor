@@ -25,6 +25,7 @@ import (
 	"leblanc.io/lotor/internal/finding"
 	"leblanc.io/lotor/internal/ingest"
 	"leblanc.io/lotor/internal/inventory"
+	"leblanc.io/lotor/internal/license"
 	"leblanc.io/lotor/internal/locale"
 	"leblanc.io/lotor/internal/mailer"
 	"leblanc.io/lotor/internal/notify"
@@ -82,6 +83,8 @@ type IdentityOptions struct {
 	// de bord ; Notify les canaux de notification (T15).
 	Policies *policy.Service
 	Notify   *notify.Service
+	// Licenses sert la politique et les constats de licence (T20).
+	Licenses *license.Service
 	// Dashboard sert le tableau de bord et l'en-tête de la fiche projet (T10).
 	Dashboard *dashboard.Service
 	// VulnDB règle l'écran de la base de vulnérabilités et son alerte d'âge.
@@ -131,7 +134,7 @@ type identity struct {
 
 func newIdentity(o IdentityOptions, rd *render.Renderer, cat *locale.Catalog, logger *slog.Logger, clientIP func(*http.Request) string) (*identity, error) {
 	if o.Pool == nil || o.Accounts == nil || o.Orgs == nil || o.Projects == nil || o.Agents == nil || o.Inventory == nil ||
-		o.History == nil || o.Ingest == nil || o.Findings == nil || o.Triage == nil || o.Search == nil || o.Exports == nil || o.Reencodes == nil || o.Dashboard == nil || o.Policies == nil || o.Notify == nil || o.Signup == nil || o.Secrets == nil || o.VulnDB.MaxAge <= 0 {
+		o.History == nil || o.Ingest == nil || o.Findings == nil || o.Triage == nil || o.Search == nil || o.Exports == nil || o.Reencodes == nil || o.Dashboard == nil || o.Policies == nil || o.Notify == nil || o.Licenses == nil || o.Signup == nil || o.Secrets == nil || o.VulnDB.MaxAge <= 0 {
 		return nil, errors.New("web: dépendances de l'identité incomplètes")
 	}
 	if hostCookies(o.Auth.CookieSecure) {

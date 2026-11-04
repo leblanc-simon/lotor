@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -284,7 +286,25 @@ func insertItems(ctx context.Context, tx *db.OrgTx, setID uuid.UUID, cs []sbom.C
 			return err
 		}
 	}
-	return nil
+	return recordLicenseExpressions(ctx, tx, cs)
+}
+
+// recordLicenseExpressions note les expressions de licence de l'ensemble parmi celles de
+// l'organisation (recherche « license: », T20) ; triées, sans doublon.
+func recordLicenseExpressions(ctx context.Context, tx *db.OrgTx, cs []sbom.Component) error {
+	seen := map[string]bool{}
+	for _, c := range cs {
+		for _, l := range c.Licenses {
+			seen[l] = true
+		}
+	}
+	if len(seen) == 0 {
+		return nil
+	}
+	exprs := slices.Sorted(maps.Keys(seen))
+	_, err := tx.ExecContext(ctx, `INSERT INTO license_expressions (org_id, expression)
+		SELECT $1, e FROM unnest($2::text[]) e ON CONFLICT DO NOTHING`, tx.OrgID(), exprs)
+	return err
 }
 
 // current est l'état courant d'une référence.
@@ -413,7 +433,8 @@ func newer(scannedAt time.Time, id uuid.UUID, cur current) bool {
 	return strings.Compare(id.String(), cur.snapshotID.String()) > 0
 }
 
-// machineRef dit si une référence suit une machine (un hôte ou un conteneur) plutôt
-// qu'un dépôt : pas de commit, et un inventaire identique au courant ne fait qu'avancer
-// la date de dernière analyse.
-func machineRef(kind string) bool { return kind == "host" || kind == "container" }
+// machineRef dit si une référence suit une machine (un hôte ou un conteneur) ou une
+// version reçue par le point compatible Dependency-Track, plutôt qu'un commit de dépôt :
+// pas de commit, et un inventaire identique au courant ne fait qu'avancer la date de
+// dernière analyse.
+func machineRef(kind string) bool { return kind == "host" || kind == "container" || kind == "version" }

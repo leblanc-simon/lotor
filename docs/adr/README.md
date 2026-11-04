@@ -62,3 +62,7 @@ décision contraire fait l'objet d'un nouvel ADR qui le remplace.
 | [0055](0055-index-compact-agent-serveur.md) | Agent serveur : index compact de l'arborescence au lieu de la source « répertoire » de Syft, répertoires de données exclus | Accepté |
 | [0056](0056-inscription.md) | Inscription : modes privé, sur code et public, liens d'invitation d'organisation, courriels transactionnels et gabarit HTML commun | Accepté |
 | [0057](0057-emplacements-des-composants.md) | Emplacements des composants : chemins notés par Syft sur l'élément d'inventaire, comptés par l'empreinte, affichés avec les constats | Accepté |
+| [0058](0058-point-compatible-dependency-track.md) | Compatibilité Dependency-Track : point `/dt` (clé = jeton d'agent dépôt, version = référence « version »), création automatique par agent d'équipe, sortie des agents | Accepté |
+| [0059](0059-recherche-a-une-date-passee.md) | Recherche à une date passée : instantané en vigueur par référence, fin de journée UTC, composants seulement, avertissement avant l'horizon de la rétention | Accepté |
+| [0060](0060-mode-hors-ligne.md) | Mode hors ligne : archives signées par l'empreinte du jeton, inscription par archive, import par l'écran, l'API et un répertoire surveillé | Accepté |
+| [0061](0061-licences.md) | Licences : expressions SPDX évaluées dans le projet (Grant non importé), politique qui accepte tout par défaut, constats, sujet « licence » des règles, recherche `license:` | Accepté |

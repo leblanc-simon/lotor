@@ -59,17 +59,19 @@ const violationFrom = `
 	FROM policy_violations v
 	JOIN policies p ON p.org_id = v.org_id AND p.id = v.policy_id
 	LEFT JOIN findings f ON f.org_id = v.org_id AND f.id = v.finding_id
-	LEFT JOIN components c ON c.org_id = f.org_id AND c.id = f.component_id
+	LEFT JOIN license_findings lf ON lf.org_id = v.org_id AND lf.id = v.license_finding_id
+	LEFT JOIN components c ON c.org_id = v.org_id AND c.id = coalesce(f.component_id, lf.component_id)
 	LEFT JOIN projects pr ON pr.org_id = v.org_id AND pr.id = v.project_id
 	LEFT JOIN tracked_refs r ON r.org_id = v.org_id AND r.id = v.ref_id
 	LEFT JOIN agents a ON a.org_id = v.org_id AND a.id = v.agent_id`
 
 const violationColumns = `v.id, v.policy_id, p.name, p.blocking, v.subject, v.opened_at, v.last_seen_at, v.resolved_at,
 	coalesce(v.finding_id, '00000000-0000-0000-0000-000000000000'::uuid), coalesce(pr.slug, ''), coalesce(pr.name, ''),
-	coalesce(r.name, ''), coalesce(f.vuln_id, ''), coalesce(f.severity, ''), coalesce(f.kev, false), coalesce(c.purl, ''),
+	coalesce(r.name, ''), coalesce(f.vuln_id, array_to_string(lf.license_ids, ' '), ''), coalesce(f.severity, lf.verdict, ''),
+	coalesce(f.kev, false), coalesce(c.purl, ''),
 	coalesce(v.agent_id, '00000000-0000-0000-0000-000000000000'::uuid), coalesce(a.name, '')`
 
-const visibleViolation = `(CASE WHEN v.subject = 'finding' THEN lotor_team_visible(pr.team_id)
+const visibleViolation = `(CASE WHEN v.subject IN ('finding', 'license') THEN lotor_team_visible(pr.team_id)
 	ELSE lotor_team_visible(a.team_id) END)`
 
 // activeProject écarte des listes de violations ouvertes celles d'un projet archivé (un
@@ -276,6 +278,18 @@ func (s *Service) Preview(ctx context.Context, org tenant.OrgID, subject Subject
 			p, err := readProject(ctx, tx, id)
 			if err != nil {
 				return err
+			}
+			if subject == SubjectLicense {
+				ls, err := readLicenses(ctx, tx, p.Project, id, now)
+				if err != nil {
+					return err
+				}
+				for _, l := range ls {
+					if err := count(prg.MatchLicense(ctx, l.in, now)); err != nil {
+						return err
+					}
+				}
+				continue
 			}
 			fs, err := readFindings(ctx, tx, p.Project, id, now)
 			if err != nil {

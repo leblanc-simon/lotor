@@ -13,6 +13,7 @@ import (
 
 	"leblanc.io/open-go-base/appconf"
 
+	"leblanc.io/lotor/internal/agentclient"
 	"leblanc.io/lotor/internal/forge"
 	"leblanc.io/lotor/internal/llm"
 )
@@ -32,6 +33,10 @@ type Config struct {
 	Catchup CatchupConfig   `yaml:"catchup" env-prefix:"LOTOR_REPO_"`
 	AI      AIConfig        `yaml:"ai"      env-prefix:"LOTOR_REPO_"`
 	Status  StatusConfig    `yaml:"status"  env-prefix:"LOTOR_REPO_"`
+	// DependencyTrack : sortie supplémentaire vers Dependency-Track (T19, ADR 0058).
+	DependencyTrack DTConfig `yaml:"dependency_track" env-prefix:"LOTOR_REPO_"`
+	// Offline : archive hors ligne de chaque envoi, en plus de l'envoi réseau (T23).
+	Offline OfflineConfig `yaml:"offline" env-prefix:"LOTOR_REPO_"`
 	// Forges ne se déclarent que dans le fichier de configuration.
 	Forges []Forge `yaml:"forges"`
 }
@@ -115,6 +120,56 @@ type ExternalAIConfig struct {
 	BaseURL    string        `yaml:"base_url"     env:"AI_EXTERNAL_BASE_URL"     env-default:"https://api.anthropic.com" env-description:"API URL of the external provider"`
 	Timeout    time.Duration `yaml:"timeout"      env:"AI_EXTERNAL_TIMEOUT"      env-default:"5m" env-description:"Maximum duration of one request to the provider"`
 	Retries    int           `yaml:"retries"      env:"AI_EXTERNAL_RETRIES"      env-default:"2"  env-description:"Retries of one request (429, 5xx, network errors)"`
+}
+
+// OfflineConfig règle la sortie « fichier » de l'agent dépôt : une archive par SBOM envoyé
+// au serveur, écrite dans Dir (vide : désactivée).
+type OfflineConfig struct {
+	Dir string `yaml:"dir" env:"OFFLINE_DIR" env-description:"Directory receiving an offline archive of every uploaded SBOM, besides the upload; empty: no file output"`
+}
+
+// DTConfig règle la sortie vers Dependency-Track : le SBOM du commit de tête de chaque
+// référence analysée part aussi vers un Dependency-Track, après son envoi au serveur
+// lotor (les commits intermédiaires d'un rattrapage n'y vont pas). Le nom et la version
+// du projet sont des gabarits : {name} (nom du projet lotor), {slug}, {ref} (branche ou
+// étiquette).
+type DTConfig struct {
+	URL            string `yaml:"url"             env:"DT_URL"             env-description:"Dependency-Track base address (https://…); empty: no Dependency-Track output"`
+	APIKeyFile     string `yaml:"api_key_file"    env:"DT_API_KEY_FILE"    env-default:"credential:dependency-track-api-key" env-description:"Dependency-Track API key: credential:<name> or absolute path of a 0600 file"`
+	CAFile         string `yaml:"ca_file"         env:"DT_CA_FILE"         env-description:"PEM file of the authority that signed the Dependency-Track certificate (system roots if empty)"`
+	Proxy          string `yaml:"proxy"           env:"DT_PROXY"           env-description:"HTTP(S) proxy URL for Dependency-Track (default: HTTPS_PROXY and NO_PROXY)"`
+	ProjectName    string `yaml:"project_name"    env:"DT_PROJECT_NAME"    env-default:"{name}" env-description:"Dependency-Track project name template: {name}, {slug}, {ref}"`
+	ProjectVersion string `yaml:"project_version" env:"DT_PROJECT_VERSION" env-default:"{ref}"  env-description:"Dependency-Track project version template: {name}, {slug}, {ref}"`
+	AutoCreate     bool   `yaml:"auto_create"     env:"DT_AUTO_CREATE"     env-description:"Create missing projects and versions in Dependency-Track (PROJECT_CREATION_UPLOAD permission)"`
+}
+
+// Enabled dit si la sortie vers Dependency-Track est configurée.
+func (d DTConfig) Enabled() bool { return d.URL != "" }
+
+// Target remplit les gabarits du projet et de la version pour une référence.
+func (d DTConfig) Target(name, slug, ref string) agentclient.DTTarget {
+	r := strings.NewReplacer("{name}", name, "{slug}", slug, "{ref}", ref)
+	return agentclient.DTTarget{ProjectName: r.Replace(d.ProjectName), ProjectVersion: r.Replace(d.ProjectVersion),
+		AutoCreate: d.AutoCreate}
+}
+
+func (d DTConfig) validate() []error {
+	if !d.Enabled() {
+		return nil
+	}
+	var errs []error
+	if u, err := url.Parse(d.URL); err != nil || u.Scheme != "https" || u.Host == "" || u.User != nil || u.RawQuery != "" {
+		errs = append(errs, errors.New("dependency_track.url : URL https absolue sans identifiants attendue"))
+	}
+	if d.APIKeyFile == "" {
+		errs = append(errs, errors.New("dependency_track.api_key_file obligatoire"))
+	}
+	for field, v := range map[string]string{"project_name": d.ProjectName, "project_version": d.ProjectVersion} {
+		if strings.TrimSpace(v) == "" || len(v) > 255 {
+			errs = append(errs, fmt.Errorf("dependency_track.%s : gabarit de 1 à 255 caractères", field))
+		}
+	}
+	return errs
 }
 
 // Forge décrit une forge. GitHub : app_id, private_key_file et facultativement
@@ -224,6 +279,10 @@ func (c Config) Validate() error {
 		errs = append(errs, fmt.Errorf("catchup.max_commits entre 1 et %d", maxCommits))
 	}
 	errs = append(errs, c.AI.validate()...)
+	errs = append(errs, c.DependencyTrack.validate()...)
+	if d := c.Offline.Dir; d != "" && !strings.HasPrefix(d, "/") {
+		errs = append(errs, errors.New("offline.dir : chemin absolu attendu"))
+	}
 	if len(c.Forges) == 0 {
 		errs = append(errs, errors.New("forges : au moins une forge"))
 	}

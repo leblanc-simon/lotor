@@ -22,6 +22,8 @@ LoadCredentialEncrypted=github-app-key:/etc/lotor-repo-agent/github-app-key.cred
 LoadCredentialEncrypted=github-webhook-secret:/etc/lotor-repo-agent/github-webhook-secret.cred
 LoadCredentialEncrypted=gitlab-token:/etc/lotor-repo-agent/gitlab-token.cred
 LoadCredentialEncrypted=gitlab-webhook-secret:/etc/lotor-repo-agent/gitlab-webhook-secret.cred
+# Sortie vers Dependency-Track (dependency_track.url) :
+#LoadCredentialEncrypted=dependency-track-api-key:/etc/lotor-repo-agent/dependency-track-api-key.cred
 # Enrichissement IA par un fournisseur externe (ai.external.provider: anthropic) :
 #LoadCredentialEncrypted=anthropic-api-key:/etc/lotor-repo-agent/anthropic-api-key.cred
 

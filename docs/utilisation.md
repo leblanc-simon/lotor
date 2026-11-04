@@ -26,8 +26,7 @@ Une seule barre ; le type de requête est déduit de sa forme et rappelé sous l
 | `pkg:npm/lodash vers:npm/<4.17.21` | purl et plage | les versions du paquet dans la plage, comparées selon les règles de l'écosystème |
 | `CVE-2021-44228`, `GHSA-jfh8-c2jp-5v3q` | vulnérabilité | les projets touchés, avec le statut du constat et la version corrigée ; un GHSA est ramené à son CVE |
 | `sha256:0925e8ad…` ou les 64 caractères seuls | empreinte | les composants qui portent ce fichier, et leurs projets |
-
-La recherche par licence (`license:…`) arrive avec l'analyse des licences.
+| `license:AGPL-3.0-only`, `license:LicenseRef-acme` | licence | les composants qui déclarent cette licence, seule ou dans une expression (`MIT OR AGPL-3.0-only`), sans casse, et leurs projets ; un seul identifiant, pas d'expression |
 
 ### Plages de versions
 
@@ -70,6 +69,26 @@ projet, triés par risque, par nom ou par instantané le plus récent, vingt pro
 
 Requête, filtres et ordre sont dans l'adresse de la page : la copier suffit pour partager
 exactement le même résultat avec un autre membre de l'organisation.
+
+### À une date passée
+
+Le champ **À la date du** (paramètre `at=AAAA-MM-JJ`) répond à « quels projets utilisaient
+ce composant à telle date ? », par exemple pour mesurer une exposition passée pendant une
+réponse à incident. Pour chaque référence, la recherche porte sur l'instantané **en
+vigueur ce jour-là** : le dernier scanné au plus tard à la fin de la journée (UTC). Chaque
+occurrence indique la date de l'instantané retenu. Une date et heure précise s'écrit aussi
+en RFC 3339 (`at=2026-09-10T12:00:00Z`, instant exclu).
+
+- Les projets archivés et les références retirées depuis comptent : la question porte sur
+  l'état d'alors.
+- Les vulnérabilités ne sont pas montrées : la base de vulnérabilités et les constats de
+  l'époque ne sont pas conservés. Une recherche par vulnérabilité, ou les filtres de
+  sévérité, d'exploitation (KEV) et de résolution, sont refusés à une date passée ;
+  cherchez le composant, puis ouvrez la recherche sans date pour l'état actuel.
+- Les anciens instantanés sont éclaircis par la rétention (90 jours complets, puis le
+  dernier instantané de chaque mois) : une date antérieure à la dernière coupure affiche
+  l'avertissement **Résultat partiel**, car l'état retenu peut alors être celui de la fin
+  du mois précédent ou plus ancien.
 
 ### Export
 
@@ -341,7 +360,7 @@ canaux dans **Canaux** ; tout membre voit les violations des projets de ses équ
 | KEV sur un projet de production | `finding.kev && finding.actionable && has(project.labels.env) && project.labels.env == "production"` | bloquante, envoi immédiat |
 | Critique avec correctif depuis plus de 30 jours | `finding.severity == "critical" && finding.actionable && finding.fix_available && finding.fix_age_days > 30` | bloquante, résumé quotidien |
 | Agent muet depuis 7 jours | `agent.silent_days >= 7` | résumé quotidien |
-| Licence AGPL dans un produit distribué | — | disponible avec l'analyse des licences (lot 3) |
+| Licence AGPL dans un produit distribué | `license.ids.exists(id, id.startsWith("AGPL-")) && has(project.labels.distribution)` | bloquante, envoi immédiat (règle de constat de licence) |
 
 « Production » se dit par l'étiquette `env=production` du projet. La date d'un correctif
 est celle où lotor l'a vu pour la première fois sur le constat.
@@ -371,6 +390,11 @@ listes et sont résolues à l'évaluation suivante ; un conteneur n'a pas d'agen
 Une règle d'agent lit `agent` : `name`, `kind` (`host`, `repo`), `version`, `team`,
 `state` (`pending`, `active`, `silent`), `silent_days`, `last_seen`.
 
+Une règle de constat de licence lit `project`, `component` et `ref` comme une règle de
+constat, `now`, et `license` : `verdict` (`denied`, `review`), `ids` (licences qui décident
+du verdict), `licenses` (licences déclarées, telles que reçues), `missing` (composant sans
+licence), `first_seen`, `age_days`. Exemple : `license.verdict == "denied" && ref.kind == "tag"`.
+
 Exemples : `finding.epss_percentile > 0.95 && finding.actionable` ;
 `component.purl_base == "pkg:npm/lodash" && finding.severity in ["critical", "high"]` ;
 `ref.kind == "tag" && finding.kev`.
@@ -393,6 +417,39 @@ peut encore échouer sur une donnée (lire `project.labels["env"]` sur un projet
   référence garde une violation ouverte de cette politique ; l'agent dépôt peut publier ce
   verdict comme statut du commit sur GitHub ou GitLab. Les politiques d'agent ne bloquent
   jamais un commit.
+
+## Licences
+
+Chaque composant porte les licences de son SBOM (expressions SPDX comme
+`MIT OR Apache-2.0`, ou noms libres). La page **Licences** de l'organisation montre sa
+**politique de licences** et les composants qu'elle refuse ou demande de revoir ; l'onglet
+**Licences** d'un projet montre les licences de son inventaire courant, avec leur verdict
+et le nombre de composants, puis ses constats.
+
+### Politique
+
+- Sans réglage, **toute licence SPDX connue est acceptée** : rien n'est signalé, sauf les
+  licences en texte libre et les identifiants inconnus de la liste SPDX, toujours **à
+  revoir** (jamais acceptés d'office).
+- Les administrateurs de l'organisation (permission de gérer les politiques) listent les
+  licences **refusées**, **à revoir** et **acceptées**, un identifiant SPDX par ligne
+  (`GPL-3.0-only`, `LicenseRef-acme` ; un composant sous `GPL-2.0+` prend le statut de
+  `GPL-2.0+` s'il est cité, sinon celui de `GPL-2.0`), choisissent la
+  règle des licences SPDX non citées, et peuvent rendre « à revoir » un composant sans
+  licence. Une licence citée dans deux listes prend la plus stricte. Chaque changement est
+  journalisé et réévalue aussitôt tous les projets.
+- Dans une expression, `OR` retient le choix le plus favorable : `MIT OR GPL-3.0-only` est
+  conforme si MIT est acceptée ; `AND` retient le moins favorable. Un composant qui déclare
+  plusieurs licences prend la moins favorable.
+
+### Constats de licence
+
+Un constat de licence s'ouvre pour chaque composant refusé ou à revoir d'une référence
+suivie, à l'analyse de chaque nouvel instantané ; il se résout quand le composant quitte
+l'inventaire ou devient conforme (politique ou licence changée), et se rouvre s'il revient.
+Les constats alimentent les politiques de sujet « constats de licence » (modèle « Licence
+AGPL dans un produit distribué ») : violations, notifications et verdict des commits comme
+pour les vulnérabilités.
 
 ## Second facteur et codes de secours
 

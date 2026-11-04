@@ -377,6 +377,7 @@ paths:
         - $ref: "#/components/parameters/SearchSeverity"
         - $ref: "#/components/parameters/SearchResolved"
         - $ref: "#/components/parameters/SearchTriage"
+        - $ref: "#/components/parameters/SearchAt"
         - $ref: "#/components/parameters/SearchSort"
         - $ref: "#/components/parameters/Cursor"
         - name: limit
@@ -432,6 +433,7 @@ paths:
         - $ref: "#/components/parameters/SearchSeverity"
         - $ref: "#/components/parameters/SearchResolved"
         - $ref: "#/components/parameters/SearchTriage"
+        - $ref: "#/components/parameters/SearchAt"
       responses:
         "200":
           description: L'export.
@@ -553,6 +555,57 @@ paths:
         "401":
           $ref: "#/components/responses/Problem"
         "404":
+          $ref: "#/components/responses/Problem"
+        "429":
+          $ref: "#/components/responses/Problem"
+  /orgs/{org}/archives:
+    post:
+      operationId: importArchive
+      tags: [user]
+      summary: Import d'une archive hors ligne
+      description: |
+        Importe une archive (`.lotor`) écrite par un agent d'un réseau isolé (T23) : elle est
+        rangée comme un envoi de l'agent émetteur, que son code authentifie (HMAC du
+        manifeste, de clé l'empreinte du secret du jeton de l'agent), avec les mêmes contrôles
+        qu'un envoi réseau. La première archive d'un agent jamais connecté l'inscrit avec le
+        jeton qu'il a tiré. Une archive déjà importée renvoie la même réception (200). Exige
+        un jeton dont le propriétaire peut gérer des agents (`agent.manage`) ; c'est la seule
+        écriture de l'API utilisateur : elle ne range que ce que l'archive prouve (ADR 0060).
+      security:
+        - personalToken: []
+      parameters:
+        - $ref: "#/components/parameters/Org"
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "201":
+          description: Archive importée.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArchiveImport"
+        "200":
+          description: Archive déjà importée.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArchiveImport"
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "413":
+          $ref: "#/components/responses/Problem"
+        "422":
           $ref: "#/components/responses/Problem"
         "429":
           $ref: "#/components/responses/Problem"
@@ -725,6 +778,19 @@ components:
       schema:
         type: string
         enum: ["1"]
+    SearchAt:
+      name: at
+      in: query
+      description: |
+        État des inventaires à une date passée (T21) : `AAAA-MM-JJ` (fin de cette journée,
+        UTC) ou date et heure RFC 3339. Pour chaque référence, l'instantané retenu est le
+        dernier scanné avant cet instant, projets archivés et références retirées compris ;
+        les vulnérabilités ne sont pas renvoyées (recherche par vulnérabilité, `severity`,
+        `kev` et `resolved` refusés : 400 `error.search.at_components_only`). Une date
+        future est refusée (400 `error.search.at_invalid`).
+      schema:
+        type: string
+        maxLength: 40
     SearchTriage:
       name: triage
       in: query
@@ -1310,6 +1376,13 @@ components:
           description: Versions du paquet illisibles dans son écosystème, ni dans la plage ni hors d'elle (non renvoyées).
           items:
             $ref: "#/components/schemas/SearchVersionCount"
+        partial:
+          type: boolean
+          description: Recherche à une date passée (`at`) antérieure à l'horizon de la rétention des instantanés ; il ne reste de cette période que le dernier instantané de chaque mois.
+        retention_horizon:
+          type: string
+          format: date-time
+          description: Horizon de la rétention, quand `partial` est vrai.
         groups:
           type: array
           items:
@@ -1465,7 +1538,8 @@ components:
           format: uuid
         kind:
           type: string
-          enum: [branch, tag, host, container]
+          description: "Nature de la référence : `version` pour une version reçue par le point compatible Dependency-Track (sans commit)."
+          enum: [branch, tag, version, host, container]
         name:
           type: string
     SearchComponent:
@@ -1497,6 +1571,28 @@ components:
           type: array
           items:
             type: object
+    ArchiveImport:
+      type: object
+      required: [ingestion_id, status, project_id, agent, duplicate, enrolled]
+      properties:
+        ingestion_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          description: "État de la réception : queued, processing, done ou failed (décodage asynchrone, comme un envoi réseau)."
+        project_id:
+          type: string
+          format: uuid
+        agent:
+          type: string
+          description: Nom de l'agent émetteur.
+        duplicate:
+          type: boolean
+          description: Archive déjà importée ; la réception est celle du premier import.
+        enrolled:
+          type: boolean
+          description: L'archive a inscrit l'agent (inscription hors ligne).
     SnapshotPage:
       type: object
       required: [snapshots, page]

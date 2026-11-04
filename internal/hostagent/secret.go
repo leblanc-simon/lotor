@@ -21,6 +21,7 @@ const credentialsDirEnv = "CREDENTIALS_DIRECTORY"
 const (
 	CredentialEnrollmentToken = "enrollment-token"
 	CredentialClientKey       = "client-key"
+	CredentialDTAPIKey        = "dependency-track-api-key"
 )
 
 // ErrInsecureSecret : fichier secret lisible par d'autres que son propriétaire.

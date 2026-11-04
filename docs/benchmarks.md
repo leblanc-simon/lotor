@@ -260,6 +260,33 @@ vérifié à chaque passage. Conteneurs (recette du lot 2, Docker 29.9 et Podman
 image Alpine ou Redis s'inventorie en 1,5 à 3 s, nginx (64 composants) en 2,4 s ; une
 image partagée par deux projets n'est scannée qu'une fois.
 
+### T21 — Recherche à une date passée (cible : 5 s au 95e centile, RLS active)
+
+Mesurée le 4 novembre 2026 (`make bench-search`, `TestSearchAtBenchmark`), sans autre
+charge, sur l'environnement de réalisation (**4 cœurs partagés** Intel Xeon 2,1 GHz,
+15 Gio, PostgreSQL 16), moins puissant que la machine de référence. Jeu de référence
+complété des équipes et des conteneurs (T18), puis de **12 mois d'historique** :
+52 instantanés hebdomadaires par référence (80 600 instantanés de plus), chacun reprenant
+l'ensemble courant d'une autre référence (`benchdata.AddHistory`), si bien que
+l'inventaire d'une date diffère de l'inventaire courant sans multiplier les liens.
+
+| Mesure | Cible | Froid | p50 | p95 | Maximum | Verdict |
+| --- | --- | --- | --- | --- | --- | --- |
+| Nom large `lib-1` il y a 6 mois (12 360 occurrences, 1 050 projets) | 5 s | 805 ms | 1,36 s | **1,55 s** | 1,60 s | tenue |
+| Nom large `lib-1`, date variable sur 12 mois | 5 s | 1,32 s | 1,33 s | **1,47 s** | 1,51 s | tenue |
+| Nom précis `lib-<i>` il y a 11 mois (142 projets) | 5 s | 42 ms | 38 ms | 53 ms | 63 ms | tenue |
+| Plage `vers` sur lodash il y a 3 mois (681 projets) | 5 s | 119 ms | 109 ms | 160 ms | 165 ms | tenue |
+| Empreinte il y a 9 mois | 5 s | 64 ms | 50 ms | 75 ms | 80 ms | tenue |
+| Nom large, membre d'une équipe, conteneurs compris, il y a 6 mois | 5 s | 320 ms | 265 ms | 319 ms | 430 ms | tenue |
+| Export CSV du nom large il y a 6 mois | — | — | 1,54 s | 1,69 s | — | — |
+
+Plan (`EXPLAIN ANALYZE`, RLS active) des occurrences de `lib-1` il y a 6 mois : 115 ms ;
+pour chacune des 1 550 références, l'instantané en vigueur est lu par
+`snapshots_ref_idx` (jointure latérale, une ligne), puis les éléments de l'ensemble par
+la clé de `component_set_items` : aucune lecture de l'historique complet. Le reste du
+temps est celui des pages et des détails, comme pour la recherche courante. Les mesures de
+la recherche courante, rejouées dans la même session, restent inchangées (p95 ≤ 318 ms).
+
 ### Agent serveur — index compact de l'arborescence (ADR 0055)
 
 Protocole de T07 (`-tags measure`, binaire réel sous `nobody` avec `CAP_DAC_READ_SEARCH`,

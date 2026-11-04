@@ -30,17 +30,18 @@ func limitBody(deferred func(*http.Request) bool) func(http.Handler) http.Handle
 // flashes associe le paramètre ?done= d'une redirection à son message : seules ces
 // valeurs sont affichées, jamais un texte reçu.
 var flashes = map[string]string{
-	"settings_saved":   "flash.settings_saved",
-	"scan_requested":   "flash.scan_requested",
-	"password_changed": "flash.password_changed",
-	"member_added":     "flash.member_added",
-	"member_updated":   "flash.member_updated",
-	"member_removed":   "flash.member_removed",
-	"org_saved":        "flash.org_saved",
-	"org_created":      "flash.org_created",
-	"org_archived":     "flash.org_archived",
-	"org_unarchived":   "flash.org_unarchived",
-	"account_updated":  "flash.account_updated",
+	"settings_saved":       "flash.settings_saved",
+	"scan_requested":       "flash.scan_requested",
+	"password_changed":     "flash.password_changed",
+	"member_added":         "flash.member_added",
+	"member_updated":       "flash.member_updated",
+	"member_removed":       "flash.member_removed",
+	"org_saved":            "flash.org_saved",
+	"license_policy_saved": "flash.license_policy_saved",
+	"org_created":          "flash.org_created",
+	"org_archived":         "flash.org_archived",
+	"org_unarchived":       "flash.org_unarchived",
+	"account_updated":      "flash.account_updated",
 
 	"member_invited":       "flash.member_invited",
 	"invitation_revoked":   "flash.invitation_revoked",
@@ -61,6 +62,8 @@ var flashes = map[string]string{
 	"project_unarchived":  "flash.project_unarchived",
 	"project_agent_saved": "flash.project_agent_saved",
 	"token_revoked":       "flash.token_revoked",
+	"dt_auto_create_on":   "flash.dt_auto_create_on",
+	"dt_auto_create_off":  "flash.dt_auto_create_off",
 	"agent_disabled":      "flash.agent_disabled",
 	"enrollment_revoked":  "flash.enrollment_revoked",
 

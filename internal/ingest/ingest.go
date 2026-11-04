@@ -147,15 +147,19 @@ type Context struct {
 	RefKind   project.RefKind
 	RefName   string
 	// Commit (SHA-1 ou SHA-256 en hexadécimal minuscule) est exigé pour une branche ou
-	// une étiquette, interdit pour un hôte ou un conteneur.
+	// une étiquette, interdit pour un hôte, un conteneur ou une version (point compatible
+	// Dependency-Track).
 	Commit       string
 	AgentVersion string
 	ScannedAt    time.Time
+	// Archive est l'empreinte de l'archive hors ligne de l'envoi (offline.Archive.Digest,
+	// T23) ; nil pour un envoi réseau. Une archive déjà reçue renvoie son ingestion.
+	Archive *[32]byte
 }
 
 // machine dit si l'envoi vise un hôte ou un conteneur (sans commit).
 func (c Context) machine() bool {
-	return c.RefKind == project.RefHost || c.RefKind == project.RefContainer
+	return c.RefKind == project.RefHost || c.RefKind == project.RefContainer || c.RefKind == project.RefVersion
 }
 
 var commitPattern = regexp.MustCompile(`^[0-9a-f]{40}([0-9a-f]{24})?$`)
@@ -171,7 +175,7 @@ func (s *Service) validate(c *Context) error {
 	case c.ProjectID == uuid.Nil || c.RefName == "" || len(c.RefName) > 255:
 		return invalid("ref", KeyRefInvalid)
 	case c.RefKind != project.RefBranch && c.RefKind != project.RefTag && c.RefKind != project.RefHost &&
-		c.RefKind != project.RefContainer:
+		c.RefKind != project.RefContainer && c.RefKind != project.RefVersion:
 		return invalid("ref", KeyRefInvalid)
 	case c.machine() && c.Commit != "":
 		return invalid("commit", KeyCommitForbid)
@@ -309,6 +313,13 @@ func (s *Service) Receive(ctx context.Context, org tenant.OrgID, agentID uuid.UU
 		if err != nil {
 			return err
 		}
+		if c.Archive != nil {
+			dup, found, err := findArchive(ctx, tx, *c.Archive)
+			if err != nil || found {
+				out = dup
+				return err
+			}
+		}
 		if up.reject != nil {
 			out, err = s.insert(ctx, tx, agentID, ref.ID, c, uuid.Nil, up.reject)
 			return err
@@ -406,6 +417,25 @@ func storeBlob(ctx context.Context, tx *db.OrgTx, up upload) (uuid.UUID, error) 
 	return uuid.Nil, errors.New("SBOM introuvable après trois essais")
 }
 
+// findArchive retrouve l'ingestion d'une archive déjà importée, sous un verrou de
+// transaction par empreinte : deux imports simultanés de la même archive n'en créent
+// qu'une.
+func findArchive(ctx context.Context, tx *db.OrgTx, digest [32]byte) (Ingestion, bool, error) {
+	if _, err := tx.ExecContext(ctx, `SELECT pg_advisory_xact_lock(hashtextextended('lotor:archive:' || encode($1::bytea, 'hex'), 0))`,
+		digest[:]); err != nil {
+		return Ingestion{}, false, err
+	}
+	in, err := scanIngestion(tx.QueryRowContext(ctx, `SELECT `+ingestionColumns+` FROM ingestions WHERE archive_sha256 = $1`, digest[:]))
+	if errors.Is(err, sql.ErrNoRows) {
+		return Ingestion{}, false, nil
+	}
+	if err != nil {
+		return Ingestion{}, false, err
+	}
+	in.Duplicate = true
+	return in, true, nil
+}
+
 func findDuplicate(ctx context.Context, tx *db.OrgTx, refID uuid.UUID, commit string, blobID uuid.UUID) (Ingestion, bool, error) {
 	in, err := scanIngestion(tx.QueryRowContext(ctx, `SELECT `+ingestionColumns+` FROM ingestions
 		WHERE ref_id = $1 AND commit_sha = $2 AND blob_id = $3 AND status <> 'failed'
@@ -431,13 +461,17 @@ func (s *Service) insert(ctx context.Context, tx *db.OrgTx, agentID, refID uuid.
 	if reject != nil {
 		status, key, detail, finished = StatusFailed, reject.Key, reject.Detail, &now
 	}
+	var archive []byte
+	if c.Archive != nil {
+		archive = c.Archive[:]
+	}
 	return scanIngestion(tx.QueryRowContext(ctx, `
 		INSERT INTO ingestions (org_id, id, agent_id, project_id, ref_id, commit_sha, agent_version, scanned_at, blob_id,
-		                        status, error_key, error_detail, received_at, finished_at)
-		VALUES ($1, $2, $3, $4, $5, NULLIF($6, ''), $7, $8, $9, $10, NULLIF($11, ''), $12, $13, $14)
+		                        status, error_key, error_detail, received_at, finished_at, archive_sha256)
+		VALUES ($1, $2, $3, $4, $5, NULLIF($6, ''), $7, $8, $9, $10, NULLIF($11, ''), $12, $13, $14, $15)
 		RETURNING `+ingestionColumns,
 		tx.OrgID(), id, agentID, c.ProjectID, refID, c.Commit, c.AgentVersion, c.ScannedAt, nullUUID(blobID),
-		string(status), key, detail, now, finished))
+		string(status), key, detail, now, finished, archive))
 }
 
 func nullUUID(id uuid.UUID) any {

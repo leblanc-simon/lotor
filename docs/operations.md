@@ -313,8 +313,8 @@ Deux modes :
 
 - **TLS natif** : `tls.cert_file` et `tls.key_file` (PEM). TLS 1.2 minimum.
   `tls.client_ca_file` active le mTLS des agents : un certificat présenté doit être
-  signé par cette autorité, et toute requête de l'API des agents (`/api/v1/agent/*`) sans
-  certificat client vérifié est refusée (401 `error.client_cert_required`), avant la
+  signé par cette autorité, et toute requête de l'API des agents (`/api/v1/agent/*`, et le
+  point compatible Dependency-Track `/dt/*`) sans certificat client vérifié est refusée (401 `error.client_cert_required`), avant la
   lecture du jeton. L'interface web, servie par la même écoute, n'en demande pas.
 - **Derrière un mandataire inverse** qui termine TLS (nginx, HAProxy, Caddy…) : le serveur
   écoute en HTTP sur `web.host:web.port`. Déclarer le mandataire dans
@@ -640,6 +640,15 @@ le binaire de l'archive `lotor-host-agent_<version>_linux_<arch>.tar.gz` en
 
 ### Fonctionnement
 
+- **Hors ligne** (`offline.*`, désactivé par défaut) : une archive par inventaire changé
+  dans `offline.dir` (créé en `0700` ; sous le répertoire d'état pour l'unité fournie), en
+  plus des envois, ou seule avec `offline.only` (ni serveur, ni conteneurs ; un agent jamais
+  inscrit tire son jeton et s'inscrit par sa première archive) ([`site-isole.md`](site-isole.md)).
+- **Dependency-Track** (`dependency_track.*`, désactivé par défaut) : le SBOM de l'hôte part
+  aussi en CycloneDX 1.6 vers un Dependency-Track quand son inventaire change, ou
+  seulement vers lui avec `only: true` (ni inscription, ni signal de vie, ni conteneurs) ;
+  clé d'API en fichier `0600` ou credential `dependency-track-api-key`
+  ([`dependency-track.md`](dependency-track.md)).
 - **Scan** de `/` avec les catalogueurs d'un système installé (dpkg, rpm, apk, paquets
   Python, Ruby, Node.js installés, archives Java, binaires Go et Rust), sans catalogage de
   fichiers. L'agent parcourt l'arborescence une fois, sans ouvrir les fichiers, et Syft
@@ -772,6 +781,30 @@ Protocole (root requis, hors CI) : `make build GOARCH=amd64`, puis
 (agent sous `nobody` avec `CAP_DAC_READ_SEARCH`, contre un faux serveur ;
 `LOTOR_MEASURE_ROOT` choisit la racine). Résultats et cibles : Journal de T07 et cahier
 des charges.
+
+## Point compatible Dependency-Track
+
+Les outils configurés pour Dependency-Track envoient leurs SBOM à l'adresse de base
+`https://<serveur>/dt` (`PUT` ou `POST /dt/api/v1/bom`, suivi par
+`GET /dt/api/v1/event/token/{uuid}`), avec le jeton d'un **agent dépôt** dans `X-Api-Key`.
+Le nom du projet désigne un dépôt confié à l'agent, la version une **version** du dépôt
+(référence de nature « version », sans commit). La création automatique (`autoCreate`)
+s'autorise par agent, sur sa fiche, pour un agent d'équipe. L'envoi suit exactement
+l'ingestion décrite ci-dessous (bornes, quotas, file, limitation par jeton, mTLS). Le
+mandataire inverse doit transmettre `/dt/` comme `/api/` ; pour l'action GitHub
+`gh-upload-sbom`, qui n'accepte qu'un nom d'hôte, un nom dédié qui préfixe `/dt`.
+Correspondance, refus, migration et sortie des agents vers Dependency-Track :
+[`dependency-track.md`](dependency-track.md) ([ADR 0058](adr/0058-point-compatible-dependency-track.md)).
+
+## Archives hors ligne
+
+Les agents d'un réseau isolé écrivent des archives (`.lotor`) que l'on importe par
+**Agents › Importer des archives**, par `POST /api/v1/orgs/{org}/archives` ou par le
+répertoire surveillé `offline.watch_dir` (sondé toutes les `offline.watch_interval` ; chaque
+archive est rangée dans `done/` ou dans `failed/` avec un fichier `.error` donnant la clé du
+refus). L'archive s'authentifie elle-même (HMAC de clé l'empreinte du jeton de l'agent) ;
+l'import suit l'ingestion ci-dessous. Procédure complète, refus et retour en ligne :
+[`site-isole.md`](site-isole.md) ([ADR 0060](adr/0060-mode-hors-ligne.md)).
 
 ## Ingestion
 
@@ -1022,6 +1055,13 @@ organisation). Les notifications (ADR 0046) partent par le job `notify.send` d'u
 le résumé quotidien par `notify.digest_all` à `notify.digest_hour`. Il faut une instance à
 workers. Format des messages et du webhook : [`notifications.md`](notifications.md).
 
+Les **licences** (ADR 0061) s'évaluent dans la même transaction que l'analyse d'une
+référence, juste avant la mise en file de `policy.evaluate_project` ; un changement de
+politique de licences met en file `license.evaluate_org`, qui réévalue toutes les
+références de l'organisation (une transaction par projet). Aucun réglage d'instance : la
+politique se règle par organisation (page **Licences**), et accepte par défaut toute
+licence SPDX connue.
+
 Configuration (`config.example.yaml`) :
 
 - `web.public_url` : URL publique du serveur, pour les liens des messages, des verdicts de
@@ -1260,6 +1300,11 @@ invisible` cache aux autres comptes.
 - `GET /healthz` sur l'écoute du récepteur sert de sonde de vie.
 - Arrêt sur SIGTERM : le récepteur termine ses requêtes (10 s), les clonages en cours
   sont tués et leurs répertoires supprimés ; le travail perdu est rattrapé au démarrage.
+- Archives hors ligne (`offline.dir`, désactivé par défaut) : une archive par SBOM envoyé,
+  en plus de l'envoi ([`site-isole.md`](site-isole.md)).
+- Sortie vers Dependency-Track (`dependency_track.*`, désactivée par défaut) : le SBOM du
+  commit de tête de chaque référence part aussi vers un Dependency-Track après lotor ;
+  clé `credential:dependency-track-api-key` ([`dependency-track.md`](dependency-track.md)).
 - Décision de conception : ADR 0023.
 
 ### Enrichissement IA

@@ -92,6 +92,9 @@ const (
 	RefTag       RefKind = "tag"
 	RefHost      RefKind = "host"
 	RefContainer RefKind = "container"
+	// RefVersion : version d'un dépôt au sens de Dependency-Track (T19, ADR 0058), sans
+	// commit, rangée comme un hôte.
+	RefVersion RefKind = "version"
 )
 
 // Ref est une référence suivie active d'un projet.
@@ -167,8 +170,19 @@ func (p Project) RefNames(kind RefKind) []string {
 	return out
 }
 
+// RefsOf renvoie les références actives de nature kind.
+func (p Project) RefsOf(kind RefKind) []Ref {
+	var out []Ref
+	for _, r := range p.Refs {
+		if r.Kind == kind {
+			out = append(out, r)
+		}
+	}
+	return out
+}
+
 // Input est la saisie d'un projet. Kind et Slug ne valent qu'à la création ; un slug vide
-// est dérivé du nom. Branches et Tags ne valent que pour un dépôt, HostRef que pour un
+// est dérivé du nom. Branches, Tags et Versions ne valent que pour un dépôt, HostRef que pour un
 // serveur.
 type Input struct {
 	Kind        Kind
@@ -180,7 +194,9 @@ type Input struct {
 	ForgeURL    string
 	Branches    []string
 	Tags        []string
-	HostRef     string
+	// Versions : versions au sens de Dependency-Track (dépôts seulement, ADR 0058).
+	Versions []string
+	HostRef  string
 }
 
 // Service gère les projets. Toute lecture et toute écriture passent par InOrg ; chaque
@@ -249,10 +265,18 @@ func clean(kind Kind, in Input) (Input, error) {
 		if len(in.Branches)+len(in.Tags) > maxRefs {
 			return Input{}, invalid("branches", KeyRefsTooMany)
 		}
-		if len(in.Branches)+len(in.Tags) == 0 {
+		for _, n := range in.Versions {
+			if !ValidVersionName(n) {
+				return Input{}, invalid("versions", KeyRefInvalid)
+			}
+		}
+		if len(in.Versions) > MaxVersions {
+			return Input{}, invalid("versions", KeyRefsTooMany)
+		}
+		if len(in.Branches)+len(in.Tags)+len(in.Versions) == 0 {
 			return Input{}, invalid("branches", KeyRefsMissing)
 		}
-		out.Branches, out.Tags = in.Branches, in.Tags
+		out.Branches, out.Tags, out.Versions = in.Branches, in.Tags, in.Versions
 	case KindHost:
 		if out.HostRef, err = NormalizeHostRef(in.HostRef); err != nil {
 			return Input{}, err
@@ -422,6 +446,9 @@ func syncRefs(ctx context.Context, tx *db.OrgTx, p Project, in Input) error {
 	for _, n := range in.Tags {
 		want[key{RefTag, n}] = true
 	}
+	for _, n := range in.Versions {
+		want[key{RefVersion, n}] = true
+	}
 	keys := slices.SortedFunc(maps.Keys(want), func(a, b key) int {
 		return cmp.Or(cmp.Compare(a.kind, b.kind), cmp.Compare(a.name, b.name))
 	})
@@ -575,6 +602,24 @@ func (s *Service) Get(ctx context.Context, org tenant.OrgID, vis tenant.Visibili
 	return p, wrap("lecture d'un projet", err)
 }
 
+// GetByID renvoie un projet visible par son identifiant ; ErrNotFound comme Get.
+func (s *Service) GetByID(ctx context.Context, org tenant.OrgID, vis tenant.Visibility, id uuid.UUID) (Project, error) {
+	var p Project
+	err := s.pool.InOrg(ctx, org, func(tx *db.OrgTx) error {
+		var slug string
+		err := tx.QueryRowContext(ctx, `SELECT slug FROM projects WHERE id = $1 AND lotor_team_visible(team_id)`, id).Scan(&slug)
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		if err != nil {
+			return err
+		}
+		p, err = load(ctx, tx, slug, false, true)
+		return err
+	}, db.ReadOnly(), db.Visible(vis))
+	return p, wrap("lecture d'un projet", err)
+}
+
 // Update modifie un projet : nom, description, étiquettes, et selon sa nature URL de
 // forge et références, ou référence d'hôte. Nature et slug ne changent pas.
 //
@@ -646,7 +691,8 @@ func changes(p Project, in Input) map[string]string {
 		}
 	case KindRepo:
 		if strings.Join(p.RefNames(RefBranch), ",") != strings.Join(in.Branches, ",") ||
-			strings.Join(p.RefNames(RefTag), ",") != strings.Join(in.Tags, ",") {
+			strings.Join(p.RefNames(RefTag), ",") != strings.Join(in.Tags, ",") ||
+			strings.Join(p.RefNames(RefVersion), "\n") != strings.Join(in.Versions, "\n") {
 			fields = append(fields, "refs")
 		}
 	}

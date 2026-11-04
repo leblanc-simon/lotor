@@ -11,6 +11,7 @@ layout:
 nav:
   admin_signup: "Inscription"
   violations: "Violations"
+  licenses: "Licences"
   policies: "Politiques"
   channels: "Canaux"
   triage: "Triage"
@@ -100,6 +101,7 @@ flash:
   member_updated: Le rôle du membre est modifié.
   member_removed: Le membre est retiré de l'organisation.
   org_saved: Les paramètres de l'organisation sont enregistrés.
+  license_policy_saved: "La politique de licences est enregistrée ; les projets sont en cours de réévaluation."
   org_created: L'organisation est créée.
   org_archived: L'organisation est archivée ; ses membres n'y ont plus accès.
   org_unarchived: L'organisation est de nouveau active.
@@ -111,6 +113,8 @@ flash:
   project_agent_saved: L'agent du projet est enregistré.
   project_ai_saved: "Le réglage de l'enrichissement IA est enregistré."
   token_revoked: Le jeton est révoqué ; la prochaine requête qui le présente sera refusée.
+  dt_auto_create_on: "L'agent peut créer projets et versions par le point Dependency-Track."
+  dt_auto_create_off: "L'agent ne peut plus créer de projets ni de versions par le point Dependency-Track."
   agent_disabled: L'agent est désactivé ; ses jetons sont révoqués et ses projets lui sont retirés.
   enrollment_revoked: Le jeton d'inscription est révoqué.
   job_retried: Le traitement est remis en file ; un worker le reprendra sous peu.
@@ -137,6 +141,11 @@ pagination:
   next: Page suivante
 
 validation:
+  dt:
+    target_missing: "Désignez la cible : l'identifiant d'une version (project), ou le nom du projet et sa version (projectName et projectVersion)."
+    version_invalid: La version compte de 1 à 255 caractères, sans caractère de contrôle ni espace en tête ou en fin.
+    team_missing: "La création automatique n'est possible que pour un agent rattaché à une équipe : le projet créé appartient à son équipe."
+    base64: Le champ bom doit contenir le SBOM encodé en base64.
   signup_code_label: "Donnez un libellé au code (100 caractères au plus)."
   signup_code_days: "La validité est de 1 à 365 jours."
   policy_expression_required: "Saisissez la règle (expression CEL)."
@@ -159,6 +168,9 @@ validation:
   channel_name_invalid: "Le nom compte de 1 à 100 caractères."
   channel_name_taken: "Un canal porte déjà ce nom."
   channel_kind_invalid: "Nature de canal inconnue (elle ne change pas après la création)."
+  license_id_invalid: "Saisissez un identifiant de licence SPDX (ou LicenseRef-…) par ligne, sans opérateur ni exception."
+  license_too_many: "Trop de licences dans cette liste."
+  license_default_invalid: "Choisissez la règle des licences non citées."
   channel_recipients_invalid: "Saisissez de 1 à 20 adresses e-mail valides."
   channel_url_invalid: "Adresse http(s) invalide."
   channel_room_invalid: "Identifiant de salon Matrix attendu (!abc:serveur)."
@@ -493,6 +505,7 @@ audit:
     account_totp_reconfigured: "Second facteur de {{.Target}} retiré par son titulaire, à reconfigurer"
     policy_created: "Politique créée : {{.Target}}"
     policy_updated: "Politique modifiée : {{.Target}}"
+    license_policy_updated: "Politique de licences modifiée (par défaut : {{.D_default}} ; refusées {{.D_denied}}, à revoir {{.D_review}}, acceptées {{.D_allowed}})"
     policy_deleted: "Politique supprimée : {{.Target}}"
     channel_created: "Canal de notification créé : {{.Target}}"
     channel_updated: "Canal de notification modifié : {{.Target}}"
@@ -538,6 +551,9 @@ audit:
     project_purged: "Conteneur {{.Target}} de l'hôte {{.D_host}} supprimé avec son historique, archivé pour absence depuis le {{.D_archived_at}}"
     project_agent_changed: "Agent du projet {{.Target}} : {{.D_agent}}"
     project_ai_mode_changed: "Enrichissement IA du projet {{.Target}} : {{.D_from}} → {{.D_to}}"
+    project_version_added: "Version {{.D_version}} ajoutée au projet {{.Target}} (point Dependency-Track)"
+    agent_dt_auto_create_enabled: "L'agent {{.Target}} peut désormais créer projets et versions par le point Dependency-Track"
+    agent_dt_auto_create_disabled: "L'agent {{.Target}} ne peut plus créer de projets ni de versions par le point Dependency-Track"
     agent_created: "Agent {{.Target}} créé"
     agent_enrolled: "Agent serveur {{.Target}} inscrit (projet {{.D_project}}, jeton {{.D_token}})"
     agent_disabled: "Agent {{.Target}} désactivé"
@@ -651,6 +667,38 @@ admin_org:
   unarchive: Réactiver
 
 error:
+  archive:
+    invalid:
+      title: Archive illisible
+      text: "Le fichier n'est pas une archive hors ligne de lotor lisible (format, entrées, empreinte du SBOM ou taille)."
+    foreign:
+      title: Archive d'une autre organisation
+      text: L'agent qui a écrit cette archive n'appartient pas à cette organisation.
+    unknown_agent:
+      title: Agent inconnu
+      text: "Le jeton de l'agent qui a écrit cette archive est inconnu, et l'archive ne porte pas d'inscription : inscrivez l'agent, ou donnez-lui un jeton d'inscription de cette organisation."
+    forged:
+      title: Archive non authentique
+      text: "Le code de l'archive ne correspond pas au jeton de l'agent : elle a été modifiée, ou ne vient pas de cet agent."
+    project:
+      title: Projet introuvable
+      text: "L'archive ne désigne aucun projet confié à cet agent."
+  dt:
+    agent_kind:
+      title: Clé d'API d'un agent serveur
+      text: Le point compatible Dependency-Track n'accepte que le jeton d'un agent dépôt.
+    project_unknown:
+      title: Projet ou version inconnus
+      text: "Aucun dépôt confié à cet agent ne porte ce nom, ou il ne suit pas cette version. Ajoutez la version au projet, ou envoyez avec autoCreate=true si l'agent y est autorisé."
+    project_ambiguous:
+      title: Nom de projet ambigu
+      text: Plusieurs dépôts confiés à cet agent portent ce nom. Renommez-en un, ou désignez la version par son identifiant (project).
+    auto_create_forbidden:
+      title: Création automatique refusée
+      text: "Cet agent n'est pas autorisé à créer des projets ou des versions : un administrateur peut l'autoriser sur la fiche de l'agent, s'il est rattaché à une équipe."
+    versions_limit:
+      title: Trop de versions suivies
+      text: Le projet suit déjà le nombre maximal de versions. Retirez des versions anciennes dans ses réglages.
   notify:
     failed: "L'envoi a échoué."
     unreachable: "Le destinataire est injoignable (réseau, nom ou délai)."
@@ -706,15 +754,21 @@ error:
     hash_invalid:
       title: Empreinte illisible
       text: Une empreinte s'écrit sha256:<64 caractères hexadécimaux>, ou les 64 caractères seuls.
-    license_unavailable:
-      title: Recherche par licence à venir
-      text: La recherche par licence arrive avec l'analyse des licences ; cherchez en attendant par composant.
+    license_invalid:
+      title: Licence illisible
+      text: "Écrivez license: suivi d'un identifiant SPDX, par exemple license:AGPL-3.0-only."
     filter_invalid:
       title: Filtre inconnu
       text: Un filtre ou un ordre de l'adresse n'existe pas ; réinitialisez les filtres.
     triage_vulnerability_only:
       title: "Filtre de triage sans objet"
       text: "Le statut de triage porte sur un constat : il ne filtre qu'une recherche par vulnérabilité (CVE-… ou GHSA-…). Retirez ce filtre."
+    at_invalid:
+      title: Date illisible
+      text: "Indiquez une date passée ou du jour, au format AAAA-MM-JJ (ou une date et heure RFC 3339)."
+    at_components_only:
+      title: "Recherche à une date passée : composants seulement"
+      text: "Les constats de vulnérabilité d'une date passée ne sont pas conservés : à une date passée, cherchez un composant, un purl ou une empreinte, sans filtre de sévérité, d'exploitation ni de résolution."
   client_cert_required:
     title: Certificat client exigé
     text: Ce serveur exige un certificat client valide (mTLS) pour l'API des agents. Configurez le certificat et la clé de l'agent.
@@ -898,7 +952,10 @@ projects:
   container_of: sur
 
 project:
+  versions: Versions (point Dependency-Track)
+  version_id: identifiant
   tab_vex: "VEX"
+  tab_licenses: "Licences"
   tab_findings: Constats
   title: "{{.Name}}"
   tabs: Sections du projet
@@ -989,6 +1046,8 @@ project_form:
   branches: Branches suivies
   tags: Étiquettes git suivies
   refs_hint: Une par ligne, ou séparées par des virgules.
+  versions: Versions (point Dependency-Track)
+  versions_hint: Une par ligne. Une version reçoit les envois des outils configurés pour Dependency-Track ; un envoi avec création automatique en ajoute une.
   host_legend: Serveur
   host_ref: Nom de l'hôte
   host_ref_hint: Le nom que l'agent annonce à l'inscription ; il identifie l'hôte dans l'organisation.
@@ -1032,7 +1091,30 @@ agents:
   col_team: "Équipe"
   org_wide: "Organisation (toutes les équipes)"
 
+archive_import:
+  title: Importer des archives
+  heading: Importer des archives hors ligne
+  link: Importer des archives
+  lead: "Une archive (.lotor) écrite par un agent d'un réseau isolé, transportée jusqu'ici, est rangée comme un envoi de l'agent : son code prouve qu'elle vient de lui. La première archive d'un agent jamais connecté l'inscrit."
+  form_title: Archive
+  file: Fichier d'archive (.lotor)
+  file_hint: "Une archive par envoi ; la même archive importée deux fois ne crée qu'une réception. Pour un grand nombre d'archives, l'exploitant peut configurer un répertoire surveillé."
+  submit: Importer
+  missing: Choisissez un fichier d'archive.
+  done_title: Archive importée
+  duplicate_title: Archive déjà importée
+  done_text: "Envoi de l'agent {{.Agent}} : {{.Status}}."
+  enrolled: L'archive a inscrit l'agent.
+  snapshots: "Voir les instantanés de {{.Project}}"
+
 agent:
+  dt_title: Point Dependency-Track
+  dt_text: "Les outils configurés pour Dependency-Track envoient leurs SBOM à l'adresse de base …/dt de ce serveur, avec un jeton de cet agent comme clé d'API. Le nom du projet désigne un dépôt confié à l'agent, la version une de ses versions."
+  dt_auto_create_on: Création automatique autorisée
+  dt_auto_create_off: Création automatique refusée
+  dt_team_required: "La création automatique demande un agent rattaché à une équipe : le projet créé appartient à son équipe."
+  dt_enable: Autoriser la création automatique
+  dt_disable: Refuser la création automatique
   title: "Agent {{.Name}}"
   version_value: "Version {{.Version}}"
   projects_title: Projets couverts
@@ -1113,6 +1195,7 @@ ref_kind:
   tag: Étiquette
   host: Hôte
   container: Conteneur
+  version: Version
 
 origin:
   syft: Syft
@@ -1523,6 +1606,14 @@ admin_jobs:
   not_found: Ce traitement n'est plus en échec (déjà relancé ou abandonné).
 
 search:
+  at_label: À la date du
+  at_hint: "Vide : état actuel. À une date passée, l'instantané de chaque référence en vigueur ce jour-là, sans vulnérabilités."
+  at_chip: "À la date du {{.Date}}"
+  at_title: "État des inventaires au {{.Date}}"
+  at_text: "Pour chaque référence, l'instantané retenu est le dernier scanné au plus tard ce jour-là (fin de journée UTC), projets archivés et références retirées compris. Les vulnérabilités d'alors ne sont pas montrées."
+  at_partial_title: Résultat partiel
+  at_partial: "La date précède la rétention des instantanés ({{.Horizon}} UTC) : avant elle, il ne reste que le dernier instantané de chaque mois, et l'état retenu peut être plus ancien que la date demandée."
+  col_snapshot: Instantané retenu
   title_query: "Recherche « {{.Query}} »"
   title: Recherche
   heading: Recherche transverse
@@ -1537,11 +1628,13 @@ search:
   kind_range: plage
   kind_vulnerability: vulnérabilité
   kind_hash: empreinte
+  kind_license: licence
   syntax: Syntaxe de recherche
   syntax_name: Nom de composant, approché, toutes versions et tous écosystèmes
   syntax_purl: purl, éventuellement suivi d'une plage de versions au format vers (comparée selon l'écosystème)
   syntax_vulnerability: "Identifiant CVE ou GHSA : projets touchés, avec statut et version corrigée"
   syntax_hash: Empreinte SHA-256 d'un fichier connu d'un SBOM
+  syntax_license: "Identifiant de licence SPDX : composants qui la déclarent, seule ou dans une expression"
   filters: Filtres
   facet_project_type: Type de projet
   facet_label: Étiquette
@@ -2066,6 +2159,8 @@ policy_subject:
   finding_desc: "Chaque constat ouvert, avec son projet, son composant, sa référence et son statut de triage."
   agent: "Agents"
   agent_desc: "Chaque agent non désactivé, avec son état et la durée de son silence."
+  license: "Constats de licence"
+  license_desc: "Chaque constat de licence ouvert (refusée ou à revoir selon la politique de licences), avec son projet, son composant et sa référence."
 policy_delivery:
   immediate: "Envoi immédiat"
   digest: "Résumé quotidien"
@@ -2082,7 +2177,7 @@ policy_template:
     text: "Un agent qui n'a rien envoyé (serveur) ou rien contacté (dépôt) depuis 7 jours."
   license_agpl:
     name: "Licence AGPL dans un produit distribué"
-    text: "Un composant sous licence AGPL dans un projet distribué ; livré avec l'analyse des licences (lot 3)."
+    text: "Un constat de licence dont une licence décisive est une AGPL, dans un projet qui porte l'étiquette « distribution » ; bloquant."
 policy_form:
   title_new: "Nouvelle politique"
   title_edit: "Politique {{.Name}}"
@@ -2110,6 +2205,9 @@ policy_form:
   preview_agent:
     one: "La règle serait violée par {{.Count}} agent aujourd'hui."
     other: "La règle serait violée par {{.Count}} agents aujourd'hui."
+  preview_license:
+    one: "La règle serait violée par {{.Count}} constat de licence ouvert aujourd'hui."
+    other: "La règle serait violée par {{.Count}} constats de licence ouverts aujourd'hui."
   preview_failures:
     one: "{{.Count}} évaluation a échoué (par exemple une étiquette absente) et compte comme non violée."
     other: "{{.Count}} évaluations ont échoué (par exemple une étiquette absente) et comptent comme non violées."
@@ -2125,8 +2223,48 @@ policy_help:
   triage: "Le statut de triage effectif : in_triage, affected, not_affected, false_positive, risk_accepted, fixed."
   ref: "La référence suivie : nature (branch, tag, host, container) et nom."
   agent: "L'agent : nom, nature, version, équipe, état, jours de silence, dernier contact."
+  license: "Le constat de licence : verdict (denied, review), identifiants des licences décisives (ids), licences déclarées (licenses), missing (sans licence), first_seen, age_days."
   now: "L'instant de l'évaluation (horodatage)."
   examples: "Exemples, ceux des modèles fournis :"
+license_verdict:
+  allowed: "Acceptée"
+  review: "À revoir"
+  denied: "Refusée"
+licenses:
+  title: "Licences"
+  project_title: "Licences de {{.Name}}"
+  heading: "Licences"
+  lead: "La politique de licences de l'organisation et les composants qu'elle refuse ou demande de revoir, dans l'inventaire courant de chaque référence."
+  policy_title: "Politique de licences"
+  default: "Licences SPDX non citées"
+  default_hint: "S'applique à toute licence SPDX connue absente des listes ci-dessous. Un identifiant inconnu ou une licence en texte libre est toujours à revoir."
+  denied: "Licences refusées"
+  review: "Licences à revoir"
+  allowed: "Licences acceptées"
+  list_hint: "Un identifiant SPDX par ligne (par exemple GPL-3.0-only, ou LicenseRef-acme) ; un + final couvre les versions ultérieures. Au plus {{.Max}} par liste."
+  require_license: "Un composant sans licence est à revoir"
+  require_yes: "Oui"
+  require_no: "Non"
+  expression_hint: "Dans une expression, OR retient le choix le plus favorable et AND le moins favorable ; un composant à plusieurs licences prend la moins favorable."
+  none_listed: "Aucune"
+  usage_title: "Licences de l'inventaire courant"
+  usage_caption: "Licences déclarées par les composants des références actives, avec leur verdict"
+  col_license: "Licence"
+  col_components: "Composants"
+  col_verdict: "Verdict"
+  col_component: "Composant"
+  col_project: "Projet"
+  col_ref: "Référence"
+  col_since: "Depuis"
+  no_license: "Sans licence"
+  unknown: "Inconnue de la liste SPDX"
+  no_usage: "Aucun composant dans l'inventaire courant."
+  findings_title: "Constats de licence"
+  findings_caption: "Composants refusés ou à revoir selon la politique de licences"
+  filter_verdict: "Filtrer par verdict"
+  filter_all: "Tous"
+  no_findings: "Aucun constat de licence : tous les composants respectent la politique."
+  truncated: "Seuls les premiers constats sont listés ; filtrez par verdict ou ouvrez un projet."
 violations:
   title: "Violations"
   heading: "Violations"
@@ -2144,6 +2282,7 @@ violations:
   col_opened: "Ouverte"
   col_resolved: "Résolue"
   agent: "Agent"
+  license: "Licence"
   no_project: "Sans projet"
   empty_open: "Aucune violation ouverte."
   empty_resolved: "Aucune violation résolue."
@@ -2214,6 +2353,7 @@ notify:
   more: "… et {{.Count}} autres"
   line_finding: "{{.Policy}} : {{.Vuln}} ({{.Severity}}) dans {{.Component}}, projet {{.Project}} ({{.Ref}})"
   line_agent: "{{.Policy}} : agent {{.Agent}}"
+  line_license: "{{.Policy}} : licence {{.Vuln}} ({{.Severity}}) dans {{.Component}}, projet {{.Project}} ({{.Ref}})"
   kev: "[KEV]"
   blocking: "[bloquante]"
   # Version HTML des courriels de notification (internal/delivery, ADR 0056).
@@ -2227,6 +2367,8 @@ notify:
     finding_headline: "{{.Vuln}} dans {{.Component}}"
     finding_detail: "Projet {{.Project}}, référence {{.Ref}}"
     agent_headline: "Agent {{.Agent}}"
+    license_headline: "Licence {{.Vuln}} dans {{.Component}}"
+    license_detail: "{{.Verdict}} — projet {{.Project}}, référence {{.Ref}}"
     policy: "Politique : {{.Policy}}"
     kev: "KEV"
     blocking: "Bloquante"

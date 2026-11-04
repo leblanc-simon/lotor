@@ -1041,3 +1041,80 @@ les pièges découverts, pour ne pas les reproduire. Une entrée = le constat, p
   `finding/effect.go` (préfixe de colonne) ; une sous-requête scalaire dans les colonnes,
   plutôt qu'une jointure de plus dans `rowFrom`, ne touche ni aux alias ni aux filtres des
   autres requêtes.
+## Compatibilité Dependency-Track (T19)
+
+- **Code téléchargé d'un client tiers** : lancer le `dist/index.js` d'une action GitHub
+  récupérée sur le réseau est refusé dans la session (code externe). Règle : lire son code
+  pour reconstituer la requête (ordre des champs, en-têtes, format du multipart de la
+  bibliothèque HTTP), valider la requête reconstituée contre le vrai serveur tiers, et
+  laisser l'enregistrement d'une exécution réelle à l'utilisateur.
+- **Un client qui ne garde pas le chemin de l'adresse** : `new URL("/api/v1/bom", base)`
+  remplace tout chemin de `base` ; l'action `gh-upload-sbom` ne peut donc pas viser un
+  préfixe comme `/dt`. Règle : pour tout point « compatible » sous un préfixe, vérifier
+  dans le code de chaque client visé comment il compose l'URL, et documenter le mandataire
+  qui préfixe quand le client n'accepte qu'un nom d'hôte.
+- **Dependency-Track 5 en conteneur** : l'image `dependencytrack/apiserver:5.x` ne demande
+  que PostgreSQL (`DT_DATASOURCE_URL`, `_USERNAME`, `_PASSWORD`, réseau de l'hôte) ; les
+  erreurs TLS des miroirs de vulnérabilités au démarrage sont sans effet sur l'API. Compte
+  `admin`/`admin` : `POST /api/v1/user/forceChangePassword`, puis `login`, puis `PUT
+  /api/v1/team/{uuid}/key` ; le contrat OpenAPI exact est dans le jar
+  (`org/dependencytrack/api/v1/openapi.yaml`).
+- **Réponse d'un tiers plus riche que sa documentation** : `event/token` renvoie aussi
+  `status` en 5.x, absent des pages consultées. Règle : relever les réponses réelles
+  (fichiers de `testdata/`) plutôt que de s'en tenir à la documentation.
+- **Nom déjà pris dans un paquet** : `writeJSON` existait dans `internal/api` (API
+  utilisateur) avec une autre signature. Règle : chercher le nom (`grep -n "func nom"`)
+  avant d'ajouter un assistant à un paquet partagé.
+
+## Recherche à une date passée (T21)
+
+- **Mesure et autres travaux en parallèle** : une mesure partage les quatre cœurs de la
+  session ; une CI ou des compilations simultanées faussent les centiles. Règle : lancer
+  `make bench-search` seul, ne rien compiler pendant (préparer le lot suivant hors du
+  dépôt, ou dans un worktree, sans le compiler), et noter la machine dans
+  `docs/benchmarks.md`.
+- **Travailler pendant une longue CI** : modifier le dépôt pendant `make ci` peut faire
+  tester un état mêlé. Règle : un `git worktree` séparé pour le lot suivant, rapatrié par
+  `cherry-pick` puis `reset --soft` une fois la CI finie.
+- **Texte de contrôle d'un écran** : « Critique » figure aussi dans les filtres de la
+  page ; un test qui vérifie l'absence des vulnérabilités doit chercher un texte propre aux
+  colonnes masquées (« Corrigée en »), pas un libellé présent ailleurs.
+
+## Mode hors ligne (T23)
+
+- **`MultipartReader` marque la requête** : appelé sur un corps qui n'est pas multipart, il
+  échoue mais pose `r.MultipartForm` à sa sentinelle ; `PostFormValue` (donc csrfx) ne lit
+  plus rien et la requête part en 403. Règle : vérifier le `Content-Type` avant d'appeler
+  `MultipartReader` dans un middleware ; le harnais des droits par route (formulaires
+  ordinaires) l'a montré.
+- **Fichier nommé à la seconde** : deux archives écrites dans la même seconde
+  s'écrasaient. Règle : tout nom de fichier horodaté porte aussi un discriminant du
+  contenu (empreinte).
+- **Répertoire de sortie configuré** : les tests créaient le répertoire, le vrai agent non.
+  Règle : un agent crée lui-même (`0700`) tout répertoire qu'il écrit, et un test part d'un
+  répertoire absent.
+- **Paquet d'un domaine sans `net/http`** : `ingest` ne peut pas tester
+  `*http.MaxBytesError` (règle d'architecture) ; la couche web traduit la borne du corps en
+  `ingest.ErrUploadTooLarge` par un lecteur enveloppe, et les erreurs de lecture sont
+  enveloppées par `%w` jusqu'au domaine.
+- **Utilisateur d'un paquet** : l'agent serveur tourne sous `lotor-agent` (sysusers), pas
+  sous le nom du paquet ; le lire dans `deploy/host-agent/sysusers.conf` avant de scripter
+  une recette.
+
+## Licences (T20)
+
+- **Argument SQL ajouté mais non référencé** : la recherche `license:` construisait les
+  deux conditions possibles et n'en gardait qu'une ; le paramètre des composants restait
+  dans la liste sans figurer dans la requête, et PostgreSQL refusait (« could not
+  determine data type of parameter $1 »). Le test unitaire de la requête ne l'a pas vu, un
+  vrai inventaire si. Règle : avec un assembleur d'arguments numérotés (`args.add`),
+  n'ajouter un argument que dans la branche qui l'écrit dans la requête.
+- **Étude d'une bibliothèque avant l'adaptateur** : la fiche prévoyait Grant ; son
+  évaluation contredisait le premier critère d'acceptation. Règle : confronter le
+  comportement d'une dépendance prévue aux critères de la fiche, par un essai, avant d'en
+  écrire l'adaptateur.
+- **Nouveau sujet de règle** : un sujet de politique touche la contrainte `subject` de deux
+  tables, le contexte CEL, l'aperçu, les violations (jointure, visibilité), les
+  notifications (titre, ligne), l'écran des violations et les clés `policy_subject.*`,
+  `policy_form.preview_*` et `policy_help.*` (vérifiées par `TestDynamicKeysExist`). Règle :
+  chercher `SubjectAgent` dans tout le dépôt et traiter chaque occurrence.

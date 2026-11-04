@@ -34,6 +34,11 @@ type ServerOptions struct {
 	Transport http.RoundTripper
 }
 
+// retryOf est la politique de réessais des appels sortants de l'agent.
+func retryOf(cfg ServerConfig) agentclient.Retry {
+	return agentclient.Retry{Attempts: cfg.Retries, Base: 2 * time.Second, Max: 5 * time.Minute}
+}
+
 // NewServer prépare le client de l'API des agents à partir de la configuration et du
 // jeton d'agent. La clé du certificat client est un secret (credential:<nom> ou fichier en
 // 0600), vérifié comme les autres.
@@ -52,7 +57,7 @@ func NewServer(cfg ServerConfig, token string, o ServerOptions) (Server, error) 
 	c, err := agentclient.New(agentclient.Options{
 		ServerURL: cfg.URL, Token: token, UserAgent: "lotor-repo-agent/" + o.Version, TLS: tlsOpts,
 		Proxy: cfg.Proxy, Timeout: cfg.Timeout, Logger: o.Logger, Transport: o.Transport,
-		Retry: agentclient.Retry{Attempts: cfg.Retries, Base: 2 * time.Second, Max: 5 * time.Minute},
+		Retry: retryOf(cfg),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("repoagent: client de l'API : %w", err)
@@ -71,7 +76,7 @@ func (s *apiServer) Projects(ctx context.Context) ([]Project, error) {
 		if p.Kind != gen.AgentProjectKindRepo || p.ForgeUrl == nil {
 			continue
 		}
-		proj := Project{ID: p.Id.String(), Slug: p.Slug, ForgeURL: *p.ForgeUrl, AIMode: aiModeOf(p.AiMode)}
+		proj := Project{ID: p.Id.String(), Slug: p.Slug, Name: p.Name, ForgeURL: *p.ForgeUrl, AIMode: aiModeOf(p.AiMode)}
 		for _, r := range p.Refs {
 			tr := TrackedRef{ID: r.Id.String(), Ref: forge.Ref{Kind: forge.RefKind(r.Kind), Name: r.Name}}
 			if r.LastSnapshot != nil && r.LastSnapshot.Commit != nil {

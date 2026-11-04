@@ -68,7 +68,8 @@ internal/
   sbom/                  # modèle interne, normalisation purl, empreinte d'inventaire
     syft/                # décodage et encodage via Syft
   inventory/             # composants, ensembles d'inventaire, instantanés, différences, rétention
-  ingest/                # réception, stockage brut, pipeline de décodage
+  ingest/                # réception, stockage brut, pipeline de décodage, import des archives hors ligne
+  offline/               # format des archives hors ligne (T23), sans dépendance : agents et serveur
   version/               # comparaison de versions par écosystème, analyse de `vers`
     grypeversion/        # adaptateur vers les comparateurs de Grype
   vuln/                  # base de vulnérabilités, catalogue, interface Matcher
@@ -86,8 +87,7 @@ internal/
   notify/                # canaux de notification, envois, messages traduits (T15)
   mailer/                # courriels transactionnels de l'instance : file mail.send, composition (T28)
   signup/                # inscription : modes, codes, vérifications d'adresse, liens d'invitation (T28)
-  license/
-    grant/               # lot 3
+  license/               # expressions SPDX, politique de licences, constats de licence (T20, ADR 0061)
   web/                   # routeur chi, handlers HTML par écran, gestion, serveurs
     middleware/          # identifiant de requête, journal, en-têtes, langue, métriques
     webtest/             # assistant de test : accessibilité, absence de code en ligne
@@ -131,7 +131,8 @@ Nommage : paquets courts en anglais, jamais de paquet fourre-tout (`util`, `help
   - `github.com/anchore/stereoscope/...` : `hostagent` (références de fichier du résolveur
     de l'index compact, ADR 0055) ;
   - `github.com/anchore/grype/...` : `vuln/grype`, `version/grypeversion` ;
-  - `github.com/anchore/grant/...` : `license/grant`.
+  - `github.com/anchore/grant/...` : `license/grant`, s'il devait être adopté ; T20 ne
+    l'importe pas (ADR 0061 : les expressions SPDX sont évaluées par `internal/license`).
 - Les types d'Anchore ne traversent jamais la frontière d'un adaptateur.
 - Le métier n'ouvre aucune connexion : un téléchargement passe par une interface injectée
   (`vuln.Fetcher`), implémentée par `download`, paquet serveur hors métier (ADR 0017) ; de
@@ -158,7 +159,7 @@ relevées en T00 (une montée de version ultérieure ne demande pas de nouvelle 
 | Configuration, journaux, i18n, CSRF, limitation de débit (par IP ou par clé), CORS, comptes, sessions, TOTP | `leblanc.io/open-go-base` | v1.0.1, puis commits de v1.1.0 (T03), v1.2.0 (T04) et v1.3.0 (T11), étiquettes à pousser | Décidé |
 | Pilote PostgreSQL | `github.com/jackc/pgx/v5/stdlib` via `database/sql` (partagé avec les stores d'authx et mfax) | v5.12.0 | Validé (ADR 0002) |
 | Routeur HTTP | `github.com/go-chi/chi/v5` (comme open-go-canivet) | v5.5.0 | Validé (ADR 0003) |
-| SBOM, vulnérabilités, licences | `github.com/anchore/syft`, `grype`, `grant` | v1.55.0, v0.121.0, v0.6.8 | Décidé (ADR 0007) |
+| SBOM, vulnérabilités, licences | `github.com/anchore/syft`, `grype` (`grant` étudié, non importé : ADR 0061) | v1.55.0, v0.121.0 | Décidé (ADR 0007, 0061) |
 | Pilote SQLite pur Go, exigé par Syft pour les bases RPM récentes | `modernc.org/sqlite` (déjà dans le graphe d'open-go-base) | v1.60.1, import direct de `hostagent` (T07) | Validé en T00 (ADR 0007) |
 | Manipulation CycloneDX côté agents et dans l'adaptateur `sbom/syft` (réencodage) | `github.com/CycloneDX/cyclonedx-go` (déjà dans le graphe de Syft) | v0.12.0 | Validé |
 | purl | `github.com/package-url/packageurl-go` (déjà dans le graphe de Syft) | v0.1.7 | Validé |
@@ -292,7 +293,7 @@ Données **par organisation** (toutes portent `org_id`) :
 | `organizations`, `org_memberships` | organisation (slug, nom, langue par défaut) ; compte × organisation × rôle (`member`, `admin`) |
 | `teams`, `team_members`, `org_invitations` | équipes ; membre de l'organisation × équipe × rôle d'équipe (`reader`, `analyst`, `admin`) ; invitations à rejoindre l'organisation, avec leur lien secret haché (T16, ADR 0034 ; T28, ADR 0056) |
 | `projects` | type (`repo`, `host`, `container`), nom, slug, étiquettes, équipe (obligatoire, T16), archivage, réglage de l'enrichissement IA `ai_mode` (`disabled` par défaut, `local`, `external` ; T12, ADR 0043) ; pour un conteneur, `parent_id` (l'hôte, dont il garde l'équipe par clé étrangère en cascade), identité dans l'hôte, contexte, dernier signalement, archivage pour absence (T13, ADR 0040) |
-| `tracked_refs` | référence suivie (branche, tag, l'hôte, ou le conteneur nommé par son identité) |
+| `tracked_refs` | référence suivie (branche, tag, version reçue par le point compatible Dependency-Track, l'hôte, ou le conteneur nommé par son identité) |
 | `agents`, `agent_tokens`, `enrollment_tokens` | agents (équipe facultative : sans équipe, agent d'organisation) et jetons hachés ; jeton d'inscription rattaché à une équipe, dont héritent projet et agent inscrits ; pour un agent serveur, demande de scan en attente et dernier contexte d'hôte (T07) |
 | `components` | composant de l'organisation : purl canonique (unique par organisation), `purl_base`, type, nom, version, CPE, empreintes |
 | `component_sets`, `component_set_items` | ensemble d'inventaire adressé par son empreinte ; ses composants avec origine (`syft`, `ia`), confiance, modèle, preuve, portée, licences, identification faible, emplacements (chemin réel, chemin d'accès, couche, preuve secondaire ; ADR 0057) |
@@ -530,12 +531,18 @@ grandes tables par `org_id` donnerait la même séparation physique en gardant l
      rien ranger.
 3. Règle d'instantané : pour un dépôt, un instantané par (référence, commit), même si
    l'inventaire n'a pas changé (il réutilise alors l'ensemble existant) ; le même commit
-   renvoyé avec un autre inventaire remplace l'ensemble de son instantané. Pour un hôte ou
-   un conteneur, un inventaire identique au courant met seulement à jour la date de
-   dernière analyse. L'instantané courant est le plus récent par date de scan.
+   renvoyé avec un autre inventaire remplace l'ensemble de son instantané. Pour un hôte, un
+   conteneur ou une version reçue par le point compatible Dependency-Track (sans commit),
+   un inventaire identique au courant met seulement à jour la date de dernière analyse. L'instantané courant est le plus récent par date de scan.
 4. Si l'ensemble courant de la référence a changé, job `analysis.ref` (charge
    `{"ref_id"}`, clé `ref:<id>`, priorité haute) mis en file dans la même transaction.
-5. `GET /api/v1/agent/ingestions/{id}` expose le statut (`queued`, `processing`, `done`,
+5. Archives hors ligne (T23, ADR 0060, `internal/offline`, `ingest.Importer`) : un tar
+   manifeste, codes et SBOM, authentifié par un HMAC de clé l'empreinte du jeton de
+   l'agent ; importé par l'écran, `POST /api/v1/orgs/{org}/archives` ou `offline.watch_dir`,
+   puis `Authorize` et `Receive` au nom de l'agent ; dédoublonné par l'empreinte du
+   manifeste (`ingestions.archive_sha256`). La première archive d'un agent serveur jamais
+   connecté l'inscrit avec le jeton qu'il a tiré.
+6. `GET /api/v1/agent/ingestions/{id}` expose le statut (`queued`, `processing`, `done`,
    `failed` + clé d'erreur traduisible) et l'instantané produit.
 
 Formats acceptés : CycloneDX JSON 1.5 à 1.7, SPDX JSON 2.3, Syft JSON. Pas de XML.
@@ -618,11 +625,23 @@ qu'aucune mesure ne la justifie (ADR 0015).
   attente tant que son ensemble n'est pas l'ensemble analysé et évalué de sa référence,
   non conforme s'il reste une violation ouverte d'une règle bloquante.
 
+- **Licences** (T20, ADR 0061) : `internal/license` lit les expressions SPDX et les
+  confronte à la politique de l'organisation (`license_policies` ; sans ligne, toute
+  licence SPDX connue est acceptée ; une licence inconnue ou en texte libre est toujours à
+  revoir ; `OR` retient le plus favorable, `AND` le moins favorable). La liste SPDX est
+  celle du schéma CycloneDX 1.6 embarqué. Constats `license_findings` par (référence,
+  composant), au cycle de vie des constats de vulnérabilité, évalués dans la transaction de
+  l'analyse (`finding.Options.OnAnalyzed`, avant les politiques) et réévalués par
+  `license.evaluate_org` après un changement de politique ; un changement met en file
+  l'évaluation des politiques du projet, dont le sujet `license` ouvre des violations.
+
 ## 13. Recherche
 
 - Une barre unique ; le type de requête est déduit : `pkg:` → purl, `CVE-`/`GHSA-` →
   vulnérabilité, `sha256:` ou 64 caractères hexadécimaux → empreinte, `license:` →
-  licence, sinon nom de composant (approché par trigrammes).
+  licence, sinon nom de composant (approché par trigrammes). `license:<identifiant>`
+  retient en Go les expressions de licence de l'organisation qui citent l'identifiant
+  (`license_expressions`), puis SQL les éléments d'inventaire qui en portent une (ADR 0061).
 - Une plage de versions `vers` ne s'applique qu'à un `purl_base` exact : SQL réduit
   l'ensemble à ce paquet (un nombre borné de versions), puis Go compare les versions par
   l'écosystème. Une recherche approchée par nom n'accepte pas de plage.
@@ -648,6 +667,12 @@ qu'aucune mesure ne la justifie (ADR 0015).
   constats « non affecté » ou « faux positif » (T18, ADR 0050).
 - Cible : moins de 2 s au 95e centile pour 1 000 projets et 1 million de liens, **RLS
   active**, selon le protocole de `docs/benchmarks.md`.
+- À une date passée (T21, ADR 0059, paramètre `at`, `Filters.At`) : pour chaque référence,
+  l'instantané en vigueur (le dernier scanné avant l'instant, fin de journée UTC pour une
+  date) est lu par `snapshots_ref_idx`, au lieu de `ref_current` ; projets archivés et
+  références retirées compris ; composants seulement (ni constats, ni sévérité, ni KEV) ;
+  avertissement « partiel » avant l'horizon de la rétention (`inventory.ReadRetention`).
+  Cible : moins de 5 s au 95e centile avec 12 mois d'historique hebdomadaire.
 
 ## 14. Interface web
 
@@ -742,8 +767,12 @@ qu'aucune mesure ne la justifie (ADR 0015).
   jour.
 - Préfixe `/api/v1`. Routes des agents sous `/api/v1/agent/` (dont le verdict des
   politiques sur un instantané, `GET /api/v1/agent/snapshots/{id}/verdict`, T15), routes utilisateur sous
-  `/api/v1/orgs/{org}/`. Le point compatible Dependency-Track (T19) vit sous `/dt/` pour ne
-  pas mêler son espace d'URL au nôtre. L'API utilisateur exporte le VEX d'un projet
+  `/api/v1/orgs/{org}/`. Le point compatible Dependency-Track (T19, ADR 0058) vit sous `/dt/`
+  pour ne pas mêler son espace d'URL au nôtre : `PUT`/`POST /dt/api/v1/bom` et
+  `GET /dt/api/v1/event/token/{uuid}` (et `bom/token`, chemin de la 4.x), écrits à la main
+  (contrat de Dependency-Track, pas le nôtre), mêmes middlewares que l'API des agents, clé
+  `X-Api-Key` = jeton d'agent dépôt, nom de projet = dépôt confié à l'agent, version =
+  référence de nature `version`, création automatique autorisée par agent d'équipe. L'API utilisateur exporte le VEX d'un projet
   (`GET /api/v1/orgs/{org}/projects/{project}/vex`, T14).
 - Erreurs au format RFC 9457 (`application/problem+json`) : `type` porte une clé stable
   (`error.ingest.too_large`), `title` et `detail` les messages traduits de
@@ -791,7 +820,9 @@ qu'aucune mesure ne la justifie (ADR 0015).
   gigue ; `Retry-After` respecté, abandon s'il dépasse la politique), d'erreurs RFC 9457
   exposées par leur clé (`agentclient.Error`, `IsKey`), de l'envoi multipart d'un SBOM
   (contexte, puis SBOM en gzip, corps rejoué à chaque tentative) et du suivi d'une
-  ingestion jusqu'à son état final (T07, `doc.go`).
+  ingestion jusqu'à son état final (T07, `doc.go`) ; client de Dependency-Track
+  `DTClient` (T19 : `PUT /api/v1/bom` en JSON, suivi par `event/token`, mêmes transport et
+  réessais).
 - Inscription : jeton d'inscription → jeton d'agent stocké dans le répertoire d'état
   (droits `0600`).
 - Secrets des agents (jeton, clés de forge, clés d'API des modèles) : jamais dans le fichier
@@ -816,7 +847,10 @@ qu'aucune mesure ne la justifie (ADR 0015).
   conteneur (`hostagent.Identity`), signalement `POST /api/v1/agent/containers` (le
   serveur crée les projets enfants sous l'hôte de l'agent seul), image exportée
   (`docker save`) et scannée hors ligne une fois par image, empreintes d'images gardées
-  et confirmées par le serveur. Suite : T22 (Windows, containerd), T23 (hors ligne).
+  et confirmées par le serveur. Sortie vers Dependency-Track (T19, ADR 0058) : SBOM réencodé
+  en CycloneDX 1.6 et envoyé quand l'empreinte diffère du dernier envoi accepté, en plus de
+  lotor ou à sa place (`dependency_track.only`). Suite : T22 (Windows, containerd), T23
+  (hors ligne, fait : ADR 0060, `offline.dir` et `offline.only`, inscription par archive).
 - `lotor-repo-agent` : service externe qui détient seul les secrets des forges. Il reçoit les
   webhooks, clone, analyse, envoie, puis attend le verdict du serveur pour publier le statut
   de commit (T15, ADR 0047 : attente bornée par `status.timeout`, statut « en attente »
@@ -850,7 +884,8 @@ qu'aucune mesure ne la justifie (ADR 0015).
   `testdata/ai-pilot` (`make eval-ai`) ; chaque composant accepté est revérifié hors du
   vérificateur (`checkProof`, en CI sur le corpus). Un composant IA est toujours de type
   CycloneDX `library`, image comprise : le décodeur du serveur ignore le type
-  `container` (T18).
+  `container` (T18). Sortie vers Dependency-Track (T19, ADR 0058) : SBOM du commit de tête
+  de chaque référence, après lotor, projet et version par gabarits.
 
 ## 18. Internationalisation
 

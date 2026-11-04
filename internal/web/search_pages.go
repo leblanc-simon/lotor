@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"slices"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -33,7 +34,9 @@ type facetOption struct {
 type searchChip struct {
 	LabelKey string
 	Label    string
-	Href     template.URL
+	// Date : filtre « à la date du », libellé search.at_chip.
+	Date string
+	Href template.URL
 }
 
 type searchHitRow struct {
@@ -58,7 +61,9 @@ type searchHitRow struct {
 	TriageHref    string
 	Fixed         []string
 	Risk          int
-	Locations     locationsView
+	// Scanned : date de l'instantané retenu, à une date passée.
+	Scanned   *stamp
+	Locations locationsView
 }
 
 type searchGroupRow struct {
@@ -110,6 +115,13 @@ type searchView struct {
 	TriageFacet bool
 	Sorts       []option
 	Syntax      []syntaxExample
+	// À la date du (T21) : At est la valeur du champ (AAAA-MM-JJ), Today sa borne ;
+	// AtMode, une recherche à une date passée ; Horizon, la coupure de la rétention quand
+	// la date la précède (résultat partiel).
+	At      string
+	Today   string
+	AtMode  bool
+	Horizon *stamp
 }
 
 // syntaxExample est une ligne de l'aide de syntaxe : un exemple, sa description.
@@ -123,6 +135,7 @@ var syntaxExamples = []syntaxExample{
 	{"pkg:npm/lodash vers:npm/<4.17.21", "search.syntax_purl"},
 	{"CVE-2021-44228", "search.syntax_vulnerability"},
 	{"sha256:0925e8ad7bd971391a8b1e98be8e87a6971919eb5b60c196485941c3c1df089a", "search.syntax_hash"},
+	{"license:AGPL-3.0-only", "search.syntax_license"},
 }
 
 // href écrit des paramètres de recherche en lien relatif ; url.Values les encode, le
@@ -264,6 +277,12 @@ func (id *identity) searchFacets(view *searchView, req search.Request, labels []
 			chip(search.ParamSeverity, string(s), opt.LabelKey, "")
 		}
 	}
+	view.Today = id.Agents.Now().Format(time.DateOnly)
+	if f.At != nil {
+		view.At = search.FormatAt(*f.At)
+		view.AtMode = true
+		view.Chips = append(view.Chips, searchChip{Date: view.At, Href: href(path, req.Without(search.ParamAt, view.At))})
+	}
 	view.Containers = facetOption{ID: "f-containers", Value: "1", Checked: f.Containers}
 	if f.Containers {
 		chip(search.ParamContainers, "1", "search.filter_containers", "")
@@ -304,6 +323,9 @@ func (id *identity) searchResults(view *searchView, req search.Request, res sear
 	view.Tokens = res.Query.Tokens()
 	view.Projects, view.Hits, view.Truncated, view.Approx = res.Projects, res.Hits, res.Truncated, res.Approx
 	view.OutOfRange, view.Unreadable = res.OutOfRange, res.Unreadable
+	if res.Partial {
+		view.Horizon = stampOf(res.Horizon)
+	}
 	if res.Query.Range != nil {
 		v := req.Values()
 		v.Set(search.ParamQuery, res.Query.PURL.PURL.String)
@@ -320,6 +342,9 @@ func (id *identity) searchResults(view *searchView, req search.Request, res sear
 				Origin: string(h.Origin), Weak: h.Weak, Open: h.Open, KEV: h.KEV, Fixed: h.Fixed, Risk: riskOf(h.Risk),
 				Status: string(h.Status), FindingsHref: base + "/projects/" + g.Project.Slug + "/findings?ref=" + h.RefID.String(),
 				Locations: locationsOf(h.Locations)}
+			if view.AtMode && !h.ScannedAt.IsZero() {
+				row.Scanned = stampAt(h.ScannedAt)
+			}
 			if h.Confidence != nil {
 				pct := int(math.Round(*h.Confidence * 100))
 				row.Confidence = &pct

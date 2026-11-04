@@ -10,7 +10,7 @@ appliquées automatiquement, sans retour arrière.
 
 **Mise à jour** : `notify.public_url` devient **`web.public_url`** (`LOTOR_PUBLIC_URL`) ;
 déplacer la clé sous `web:` avant de redémarrer : l'ancienne est ignorée (messages sans
-lien). Les migrations 024 et 025 s'appliquent au démarrage ; l'instance reste privée. Au premier
+lien). Les migrations 024 à 028 s'appliquent au démarrage ; l'instance reste privée. Au premier
 scan après la mise à jour, chaque référence reçoit un nouvel ensemble d'inventaire
 (empreinte `lotor-inventory-v2`) : un hôte a un instantané de plus à inventaire identique.
 Mettre à jour **`lotor-host-agent` en même temps** : un agent antérieur calcule l'ancienne
@@ -36,6 +36,40 @@ d'un simple compte rendu.
   constats, la fiche d'un constat, la recherche, les composants d'un instantané et la
   fiche composant ; champ `locations` de l'API de recherche et de l'export (dernière
   colonne CSV). Les inventaires antérieurs n'en ont pas : ils apparaissent au scan suivant.
+- Point compatible Dependency-Track (T19, ADR 0058) : les outils configurés pour
+  Dependency-Track envoient à `https://<serveur>/dt` (`PUT`/`POST /api/v1/bom`, suivi par
+  `/api/v1/event/token/{uuid}`), avec le jeton d'un agent dépôt comme clé d'API ; le nom
+  du projet désigne un dépôt confié à l'agent, la version une **version** du dépôt
+  (nouvelle nature de référence, sans commit, saisissable dans les réglages du projet).
+  Création automatique (`autoCreate`) autorisée par agent d'équipe, sur sa fiche, et
+  auditée. Guide : `docs/dependency-track.md`.
+- Sortie vers Dependency-Track des agents (`dependency_track.*`, désactivée par défaut) :
+  l'agent serveur envoie le SBOM de l'hôte en CycloneDX 1.6 quand son inventaire change,
+  en plus de lotor ou à sa place (`only: true`) ; l'agent dépôt envoie le SBOM du commit de
+  tête de chaque référence après lotor. Clé d'API en fichier `0600` ou credential systemd
+  `dependency-track-api-key`. `make test-dtrack` : recette contre un vrai Dependency-Track 5.
+- Mode hors ligne (T23, ADR 0060, guide `docs/site-isole.md`) : l'agent serveur écrit une
+  archive (`.lotor`, SBOM et contexte signés par l'empreinte de son jeton) à chaque
+  inventaire changé, en plus de ses envois (`offline.dir`) ou à leur place
+  (`offline.only`, sans réseau ; un agent jamais inscrit s'inscrit par sa première
+  archive) ; l'agent dépôt peut aussi en écrire une par envoi. Le serveur les importe par
+  **Agents › Importer des archives**, par `POST /api/v1/orgs/{org}/archives` (jeton
+  personnel d'un compte qui gère des agents) ou par un répertoire surveillé
+  (`offline.watch_dir`) ; une archive importée deux fois ne crée rien.
+- Recherche à une date passée (T21, ADR 0059) : champ **À la date du** de l'écran de
+  recherche et paramètre `at` de l'API (`AAAA-MM-JJ`, fin de journée UTC, ou RFC 3339).
+  Pour chaque référence, l'instantané en vigueur à cette date, projets archivés et
+  références retirées compris, avec sa date ; composants seulement (les constats d'alors ne
+  sont pas conservés) ; avertissement « résultat partiel » avant l'horizon de la rétention
+  (`partial` et `retention_horizon` dans l'API).
+- Licences (T20, ADR 0061) : politique de licences par organisation (page **Licences** :
+  licences refusées, à revoir, acceptées, règle des licences SPDX non citées, composant sans
+  licence à revoir ou non) ; **par défaut, toute licence SPDX connue est acceptée**, une
+  licence inconnue ou en texte libre est à revoir. Expressions SPDX évaluées
+  (`MIT OR GPL-3.0-only` conforme si MIT est acceptée). Constats de licence par référence,
+  onglet **Licences** de chaque projet, recherche `license:AGPL-3.0-only`, règles de
+  politique de sujet « constats de licence » et modèle « Licence AGPL dans un produit
+  distribué » désormais disponible (bloquant).
 
 ### Modifié
 

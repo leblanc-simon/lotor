@@ -2,7 +2,7 @@
 
 | Lot fonctionnel | Dépend de | Statut |
 | --- | --- | --- |
-| 3 · Ouverture | T18 | À faire |
+| 3 · Ouverture | T18 | Terminé |
 
 ## Objectif
 
@@ -38,10 +38,12 @@ conservée).
 
 ## Critères d'acceptation
 
-- [ ] Un composant retiré le 10 n'apparaît plus pour une date du 11, mais apparaît pour le 9.
-- [ ] Une date antérieure à la rétention affiche l'avertissement.
-- [ ] Moins de 5 s au 95e centile sur le jeu de données de T06 enrichi de 12 mois
-      d'historique, selon `docs/benchmarks.md`.
+- [x] Un composant retiré le 10 n'apparaît plus pour une date du 11, mais apparaît pour le 9
+      (`TestSearchAtPastDate`).
+- [x] Une date antérieure à la rétention affiche l'avertissement (`TestSearchAtPastDate`,
+      écran : callout « Résultat partiel », API : `partial`).
+- [x] Moins de 5 s au 95e centile sur le jeu de données de T06 enrichi de 12 mois
+      d'historique, selon `docs/benchmarks.md` (pire cas 1,55 s, `make bench-search`).
 
 ## Tests attendus
 
@@ -53,4 +55,28 @@ Aucun.
 
 ## Journal
 
-_À remplir pendant la réalisation._
+### 4 novembre 2026
+
+Réalisé à la suite de T19, sans plan validé au préalable : décisions **[à relire]**
+([ADR 0059](../../docs/adr/0059-recherche-a-une-date-passee.md)).
+
+- **Date [à relire]** : `at=AAAA-MM-JJ` vaut la fin de cette journée en UTC (les
+  instantanés scannés ce jour-là comptent, borne exclusive), une date RFC 3339 l'instant
+  donné ; date au-delà de la journée en cours refusée (`error.search.at_invalid`). Date de
+  scan, pas de réception, comme `ref_current`.
+- **Portée [à relire]** : projets archivés et références retirées depuis compris (l'état
+  d'alors) ; composants seulement : recherche par vulnérabilité, sévérité, KEV et
+  résolution refusées (`error.search.at_components_only`) plutôt qu'un mélange de l'état
+  passé et des constats actuels ; ni versions corrigées ni risque ; date de l'instantané
+  retenu sur chaque occurrence (colonne « Instantané retenu » de l'écran).
+- **Requête** : jointure latérale `LIMIT 1` par référence sur `snapshots_ref_idx`, aucun
+  index nouveau ni migration (`componentHitsAt`). Avertissement par
+  `inventory.ReadRetention` : `Result.Partial` et l'horizon, `partial` et
+  `retention_horizon` dans l'API.
+- **Mesure** : `benchdata.AddHistory` (52 instantanés hebdomadaires par référence,
+  ensembles réels réutilisés), `TestSearchAtBenchmark` dans `make bench-search` : pire p95
+  1,55 s pour 5 s (`docs/benchmarks.md`).
+- **Tests** : `TestSearchAtPastDate` (retrait le 10, date du 9, du 10, du 11, instant RFC
+  3339 exclusif, projet archivé, autre organisation, export, horizon), `TestSearchAtRefusals`,
+  écran et API dans `TestSearchScreenAndAPI` (accessibilité, deux langues, refus). Rupture
+  vérifiée : `<` changé en `<=` fait échouer `TestSearchAtPastDate`.

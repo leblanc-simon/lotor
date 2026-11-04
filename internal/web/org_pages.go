@@ -27,6 +27,7 @@ func orgNav(acc tenant.Access, current string) []render.NavItem {
 		{LabelKey: "nav.teams", Href: base + "/teams", Current: current == "teams"},
 		{LabelKey: "nav.members", Href: base + "/members", Current: current == "members"},
 		{LabelKey: "nav.violations", Href: base + "/violations", Current: current == "violations"},
+		{LabelKey: "nav.licenses", Href: base + "/licenses", Current: current == "licenses"},
 	}
 	if acc.Can(tenant.PermTriageOrg, uuid.Nil) {
 		nav = append(nav, render.NavItem{LabelKey: "nav.triage", Href: base + "/triage", Current: current == "triage"})

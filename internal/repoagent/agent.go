@@ -28,6 +28,12 @@ type Options struct {
 	LocalModel, ExternalModel llm.Provider
 	// Status règle la publication du statut de commit (T15).
 	Status StatusConfig
+	// DT envoie aussi le SBOM du commit de tête à Dependency-Track (nil : sortie
+	// désactivée) ; DTConfig en donne le projet et la version (T19).
+	DT       DTSender
+	DTConfig DTConfig
+	// Archive écrit aussi une archive hors ligne par envoi (nil : sortie désactivée, T23).
+	Archive *ArchiveWriter
 	// Now remplace l'horloge (tests).
 	Now func() time.Time
 }
@@ -410,12 +416,15 @@ func (a *Agent) analyze(ctx context.Context, k refKey, t tracked, commit string,
 	if err != nil {
 		return err
 	}
-	rc, err := a.opts.Server.Upload(ctx, Upload{
-		ProjectID: t.project.ID, Ref: t.ref.Ref, Commit: commit,
-		AgentVersion: a.opts.Version, ScannedAt: a.now().UTC(), SBOM: doc,
-	})
+	up := Upload{ProjectID: t.project.ID, Ref: t.ref.Ref, Commit: commit, AgentVersion: a.opts.Version,
+		ScannedAt: a.now().UTC(), SBOM: doc}
+	rc, err := a.opts.Server.Upload(ctx, up)
 	if err != nil {
 		return err
+	}
+	a.archive(ctx, t, up)
+	if head {
+		a.forwardDT(ctx, t, doc)
 	}
 	a.reportStatus(ctx, t, commit, rc)
 	return nil

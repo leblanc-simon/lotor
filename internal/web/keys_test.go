@@ -12,6 +12,7 @@ import (
 	"leblanc.io/lotor/internal/dashboard"
 	"leblanc.io/lotor/internal/ingest"
 	"leblanc.io/lotor/internal/inventory"
+	"leblanc.io/lotor/internal/license"
 	"leblanc.io/lotor/internal/notify"
 	"leblanc.io/lotor/internal/org"
 	"leblanc.io/lotor/internal/policy"
@@ -57,6 +58,22 @@ func TestDynamicKeysExist(t *testing.T) {
 	for _, k := range agent.ErrorKeys() {
 		want = append(want, k+".title", k+".text")
 	}
+	// Point compatible Dependency-Track (T19).
+	want = append(want, agent.DTValidationKeys()...)
+	want = append(want, apiv1.KeyDTBase64)
+	for _, k := range agent.ArchiveErrorKeys() {
+		want = append(want, k+".title", k+".text")
+	}
+	for _, k := range agent.DTErrorKeys() {
+		want = append(want, k+".title", k+".text")
+	}
+	// Licences (T20).
+	want = append(want, license.ValidationKeys()...)
+	for _, st := range license.Statuses() {
+		want = append(want, "license_verdict."+string(st))
+	}
+	want = append(want, audit.LicensePolicyUpdated.Key(), "notify.line_license", "notify.mail.license_headline",
+		"notify.mail.license_detail")
 	want = append(want, ingest.ValidationKeys()...)
 	for _, k := range append(sbom.ErrorKeys(), ingest.ErrorKeys()...) {
 		want = append(want, k+".title", k+".text")
@@ -76,7 +93,7 @@ func TestDynamicKeysExist(t *testing.T) {
 	for _, f := range []sbom.Format{sbom.FormatCycloneDX, sbom.FormatSPDX, sbom.FormatSyft} {
 		want = append(want, "format.sbom_"+string(f))
 	}
-	for _, k := range []project.RefKind{project.RefBranch, project.RefTag, project.RefHost, project.RefContainer} {
+	for _, k := range []project.RefKind{project.RefBranch, project.RefTag, project.RefHost, project.RefContainer, project.RefVersion} {
 		want = append(want, "ref_kind."+string(k))
 	}
 	for _, k := range append(project.Kinds(), project.KindContainer) {

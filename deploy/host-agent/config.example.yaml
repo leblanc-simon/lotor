@@ -63,6 +63,19 @@ containers:
   max_image_mib: 4096    # une image plus grosse n'est pas inventoriée
   timeout: 30s           # par appel au moteur (export d'image excepté)
 
+# Sortie vers Dependency-Track (docs/dependency-track.md) : le SBOM de l'hôte part aussi,
+# en CycloneDX 1.6, quand son inventaire a changé. Clé d'API : fichier en 0600 ou
+# credential systemd « dependency-track-api-key », jamais ici.
+dependency_track:
+  url: ""                # https://dtrack.example.org (ou https://<serveur lotor>/dt) ; vide : désactivé
+  api_key_file: ""       # vide : credential systemd dependency-track-api-key
+  ca_file: ""
+  proxy: ""
+  project_name: ""       # vide : le nom d'hôte
+  project_version: host
+  auto_create: false     # créer le projet (permission PROJECT_CREATION_UPLOAD)
+  only: false            # true : Dependency-Track seulement (ni serveur lotor, ni conteneurs)
+
 # Sobriété : l'unité systemd ajoute Nice=19 et IOSchedulingClass=idle.
 resources:
   max_procs: 1           # GOMAXPROCS et catalogueurs simultanés

@@ -182,6 +182,31 @@ d'accès, couche, secondaire) lu par l'adaptateur Syft, rangé dans
 (`lotor-inventory-v2`) ; affiché dans les constats, la recherche, les instantanés et la
 fiche composant (gabarits `location_short`, `location_list`) ; `locations` dans l'API de
 recherche et l'export.
+T19 terminé : point compatible Dependency-Track (`internal/api/dtrack.go`, ADR 0058) sous
+`/dt` (clé = jeton d'agent dépôt, nom = dépôt confié, version = référence de nature
+`version` sans commit, création automatique par agent d'équipe `agents.dt_auto_create`),
+client `agentclient.DTClient`, sortie `dependency_track.*` des deux agents (agent serveur :
+CycloneDX 1.6, `only`), `docs/dependency-track.md`, `make test-dtrack` (vrai
+Dependency-Track 5, hors CI). Reste à l'utilisateur : exécution réelle de l'action GitHub.
+T21 terminé : recherche à une date passée (`search.Filters.At`, paramètre `at`, ADR 0059) :
+instantané en vigueur par référence (fin de journée UTC, `snapshots_ref_idx`), projets
+archivés et références retirées compris, composants seulement, `Result.Partial` avant
+l'horizon de la rétention ; `benchdata.AddHistory`, `TestSearchAtBenchmark`.
+T23 terminé : mode hors ligne (ADR 0060, `docs/site-isole.md`). Format `internal/offline`
+(tar manifeste, codes HMAC de clé l'empreinte du jeton, SBOM), agent serveur `offline.dir`
+et `offline.only` (inscription par la première archive, jeton tiré par l'agent), agent
+dépôt `offline.dir`, import `ingest.Importer` par Agents › Importer des archives,
+`POST /api/v1/orgs/{org}/archives` et `offline.watch_dir`, dédoublonnage
+`ingestions.archive_sha256` (migration 027).
+T20 terminé : licences (ADR 0061, Grant étudié et non importé). `internal/license` : parseur
+et évaluateur SPDX (`OR` = plus favorable, `AND` = moins favorable, inconnue = à revoir),
+liste SPDX du schéma CycloneDX (`license.KnownFrom`), politique par organisation
+(`license_policies` ; défaut : tout accepter, décision de l'utilisateur), constats
+`license_findings` évalués dans `OnAnalyzed` avant les politiques, job
+`license.evaluate_org` ; sujet `license` des règles (`policy.OnLicenseChange`, modèle AGPL
+disponible), recherche `license:` (`license_expressions`), page `/o/{slug}/licenses` et
+onglet Licences du projet (migration 028). **Lot 3 en cours** : T19, T20, T21, T23 faits ;
+restent T22, T25, puis T24 et T26.
 
 ## Règles de travail
 

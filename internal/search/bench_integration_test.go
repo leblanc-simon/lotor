@@ -159,3 +159,113 @@ func TestSearchBenchmark(t *testing.T) {
 		t.Logf("plan des occurrences de %q :\n%s", q, explain(t, d.App, org, true, `SELECT count(*) FROM (`+hits+`) h`, a.list...))
 	}
 }
+
+// TestSearchAtBenchmark mesure la recherche à une date passée (T21) sur le jeu de
+// référence enrichi de 12 mois d'historique (un instantané par semaine et par référence) :
+// 95e centile sous 5 s, RLS active. Seulement avec LOTOR_BENCH=1 (make bench-search).
+func TestSearchAtBenchmark(t *testing.T) {
+	if os.Getenv("LOTOR_BENCH") != "1" {
+		t.Skip("LOTOR_BENCH=1 pour mesurer la recherche à une date passée")
+	}
+	ctx := context.Background()
+	start := time.Now()
+	tp := benchdata.ReferenceTeams()
+	d, org, ts := planDatasetWith(t, benchdata.Reference(), &tp)
+	n, err := benchdata.AddHistory(ctx, d.App, org, benchdata.HistoryWeeks)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := d.Owner(t).ExecContext(ctx, "ANALYZE"); err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("jeu de référence et %d instantanés d'historique générés en %s", n, time.Since(start).Round(time.Second))
+	svc := NewService(d.App, cmp)
+	member := tenant.OnlyTeams(ts.Teams[1])
+	req := func(params string) Request {
+		v, err := url.ParseQuery(params)
+		if err != nil {
+			t.Fatal(err)
+		}
+		r, err := ParseRequest(v)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return r
+	}
+	at := func(weeks int) string {
+		return "&at=" + time.Now().UTC().AddDate(0, 0, -7*weeks-3).Format(time.DateOnly)
+	}
+	cases := []struct {
+		name string
+		run  func(i int) (Result, error)
+	}{
+		{"nom large (lib-1) il y a 6 mois", func(int) (Result, error) { return svc.Search(ctx, org, tenant.AllTeams(), req("q=lib-1"+at(26))) }},
+		{"nom large (lib-1) à une date variable", func(i int) (Result, error) {
+			return svc.Search(ctx, org, tenant.AllTeams(), req("q=lib-1"+at(i%52)))
+		}},
+		{"nom précis (lib-<i>) il y a 11 mois", func(i int) (Result, error) {
+			return svc.Search(ctx, org, tenant.AllTeams(), req("q=lib-"+strconv.Itoa(1234+i)+at(48)))
+		}},
+		{"plage vers sur lodash il y a 3 mois", func(int) (Result, error) {
+			return svc.Search(ctx, org, tenant.AllTeams(), req("q=pkg:npm/lodash+vers:npm/<4.17.20"+at(13)))
+		}},
+		{"empreinte il y a 9 mois", func(i int) (Result, error) {
+			return svc.Search(ctx, org, tenant.AllTeams(), req("q="+url.QueryEscape(benchdata.SearchHash(i))+at(39)))
+		}},
+		{"nom large, membre d'une équipe, conteneurs compris, il y a 6 mois", func(int) (Result, error) {
+			return svc.Search(ctx, org, member, req("q=lib-1&containers=1"+at(26)))
+		}},
+	}
+	for _, c := range cases {
+		var ds []time.Duration
+		var cold time.Duration
+		var res Result
+		for i := range 51 {
+			s := time.Now()
+			r, err := c.run(i)
+			if err != nil {
+				t.Fatalf("%s : %v", c.name, err)
+			}
+			if i == 0 {
+				cold, res = time.Since(s), r
+				continue
+			}
+			ds = append(ds, time.Since(s))
+		}
+		slices.Sort(ds)
+		p95 := ds[len(ds)*95/100]
+		t.Logf("%s : %d occurrences, %d projets ; froid %s, p50 %s, p95 %s, max %s", c.name, res.Hits, res.Projects,
+			cold.Round(time.Millisecond), ds[len(ds)/2].Round(time.Millisecond), p95.Round(time.Millisecond), ds[len(ds)-1].Round(time.Millisecond))
+		if res.Hits == 0 {
+			t.Errorf("%s : aucune occurrence, la mesure ne porte sur rien", c.name)
+		}
+		if p95 > 5*time.Second {
+			t.Errorf("%s : p95 %s au-delà de 5 s", c.name, p95)
+		}
+	}
+	var ds []time.Duration
+	for range 20 {
+		s := time.Now()
+		if err := svc.Export(ctx, org, tenant.AllTeams(), req("q=lib-1"+at(26)), FormatCSV, io.Discard); err != nil {
+			t.Fatal(err)
+		}
+		ds = append(ds, time.Since(s))
+	}
+	slices.Sort(ds)
+	t.Logf("export CSV (lib-1, il y a 6 mois) : p50 %s, p95 %s", ds[len(ds)/2].Round(time.Millisecond), ds[len(ds)*95/100].Round(time.Millisecond))
+	a := &args{}
+	var tg target
+	query, err := Parse("lib-1", cmp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := d.App.InOrg(ctx, org, func(tx *db.OrgTx) error {
+		tg, err = svc.resolve(ctx, tx, query)
+		return err
+	}); err != nil {
+		t.Fatal(err)
+	}
+	past := time.Now().UTC().AddDate(0, -6, 0)
+	hits := hitsSQL(tg, Filters{At: &past}, nil, a)
+	t.Logf("plan des occurrences de \"lib-1\" il y a 6 mois :\n%s", explain(t, d.App, org, true, `SELECT count(*) FROM (`+hits+`) h`, a.list...))
+}

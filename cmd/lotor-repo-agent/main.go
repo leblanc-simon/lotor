@@ -59,13 +59,23 @@ func run(ctx context.Context, cfg repoagent.Config, log *slog.Logger) error {
 	if err != nil {
 		return err
 	}
+	dt, err := repoagent.NewDTSender(cfg.DependencyTrack, cfg.Server, repoagent.ServerOptions{Version: version, Logger: log})
+	if err != nil {
+		return err
+	}
+	var archives *repoagent.ArchiveWriter
+	if cfg.Offline.Dir != "" {
+		if archives, err = repoagent.NewArchiveWriter(cfg.Offline.Dir, string(token)); err != nil {
+			return err
+		}
+	}
 	local, external, err := cfg.AI.Models()
 	if err != nil {
 		return err
 	}
 	agent, err := repoagent.New(repoagent.Options{
 		Server: server, Forges: forges, Logger: log, Version: version, Work: cfg.Work, Catchup: cfg.Catchup, Status: cfg.Status,
-		AI: cfg.AI, LocalModel: local, ExternalModel: external,
+		AI: cfg.AI, LocalModel: local, ExternalModel: external, DT: dt, DTConfig: cfg.DependencyTrack, Archive: archives,
 	})
 	if err != nil {
 		return err
@@ -95,7 +105,7 @@ func run(ctx context.Context, cfg repoagent.Config, log *slog.Logger) error {
 	agentErr := make(chan error, 1)
 	go func() { agentErr <- agent.Run(ctx) }()
 	log.Info("agent dépôt démarré", "version", version, "forges", len(forges),
-		"ai_local", local != nil, "ai_external", external != nil)
+		"ai_local", local != nil, "ai_external", external != nil, "dependency_track", cfg.DependencyTrack.URL)
 
 	var runErr error
 	select {

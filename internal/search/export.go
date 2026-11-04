@@ -58,6 +58,9 @@ func (s *Service) Export(ctx context.Context, org tenant.OrgID, vis tenant.Visib
 	if err := checkFilters(q, req.Filters); err != nil {
 		return err
 	}
+	if err := checkAt(req.Filters, s.now()); err != nil {
+		return err
+	}
 	var enc rowEncoder
 	switch f {
 	case FormatCSV:
@@ -75,13 +78,13 @@ func (s *Service) Export(ctx context.Context, org tenant.OrgID, vis tenant.Visib
 		if err := enc.begin(t.truncated); err != nil {
 			return err
 		}
-		if len(t.components) == 0 && len(t.vulnIDs) == 0 {
+		if len(t.components) == 0 && len(t.vulnIDs) == 0 && len(t.licenses) == 0 {
 			return nil
 		}
 		a := &args{}
 		hits := hitsSQL(t, req.Filters, nil, a)
 		rows, err := tx.QueryContext(ctx, `WITH hits AS (`+hits+`)
-			`+hitColumns+`, p.slug, p.name, p.kind, tm.id, tm.name `+hitJoins(t)+`
+			`+hitColumns+`, p.slug, p.name, p.kind, tm.id, tm.name `+hitJoins(t, req.Filters)+`
 			  JOIN projects p ON p.org_id = h.org_id AND p.id = h.project_id
 			  JOIN teams tm ON tm.org_id = p.org_id AND tm.id = p.team_id
 			 ORDER BY lower(p.name), p.id, r.name, h.ref_id, c.name, c.version, c.id, h.vuln_id`, a.list...)

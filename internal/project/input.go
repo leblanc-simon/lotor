@@ -201,6 +201,38 @@ func ParseRefNames(s, field string) ([]string, error) {
 	return out, nil
 }
 
+// MaxVersions borne les versions suivies d'un dépôt (ADR 0058) : chaque envoi d'une
+// nouvelle version par le point compatible Dependency-Track en crée une.
+const MaxVersions = 200
+
+// ValidVersionName accepte un nom de version de Dependency-Track : 1 à 255 caractères
+// imprimables, sans espace en tête ni en fin, sans caractère de contrôle.
+func ValidVersionName(name string) bool {
+	return name != "" && name == strings.TrimSpace(name) && validText(name, maxRefName)
+}
+
+// ParseVersionNames lit des noms de version, un par ligne (une version peut contenir une
+// espace ou une virgule).
+func ParseVersionNames(s string) ([]string, error) {
+	var out []string
+	for _, line := range strings.Split(s, "\n") {
+		name := strings.TrimSpace(line)
+		if name == "" {
+			continue
+		}
+		if !ValidVersionName(name) {
+			return nil, invalid("versions", KeyRefInvalid)
+		}
+		if !slices.Contains(out, name) {
+			out = append(out, name)
+		}
+	}
+	if len(out) > MaxVersions {
+		return nil, invalid("versions", KeyRefsTooMany)
+	}
+	return out, nil
+}
+
 // NormalizeHostRef met une référence d'hôte (son nom) en minuscules et la valide.
 func NormalizeHostRef(s string) (string, error) {
 	h := strings.ToLower(strings.TrimSpace(s))

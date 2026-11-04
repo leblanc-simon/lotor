@@ -42,6 +42,17 @@ type State struct {
 	// ImagesVersion de l'agent seulement.
 	Images        map[string]ImageRecord `json:"images,omitempty"`
 	ImagesVersion string                 `json:"images_version,omitempty"`
+	// DTFingerprint est l'empreinte du dernier inventaire accepté par Dependency-Track,
+	// pour le projet et la version DTTarget (nom et version séparés par un octet nul).
+	DTFingerprint string    `json:"dt_fingerprint,omitempty"`
+	DTTarget      string    `json:"dt_target,omitempty"`
+	DTLastSent    time.Time `json:"dt_last_sent,omitzero"`
+	// ArchiveFingerprint est l'empreinte du dernier inventaire écrit en archive hors
+	// ligne ; OfflineEnrollment, un jeton d'agent tiré par l'agent lui-même, que le serveur
+	// apprend par l'inscription portée par chaque archive (T23).
+	ArchiveFingerprint string    `json:"archive_fingerprint,omitempty"`
+	LastArchive        time.Time `json:"last_archive,omitzero"`
+	OfflineEnrollment  bool      `json:"offline_enrollment,omitempty"`
 }
 
 // fingerprint renvoie l'empreinte retenue, si elle est lisible.

@@ -226,6 +226,20 @@ func NewRouter(o RouterOptions) (http.Handler, error) {
 		return nil, err
 	}
 	r.With(api("api")...).Handle("/api/*", apiNotFound)
+	// Point compatible Dependency-Track (T19, ADR 0058) : hors de /api/v1, qui reste à
+	// l'API du projet.
+	if o.AgentAPI != nil {
+		ao := *o.AgentAPI
+		ao.Catalog, ao.Logger, ao.TrustedProxies, ao.ClientIP = o.Catalog, o.Logger, o.TrustedProxies, limiter.ClientIP
+		r.With(api("dt")...).Route("/dt", func(r chi.Router) {
+			r.NotFound(apiNotFound.ServeHTTP)
+			r.MethodNotAllowed(apiNotAllowed.ServeHTTP)
+			err = apiv1.MountDT(r, ao)
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	r.Group(func(r chi.Router) {
 		r.Use(ui...)

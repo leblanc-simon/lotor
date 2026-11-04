@@ -33,8 +33,12 @@ var templates = []Template{
 		Key: TemplateAgentSilent, Subject: SubjectAgent, Blocking: false, Delivery: DeliveryDigest, Available: true,
 		Expression: `agent.silent_days >= 7`,
 	},
-	// Les licences seront analysées par Grant en T20 : jusque-là, le contexte n'en a pas.
-	{Key: TemplateLicenseAGPL, Subject: SubjectFinding, Delivery: DeliveryDigest, Available: false},
+	// Licence AGPL dans un produit distribué (T20) : un projet qui porte l'étiquette
+	// « distribution » (avec ou sans valeur).
+	{
+		Key: TemplateLicenseAGPL, Subject: SubjectLicense, Blocking: true, Delivery: DeliveryDigest, Available: true,
+		Expression: `license.ids.exists(id, id.startsWith("AGPL-")) && has(project.labels.distribution)`,
+	},
 }
 
 // Templates renvoie les modèles fournis.

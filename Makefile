@@ -74,7 +74,7 @@ fmt-check: ## Échoue si un fichier n'est pas formaté
 # Étiquettes de test qui compilent en CI : vet et staticcheck passent sur chacune, pour
 # que les fichiers étiquetés (tests d'intégration, base Grype réelle, mesures) soient
 # analysés comme le reste.
-TEST_TAGS := integration integration,grypedb measure evalai
+TEST_TAGS := integration integration,grypedb measure evalai dtrack
 
 .PHONY: vet
 vet: ## go vet (sans étiquette, puis avec chaque étiquette de test)
@@ -115,6 +115,11 @@ test-grypedb: ## Tests avec la vraie base Grype (LOTOR_TEST_GRYPEDB_DIR : base v
 	@test -n "$(LOTOR_TEST_GRYPEDB_DIR)" || { echo "LOTOR_TEST_GRYPEDB_DIR : répertoire d'une base Grype v6 installée"; exit 1; }
 	$(GO) test -count=1 -timeout 30m -tags 'integration grypedb' ./internal/vuln/grype/ ./internal/benchdata/
 
+.PHONY: test-dtrack
+test-dtrack: ## Recette contre un vrai Dependency-Track 5, hors CI (LOTOR_TEST_DTRACK_URL, LOTOR_TEST_DTRACK_API_KEY_FILE ; docs/dependency-track.md)
+	@test -n "$(LOTOR_TEST_DTRACK_URL)" || { echo "LOTOR_TEST_DTRACK_URL : adresse de base d'un Dependency-Track 5 de test"; exit 1; }
+	$(GO) test -count=1 -timeout 10m -tags dtrack -run TestRealDependencyTrack -v ./internal/hostagent/
+
 .PHONY: bench-ingest
 bench-ingest: ## Mesure ingestion et analyse de 5 000 composants, vraie base Grype (LOTOR_TEST_GRYPEDB_DIR)
 	@test -n "$(LOTOR_TEST_GRYPEDB_DIR)" || { echo "LOTOR_TEST_GRYPEDB_DIR : répertoire d'une base Grype v6 installée"; exit 1; }
@@ -126,7 +131,7 @@ bench: ## Mesures sur le jeu de référence (docs/benchmarks.md)
 
 .PHONY: bench-search
 bench-search: ## Mesures de la recherche sur le jeu de référence, RLS active (docs/benchmarks.md)
-	LOTOR_BENCH=1 $(GO) test -count=1 -timeout 30m -tags integration -run TestSearchBenchmark -v ./internal/search/
+	LOTOR_BENCH=1 $(GO) test -count=1 -timeout 30m -tags integration -run 'TestSearch(At)?Benchmark' -v ./internal/search/
 
 .PHONY: eval-ai
 eval-ai: ## Évalue l'enrichissement IA sur le corpus annoté avec un vrai modèle, hors CI (LOTOR_EVAL_AI_*, docs/operations.md)

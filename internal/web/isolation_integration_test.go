@@ -59,7 +59,9 @@ var globalRoutes = []string{
 }
 
 func isGlobal(pattern string) bool {
-	if strings.HasPrefix(pattern, "/admin") || strings.HasPrefix(pattern, "/api/") {
+	// /dt/ : point compatible Dependency-Track, authentifié par jeton d'agent comme /api/,
+	// l'organisation venant du jeton ; son isolement est vérifié par TestDTUploadRefusals.
+	if strings.HasPrefix(pattern, "/admin") || strings.HasPrefix(pattern, "/api/") || strings.HasPrefix(pattern, "/dt/") {
 		return true
 	}
 	for _, g := range globalRoutes {

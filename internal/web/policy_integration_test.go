@@ -114,8 +114,9 @@ func TestPolicyScreens(t *testing.T) {
 		!strings.Contains(np.body, "finding.kev &amp;&amp; finding.actionable") {
 		t.Fatalf("formulaire du modèle : %d", np.status)
 	}
-	if p := ab.get("/o/org-a/policies/new?template=" + policy.TemplateLicenseAGPL); p.status != http.StatusNotFound {
-		t.Fatalf("modèle AGPL indisponible servi : %d", p.status)
+	if p := ab.get("/o/org-a/policies/new?template=" + policy.TemplateLicenseAGPL); p.status != http.StatusOK ||
+		!strings.Contains(p.body, "license.ids.exists") {
+		t.Fatalf("modèle AGPL (sujet licence, T20) : %d", p.status)
 	}
 	bad := url.Values{"name": {"KEV prod"}, "subject": {"finding"}, "expression": {"finding.sevrity == \"critical\""},
 		"enabled": {"1"}, "blocking": {"1"}, "delivery": {"immediate"}, "channels": {ch.ID.String()}, "action": {"save"}}

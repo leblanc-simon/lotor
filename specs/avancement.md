@@ -4,6 +4,30 @@ Journal de bord de la réalisation autonome des lots. Chaque entrée renvoie au 
 fiche, qui fait foi pour le détail des décisions. Les décisions prises sans validation
 explicite de l'utilisateur sont marquées **[à relire]**.
 
+## Lot 3
+
+Réalisation enchaînée de T19, T20, T21 et T23, demandée le 4 novembre 2026 (« enchaîne »),
+sur la branche de la session, sans plan validé au préalable : chaque décision est
+consignée dans le Journal de la fiche et marquée **[à relire]**. Décision de
+l'utilisateur : la politique de licences par défaut d'une nouvelle organisation accepte
+toutes les licences (T20).
+
+| Lot | Statut | Décisions à relire |
+| --- | --- | --- |
+| T19 | Terminé (exécution de l'action GitHub réelle : action de l'utilisateur) | Clé = jeton d'agent dépôt, agent serveur refusé ; nom exact du dépôt confié ; version = nouvelle nature de référence `version` sans commit, rangée comme un hôte ; `project` = identifiant de la version ; création automatique par agent d'équipe, réglage sur la fiche de l'agent, 200 versions par dépôt ; champs Dependency-Track ignorés ; sortie des agents (serveur : CycloneDX 1.6, `only` ; dépôt : commit de tête seulement) ; mandataire pour l'action GitHub, qui ignore le chemin — tous **[à relire]** ([T19](lots/T19-dependency-track.md#journal), [ADR 0058](../docs/adr/0058-point-compatible-dependency-track.md)) |
+| T20 | Terminé | Grant non importé (son évaluation refuse `MIT OR GPL-3.0-only` si GPL l'est) : parseur et évaluateur SPDX dans `internal/license`, liste SPDX du schéma CycloneDX embarqué, écart à l'architecture ; politique par défaut qui accepte toute licence SPDX connue (**décision de l'utilisateur**) ; licence inconnue ou texte libre à revoir ; plusieurs licences d'un composant = `AND` ; `GPL-2.0+` cherché puis `GPL-2.0` ; sans licence : pas de constat sauf réglage ; politique aux gestionnaires de politiques ; évaluation à chaque analyse (pas sans base de vulnérabilités) ; sujet « licence » des règles, modèle AGPL bloquant sur l'étiquette `distribution` ; recherche `license:` par un seul identifiant — tous **[à relire]** sauf la politique par défaut ([T20](lots/T20-licences.md#journal), [ADR 0061](../docs/adr/0061-licences.md)) |
+| T21 | Terminé | Fin de journée UTC, borne exclusive ; projets archivés et références retirées compris ; composants seulement (recherche par vulnérabilité, sévérité, KEV, résolution refusées) ; avertissement avant l'horizon de la rétention ; mesure sur 12 mois d'historique hebdomadaire synthétique — tous **[à relire]** ([T21](lots/T21-recherche-historique.md#journal), [ADR 0059](../docs/adr/0059-recherche-a-une-date-passee.md)) |
+| T23 | Terminé | Archive tar (manifeste, codes, SBOM) ; HMAC de clé l'empreinte du jeton ; inscription par archive avec un jeton tiré par l'agent ; import par l'écran, l'API (seule écriture de l'API utilisateur) et un répertoire surveillé ; agent dépôt en plus seulement ; pas de conteneurs hors ligne — tous **[à relire]** ([T23](lots/T23-hors-ligne.md#journal), [ADR 0060](../docs/adr/0060-mode-hors-ligne.md)) |
+
+### Actions pour l'utilisateur (lot 3)
+
+1. **T19** : enregistrer une exécution réelle de l'action `DependencyTrack/gh-upload-sbom`
+   contre lotor (critère 2) : dans un dépôt de test, l'étape de
+   [`docs/dependency-track.md`](../docs/dependency-track.md#exemples) vers un nom d'hôte
+   servi par le mandataire qui préfixe `/dt` ; vérifier l'instantané créé, puis cocher le
+   critère de la fiche. La requête reconstituée a déjà été acceptée par un
+   Dependency-Track 5.2.1 et par lotor.
+
 ## Lot 2
 
 Réalisation autonome du lot 2 (T16, puis T12, T13, T14, T17, T15 et la recette T18),
@@ -323,7 +347,7 @@ Le mandataire git de la session refuse les pushs d'étiquettes (HTTP 403). Dans 
    critère s'ils tiennent (faux positifs ≤ 5 %, rappel ≥ 80 %) ; **confirmer ou changer le
    modèle par défaut** `claude-sonnet-5-5` ; sinon ajuster le prompt (nouvelle version)
    avant d'activer l'IA sur des projets. Facultatif : la même mesure avec Ollama.
-4. **Publier la préversion `v0.2.0`**, après les étapes 1 et 2 (et 3 si le résultat doit
+4. **Fait** (4 novembre 2026, étiquette sur `78fca4e`, puis `v0.2.1`) : **publier la préversion `v0.2.0`**, après les étapes 1 et 2 (et 3 si le résultat doit
    figurer dans les notes) :
    1. vérifier la section `## [0.2.0] - 2026-11-04` de `CHANGELOG.md` (date du jour de la
       pose ; ajouter le résultat de l'IA s'il y a lieu) et la CI de `main` ;

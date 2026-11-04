@@ -86,29 +86,31 @@ func TestParsePURLWithRange(t *testing.T) {
 // qu'à un purl sans version, jamais à une recherche par nom.
 func TestParseRejects(t *testing.T) {
 	cases := map[string]string{
-		"":                                         KeyEmpty,
-		"   ":                                      KeyEmpty,
-		strings.Repeat("a", MaxQueryLen+1):         KeyTooLong,
-		strings.Repeat("é", MaxNameLen+1):          KeyTooLong,
-		"lodash vers:npm/<4.17.21":                 KeyRangeNeedsPURL,
-		"vers:npm/<4.17.21":                        KeyRangeNeedsPURL,
-		"pkg:npm/a pkg:npm/b vers:npm/<1.0.0":      KeyRangeNeedsPURL,
-		"pkg:npm/a vers:npm/<1.0.0 vers:npm/>0":    KeyRangeNeedsPURL,
-		"pkg:npm/lodash@4.17.20 vers:npm/<5.0.0":   KeyRangeAndVersion,
-		"pkg:npm/lodash vers:npm/<<1":              KeyVersInvalid,
-		"pkg:npm/lodash vers:cobol/<1":             KeyVersScheme,
-		"pkg:npm/lodash vers:npm/<1.0.0|>1.0.0":    KeyVersDuplicate,
-		"pkg:npm/lodash vers:npm/<latest":          KeyVersVersion,
-		"pkg:npm/lodash vers:maven/<1.0":           KeyVersMismatch,
-		"pkg:npm":                                  KeyPURLInvalid,
-		"pkg:npm/a pkg:npm/b":                      KeyPURLInvalid,
-		"CVE-2021":                                 KeyVulnInvalid,
-		"CVE-2021-44228 CVE-2021-45046":            KeyVulnInvalid,
-		"GHSA-xxxx-yyyy-zzzz":                      KeyVulnInvalid,
-		"sha256:abc":                               KeyHashInvalid,
-		"sha256:" + strings.Repeat("a", 64) + " x": KeyHashInvalid,
-		"license:AGPL-3.0-only":                    KeyLicense,
-		"\xff":                                     KeyTooLong,
+		"":                                             KeyEmpty,
+		"   ":                                          KeyEmpty,
+		strings.Repeat("a", MaxQueryLen+1):             KeyTooLong,
+		strings.Repeat("é", MaxNameLen+1):              KeyTooLong,
+		"lodash vers:npm/<4.17.21":                     KeyRangeNeedsPURL,
+		"vers:npm/<4.17.21":                            KeyRangeNeedsPURL,
+		"pkg:npm/a pkg:npm/b vers:npm/<1.0.0":          KeyRangeNeedsPURL,
+		"pkg:npm/a vers:npm/<1.0.0 vers:npm/>0":        KeyRangeNeedsPURL,
+		"pkg:npm/lodash@4.17.20 vers:npm/<5.0.0":       KeyRangeAndVersion,
+		"pkg:npm/lodash vers:npm/<<1":                  KeyVersInvalid,
+		"pkg:npm/lodash vers:cobol/<1":                 KeyVersScheme,
+		"pkg:npm/lodash vers:npm/<1.0.0|>1.0.0":        KeyVersDuplicate,
+		"pkg:npm/lodash vers:npm/<latest":              KeyVersVersion,
+		"pkg:npm/lodash vers:maven/<1.0":               KeyVersMismatch,
+		"pkg:npm":                                      KeyPURLInvalid,
+		"pkg:npm/a pkg:npm/b":                          KeyPURLInvalid,
+		"CVE-2021":                                     KeyVulnInvalid,
+		"CVE-2021-44228 CVE-2021-45046":                KeyVulnInvalid,
+		"GHSA-xxxx-yyyy-zzzz":                          KeyVulnInvalid,
+		"sha256:abc":                                   KeyHashInvalid,
+		"sha256:" + strings.Repeat("a", 64) + " x":     KeyHashInvalid,
+		"license:":                                     KeyLicense,
+		"license:MIT OR Apache-2.0":                    KeyLicense,
+		"license:GPL-2.0 WITH Classpath-exception-2.0": KeyLicense,
+		"\xff": KeyTooLong,
 	}
 	for raw, key := range cases {
 		_, err := Parse(raw, cmp)
@@ -223,6 +225,17 @@ func TestDefuseNeutralizesFormulas(t *testing.T) {
 	for in, want := range map[string]string{"=1+1": "'=1+1", "+x": "'+x", "-2": "'-2", "@SUM": "'@SUM", "lodash": "lodash", "": ""} {
 		if got := defuse(in); got != want {
 			t.Errorf("%q : %q", in, got)
+		}
+	}
+}
+
+// Recherche par licence (T20) : un identifiant SPDX ou une référence LicenseRef-.
+func TestParseLicense(t *testing.T) {
+	for in, want := range map[string]string{"license:AGPL-3.0-only": "AGPL-3.0-only", "LICENSE:mit": "mit",
+		"license:LicenseRef-Interne": "LicenseRef-Interne", "license:GPL-2.0+": "GPL-2.0+"} {
+		q, err := Parse(in, nil)
+		if err != nil || q.Kind != KindLicense || q.License != want || q.Tokens()[0].Value != want {
+			t.Errorf("%q : %+v %v", in, q, err)
 		}
 	}
 }

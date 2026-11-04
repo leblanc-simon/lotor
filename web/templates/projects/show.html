@@ -95,6 +95,16 @@
             <dd>{{if .Branches}}<span class="cluster">{{range .Branches}}<span class="chip mono">{{.}}</span>{{end}}</span>{{else}}<span class="muted">{{T "project.none"}}</span>{{end}}</dd>
             <dt>{{T "project.tags"}}</dt>
             <dd>{{if .Tags}}<span class="cluster">{{range .Tags}}<span class="chip mono">{{.}}</span>{{end}}</span>{{else}}<span class="muted">{{T "project.none"}}</span>{{end}}</dd>
+            {{- if .Versions}}
+            <dt>{{T "project.versions"}}</dt>
+            <dd>
+              <ul class="plain-list">
+                {{- range .Versions}}
+                <li><span class="chip mono">{{.Name}}</span> <span class="muted">{{T "project.version_id"}}</span> <code class="mono">{{.ID}}</code></li>
+                {{- end}}
+              </ul>
+            </dd>
+            {{- end}}
           </dl>
           {{- end}}
         </div>

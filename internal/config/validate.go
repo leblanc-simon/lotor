@@ -226,6 +226,12 @@ func (c Config) Validate() error {
 	if c.Containers.PurgeAfter != 0 && c.Containers.PurgeAfter < time.Duration(c.Retention.Days)*24*time.Hour {
 		v.fail("containers.purge_after", "0 (jamais) ou au moins retention.days (%d jours ; reçu %s)", c.Retention.Days, c.Containers.PurgeAfter)
 	}
+	if d := c.Offline.WatchDir; d != "" && !filepath.IsAbs(d) {
+		v.fail("offline.watch_dir", "chemin absolu attendu (reçu %q)", d)
+	}
+	if c.Offline.WatchDir != "" && (c.Offline.WatchInterval < time.Second || c.Offline.WatchInterval > 24*time.Hour) {
+		v.fail("offline.watch_interval", "entre 1s et 24h (reçu %s)", c.Offline.WatchInterval)
+	}
 	if c.Containers.MaxPerHost < 1 || c.Containers.MaxPerHost > 100000 {
 		v.fail("containers.max_per_host", "doit être compris entre 1 et 100000 (reçu %d)", c.Containers.MaxPerHost)
 	}

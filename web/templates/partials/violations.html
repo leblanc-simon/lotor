@@ -2,6 +2,9 @@
 {{- if .Agent}}
 <td><span class="cell-stack"><span class="muted">{{T "violations.agent"}}</span><a href="{{.AgentHref}}">{{.AgentName}}</a></span></td>
 <td><span class="muted">{{T "violations.no_project"}}</span></td>
+{{- else if .License}}
+<td><span class="cell-stack"><span class="cluster"><span class="muted">{{T "violations.license"}}</span><a class="mono" href="{{.FindingHref}}">{{.VulnID}}<span class="visually-hidden"> {{.Component}}</span></a><span class="status{{if .Denied}} status--danger{{else}} status--warning{{end}}">{{T .VerdictKey}}</span></span><span class="mono muted">{{.Component}}</span></span></td>
+<td><span class="cell-stack"><a href="{{.ProjectHref}}">{{.Project}}</a>{{with .Ref}}<span class="muted">{{.}}</span>{{end}}</span></td>
 {{- else}}
 <td><span class="cell-stack"><span class="cluster"><a class="mono" href="{{.FindingHref}}">{{.VulnID}}<span class="visually-hidden"> {{.Component}}</span></a>{{template "sev" .Sev}}{{if .KEV}}{{template "kev"}}{{end}}</span><span class="mono muted">{{.Component}}</span></span></td>
 <td><span class="cell-stack"><a href="{{.ProjectHref}}">{{.Project}}</a>{{with .Ref}}<span class="muted">{{.}}</span>{{end}}</span></td>
