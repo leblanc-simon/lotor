@@ -8,23 +8,13 @@ appliquées automatiquement, sans retour arrière.
 
 ## [Non publié]
 
-### Ajouté
-
-- Paquet deb `lotor-server` (amd64, arm64 ; T27, ADR 0053) : sur Debian 13 ou Ubuntu 24.04,
-  `apt install` crée les rôles et la base PostgreSQL en local, les secrets, le premier
-  administrateur avec un mot de passe temporaire affiché une fois, et le site nginx ou Apache,
-  avec un certificat existant ou autosigné. Base distante par chaînes de connexion,
-  installation sans terminal par réponses prérenseignées. Une mise à jour ne redémarre pas le
-  serveur ; une purge garde la base et la clé de chiffrement. Voir
-  [`docs/operations.md`](https://github.com/leblanc-simon/lotor/blob/main/docs/operations.md#installation-par-le-paquet-deb).
-
-## [0.2.0] - 2026-11-03
+## [0.2.0] - 2026-11-04
 
 Préversion du **lot 2 · IA et triage** : équipes et droits, conteneurs des serveurs,
 triage et VEX, politiques et alertes, différences d'instantanés et rétention,
 enrichissement IA prouvé de l'agent dépôt, codes de secours du second facteur. Mêmes
 fichiers qu'en 0.1.0 (trois rôles, linux amd64 et arm64, paquets deb et rpm de l'agent
-serveur, sommes SHA-256).
+serveur, sommes SHA-256), plus le paquet deb du serveur.
 
 **Mise à jour depuis 0.1.0** : les migrations 016 à 023 s'appliquent au démarrage (équipe
 « Général » créée dans chaque organisation, avec tous ses projets et tous ses membres à
@@ -38,6 +28,13 @@ secours (à générer depuis **Mon compte › Second facteur**) ; les ports par 
 
 ### Ajouté
 
+- Paquet deb `lotor-server` (amd64, arm64 ; T27, ADR 0053) : sur Debian 13 ou Ubuntu 24.04,
+  `apt install` crée les rôles et la base PostgreSQL en local, les secrets, le premier
+  administrateur avec un mot de passe temporaire affiché une fois, et le site nginx ou Apache,
+  avec un certificat existant ou autosigné. Base distante par chaînes de connexion,
+  installation sans terminal par réponses prérenseignées. Une mise à jour ne redémarre pas le
+  serveur ; une purge garde la base et la clé de chiffrement. Voir
+  [`docs/operations.md`](https://github.com/leblanc-simon/lotor/blob/main/docs/operations.md#installation-par-le-paquet-deb).
 - Codes de secours du second facteur (T18, ADR 0048 ; open-go-base v1.4.0) : dix codes à
   usage unique, hachés, montrés une seule fois à l'enrôlement ; connexion par « Utiliser
   un code de secours » ; page **Mon compte › Second facteur** : codes restants,

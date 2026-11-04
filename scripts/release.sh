@@ -1,7 +1,7 @@
 #!/bin/sh
 # Construit les fichiers d'une version dans un répertoire : archives des trois binaires
 # (linux amd64 et arm64, CGO_ENABLED=0, version injectée), paquets deb et rpm de l'agent
-# serveur, sommes SHA-256. Appelé par `make release` et par .github/workflows/release.yml.
+# serveur, paquet deb du serveur, sommes SHA-256. Appelé par `make release` et par .github/workflows/release.yml.
 #
 # Usage : scripts/release.sh <version> <répertoire de sortie>   (version : v0.1.0)
 set -eu
