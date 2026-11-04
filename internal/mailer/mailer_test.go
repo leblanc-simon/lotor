@@ -36,10 +36,10 @@ func testMailer(t *testing.T) *Mailer {
 
 func sampleMessages(lang string) map[string]Message {
 	return map[string]Message{
-		"verification": {To: "a@example.org", Language: lang, Template: SignupVerify, Path: "/signup/verify/lotor_vrf_x"},
+		"verification":    {To: "a@example.org", Language: lang, Template: SignupVerify, Path: "/signup/verify/lotor_vrf_x"},
 		"compte-existant": {To: "a@example.org", Language: lang, Template: SignupExisting, Path: "/login"},
 		"code": {To: "a@example.org", Language: lang, Template: SignupCode, Path: "/signup",
-			Code: "lotor_sgn_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz234567abcdefghijklmnopqrstu",
+			Code:   "lotor_sgn_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz234567abcdefghijklmnopqrstu",
 			Params: map[string]string{"Expires": "2026-12-04"}},
 		"invitation": {To: "a@example.org", Language: lang, Template: OrgInvitation, Path: "/invitation/lotor_inv_x",
 			Params: map[string]string{"Org": "Acme & Cie", "Inviter": "camille@acme.example", "Role": "administrateur", "Expires": "2026-12-04"}},
