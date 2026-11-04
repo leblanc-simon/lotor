@@ -338,6 +338,36 @@
     text-align: center;
   }
 
+  .landing__install {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+
+    @container lotor (width < 56rem) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* Terminal : sombre dans les deux thèmes, comme une console. */
+  .landing__term {
+    margin: 0;
+    padding: var(--space-6);
+    overflow-x: auto;
+    background: #0F1318;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--landing-shadow);
+    color: #E6E8EC;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: 1.7;
+    white-space: pre;
+  }
+
+  .landing__term-comment {
+    color: #7ED6CF;
+  }
+
   .landing__final {
     display: grid;
     justify-items: center;

@@ -208,6 +208,28 @@
     </ul>
   </section>
 
+  <section class="landing__install" aria-labelledby="landing-install">
+    <div>
+      <p class="landing__eyebrow">{{T "landing.install.eyebrow"}}</p>
+      <h2 class="landing__h2" id="landing-install">{{T "landing.install.title"}}</h2>
+      <p class="landing__text">{{T "landing.install.text"}}</p>
+      <p class="landing__cta">
+        <a class="btn btn--primary btn--lg" href="https://github.com/leblanc-simon/lotor/releases">{{T "landing.install.download"}}</a>
+        <a class="btn btn--lg" href="{{T "landing.install.guide_url"}}">{{T "landing.install.guide"}}</a>
+      </p>
+    </div>
+    <pre class="landing__term" tabindex="0" aria-label="{{T "landing.install.commands_label"}}"><code><span class="landing__term-comment">{{T "landing.install.cmd_server_comment"}}</span>
+{{T "landing.install.cmd_server"}}
+
+<span class="landing__term-comment">{{T "landing.install.cmd_agent_comment"}}</span>
+{{T "landing.install.cmd_agent"}}
+<span class="landing__term-comment">{{T "landing.install.cmd_config_comment"}}</span>
+<span class="landing__term-comment">{{T "landing.install.cmd_token_comment"}}</span>
+{{T "landing.install.cmd_token"}}
+{{T "landing.install.cmd_token_path"}}
+{{T "landing.install.cmd_start"}}</code></pre>
+  </section>
+
   <section class="landing__final" aria-labelledby="landing-final">
     <img src="{{asset "img/favicon.svg"}}" alt="" width="56" height="56">
     <h2 class="landing__h2" id="landing-final">{{T "landing.final.title"}}</h2>

@@ -2388,6 +2388,26 @@ landing:
       text: >-
         Interface audited against the RGAA, usable with a keyboard and a screen reader, light
         and dark themes.
+  install:
+    eyebrow: "Install"
+    title: "One package and you're off"
+    text: >-
+      On Debian 13 or Ubuntu 24.04, the server package creates the local PostgreSQL database,
+      the secrets, the first administrator and the nginx or Apache site. The host agent comes
+      as deb and rpm packages, for amd64 and arm64.
+    download: "Download"
+    guide: "Operations guide"
+    guide_url: "https://github.com/leblanc-simon/lotor/blob/main/docs/operations.md"
+    commands_label: "Installation commands"
+    cmd_server_comment: "# the server"
+    cmd_agent_comment: "# on every server to inventory"
+    cmd_config_comment: "# server address in /etc/lotor-host-agent/config.yaml,"
+    cmd_token_comment: "# enrollment token shown by the web interface"
+    cmd_server: "sudo apt install ./lotor-server_0.2.0_amd64.deb"
+    cmd_agent: "sudo apt install ./lotor-host-agent_0.2.0_amd64.deb"
+    cmd_token: "printf '%s' \"$TOKEN\" | sudo install -m 0600 -o lotor-agent \\"
+    cmd_token_path: "  -g lotor-agent /dev/stdin /etc/lotor-host-agent/enrollment-token"
+    cmd_start: "sudo systemctl enable --now lotor-host-agent.service"
   final:
     title: "Free, for real."
     text: "lotor is released under the WTFPL: use it, change it, share it, no strings attached."
