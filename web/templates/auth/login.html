@@ -24,7 +24,7 @@
       {{- with .Next}}<input type="hidden" name="next" value="{{.}}">{{end}}
       <div class="field">
         <label class="field__label" for="login-email">{{T "login.email"}}</label>
-        <input class="input" id="login-email" name="email" type="email" autocomplete="username" required value="{{.Email}}"{{if .ErrorKey}} aria-invalid="true"{{end}}>
+        <input class="input" id="login-email" name="email" type="email" autocomplete="username" required autofocus value="{{.Email}}"{{if .ErrorKey}} aria-invalid="true"{{end}}>
       </div>
       <div class="field">
         <label class="field__label" for="login-password">{{T "login.password"}}</label>

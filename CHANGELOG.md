@@ -75,6 +75,12 @@ d'un simple compte rendu.
 
 - `web.public_url` remplace `notify.public_url` (liens des notifications, des verdicts et
   des courriels) ; le paquet deb écrit la nouvelle clé.
+- Pages de connexion et de second facteur : le focus est posé sur le premier champ.
+
+### Corrigé
+
+- Rangées de formulaire avec une aide (création d'organisation, filtres des projets) : les
+  champs, les cases et les boutons sont de nouveau alignés.
 
 ## [0.2.1] - 2026-11-04
 
