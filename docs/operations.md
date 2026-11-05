@@ -1540,13 +1540,26 @@ conditionnel, rattrapage de l'agent dépôt).
 Retour arrière : restaurer la sauvegarde prise avant la mise à jour et réinstaller
 l'ancien binaire (un ancien binaire refuse une base migrée par une version plus récente).
 
-**Vers la version suivante** (inscription, T28) :
+**De 0.2.x à 0.3.0** :
 
-- `notify.public_url` devient `web.public_url` (`LOTOR_PUBLIC_URL`) : **déplacer la clé**
-  sous `web:` ; l'ancienne, restée sous `notify:`, est ignorée (messages sans lien). Le paquet
-  deb écrit la nouvelle clé pour une installation neuve ;
+- `notify.public_url` devient `web.public_url`, et `LOTOR_NOTIFY_PUBLIC_URL` devient
+  `LOTOR_PUBLIC_URL` : **déplacer la clé** sous `web:` avant de redémarrer ; l'ancienne clé et
+  l'ancienne variable sont ignorées sans erreur (messages sans lien). Le paquet deb écrit la
+  nouvelle clé à l'installation et par `dpkg-reconfigure lotor-server`, pas lors d'une mise à
+  jour ;
+- mettre à jour `lotor-host-agent` en même temps que le serveur : un agent antérieur calcule
+  l'ancienne empreinte d'inventaire et renvoie son SBOM à chaque cycle au lieu d'un simple
+  compte rendu. L'agent dépôt 0.2.x continue de fonctionner ; la 0.3.0 n'est nécessaire que
+  pour `dependency_track.*` et `offline.dir` ;
+- les migrations 024 à 028 s'appliquent au démarrage. Au premier scan, chaque référence reçoit
+  un nouvel ensemble d'inventaire (empreinte `lotor-inventory-v2`) : un hôte a un instantané
+  de plus à inventaire identique ;
 - la migration 024 ajoute les tables de l'inscription et un lien secret aux invitations
-  d'organisation ; l'instance reste privée (`signup.mode: private`) ;
+  d'organisation ; l'instance reste privée (`signup.mode: private`), mais le lien d'une
+  nouvelle invitation permet à une personne sans compte d'en créer un. Les invitations
+  antérieures n'ont pas de lien : un compte existant les accepte comme avant ;
+- les constats de licence apparaissent à la prochaine analyse de vulnérabilités de chaque
+  référence, ou dès qu'une organisation modifie sa politique de licences ;
 - les notifications par courriel ont désormais une version HTML (gabarit commun, logo joint
   au message), en plus du texte.
 
