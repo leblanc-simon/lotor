@@ -129,4 +129,20 @@
   > .field.field--narrow {
     flex: 0 1 10rem;
   }
+
+  /* Un hint allonge son champ : par le bas, les saisies de la rangée se décaleraient. Calées
+     par le haut, les boutons et les cases ne descendent plus seuls à leur hauteur : ils
+     sautent l'emplacement du libellé. Sans hint, le bas reste juste même si un libellé
+     passe sur deux lignes. */
+  &:has(> .field > .field__hint) {
+    align-items: flex-start;
+
+    > .btn, > .check {
+      margin-block-start: calc(var(--text-sm) * var(--leading-normal) + var(--space-1));
+    }
+
+    > .check {
+      min-height: var(--control-h);
+    }
+  }
 }

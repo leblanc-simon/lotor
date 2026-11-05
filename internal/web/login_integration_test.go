@@ -6,6 +6,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -42,6 +43,17 @@ func hasAction(actions []audit.Action, want audit.Action) bool {
 // TestFirstLoginOfBootstrappedAdmin suit le premier administrateur : mot de passe
 // temporaire, enrôlement obligatoire du TOTP, changement de mot de passe imposé, puis
 // reconnexion avec code TOTP, code faux et rejeu refusés.
+// assertAutofocus vérifie que la page donne le focus à ce champ, et à lui seul.
+func assertAutofocus(t *testing.T, body, id string) {
+	t.Helper()
+	if n := strings.Count(body, " autofocus"); n != 1 {
+		t.Errorf("%d champs avec autofocus, attendu 1", n)
+	}
+	if !regexp.MustCompile(`<input[^>]* id="` + id + `"[^>]* autofocus[ >]`).MatchString(body) {
+		t.Errorf("autofocus absent de %s", id)
+	}
+}
+
 func TestFirstLoginOfBootstrappedAdmin(t *testing.T) {
 	t.Parallel()
 	a := newApp(t)
@@ -52,6 +64,7 @@ func TestFirstLoginOfBootstrappedAdmin(t *testing.T) {
 		t.Fatalf("bootstrap : %v, %v", created, err)
 	}
 	b := a.browser()
+	assertAutofocus(t, b.get("/login").body, "login-email")
 
 	// Mot de passe valide, aucun TOTP : session de configuration seulement.
 	p := b.post("/login", url.Values{"email": {email}, "password": {temp}})
@@ -71,6 +84,7 @@ func TestFirstLoginOfBootstrappedAdmin(t *testing.T) {
 	}
 	webtest.AssertAccessible(t, []byte(setup.body))
 	webtest.AssertNoInlineCode(t, []byte(setup.body))
+	assertAutofocus(t, setup.body, "totp-code")
 	if !strings.Contains(setup.body, `src="data:image/png;base64,`) {
 		t.Error("code QR absent")
 	}
@@ -135,6 +149,7 @@ func TestFirstLoginOfBootstrappedAdmin(t *testing.T) {
 	}
 	verify := b.get(pathVerify)
 	webtest.AssertAccessible(t, []byte(verify.body))
+	assertAutofocus(t, verify.body, "verify-code")
 	if p = b.post(pathVerify, url.Values{"code": {"000000"}}); p.status != http.StatusUnauthorized ||
 		!strings.Contains(unescape(p.body), "incorrect, expiré ou déjà utilisé") ||
 		p.header.Get("Content-Type") != "text/html; charset=utf-8" {

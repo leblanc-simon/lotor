@@ -25,7 +25,7 @@
       {{csrfField .Page.CSRFToken}}
       <div class="field">
         <label class="field__label" for="totp-code">{{T "totp_setup.code"}}</label>
-        <input class="input input--code" id="totp-code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required{{if .ErrorKey}} aria-invalid="true"{{end}}>
+        <input class="input input--code" id="totp-code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required autofocus{{if .ErrorKey}} aria-invalid="true"{{end}}>
       </div>
       <p><button type="submit" class="btn btn--primary">{{T "totp_setup.submit"}}</button></p>
     </form>
