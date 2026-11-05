@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Recette du paquet deb de lotor-server (make test-package) : chaque scénario installe le vrai
-# paquet dans un conteneur systemd neuf. Exige Docker et dist/lotor-server_*_amd64.deb.
+# Recette des paquets deb de lotor-server et de lotor-repo-agent (make test-package) : chaque
+# scénario installe le vrai paquet dans un conteneur systemd neuf. Exige Docker,
+# dist/lotor-server_*_amd64.deb et dist/lotor-repo-agent_*_amd64.deb.
 #
 #   scripts/test-package.sh [scénario…]      # tous par défaut
 #   PACKAGE_DISTROS="debian:13" …            # distributions, par défaut Debian 13 et Ubuntu 24.04
@@ -8,7 +9,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 DISTROS=${PACKAGE_DISTROS:-debian:13 ubuntu:24.04}
-ALL_SCENARIOS="nginx apache no_web no_email order remote invalid_dsn broken_site lifecycle interactive teletype questions"
+ALL_SCENARIOS="nginx apache no_web no_email order remote invalid_dsn broken_site lifecycle interactive teletype questions repo_agent"
 SCENARIOS=${*:-$ALL_SCENARIOS}
 HOST=lotor.example.org
 EMAIL=admin@example.org
@@ -17,6 +18,8 @@ PWFILE=/etc/lotor/initial-admin-password
 
 deb=$(ls -t dist/lotor-server_*_amd64.deb 2>/dev/null | head -n 1 || true)
 [ -n "$deb" ] || { echo "paquet absent : make packages" >&2; exit 1; }
+repo_deb=$(ls -t dist/lotor-repo-agent_*_amd64.deb 2>/dev/null | head -n 1 || true)
+[ -n "$repo_deb" ] || { echo "paquet absent : make packages" >&2; exit 1; }
 
 C=""
 failures=0
@@ -60,6 +63,7 @@ start() { # image
         sleep 1
     done
     docker cp "$deb" "$C:/root/lotor-server.deb"
+    docker cp "$repo_deb" "$C:/root/lotor-repo-agent.deb"
     docker cp scripts/test-package-login.py "$C:/root/login.py"
     docker cp scripts/test-package-tty.py "$C:/root/run_tty.py"
     x "echo '127.0.0.1 $HOST' >> /etc/hosts"
@@ -335,6 +339,34 @@ scenario_questions() {
     password=$(x "grep -aoE '[^0-9a-f][0-9a-f]{24}([^0-9a-f]|\$)' /root/tty.log | grep -aoE '[0-9a-f]{24}' | head -n 1" || true)
     [ -n "$password" ] || { fail "mot de passe lu à l'écran"; return 0; }
     check "connexion avec l'e-mail corrigé" "python3 /root/login.py https://$HOST $EMAIL '$password'"
+}
+
+# Agent dépôt : installé sans être activé, configuration lue par le compte dynamique de
+# l'unité, mise à jour qui garde la configuration modifiée, désinstallation qui désactive.
+scenario_repo_agent() {
+    x "DEBIAN_FRONTEND=noninteractive apt-get install -y /root/lotor-repo-agent.deb >/root/install.log 2>&1"
+    check "installation réussie" "dpkg-query -W -f '\${Status}' lotor-repo-agent | grep -q 'install ok installed'"
+    check "git installé par dépendance" 'git --version'
+    check "unité valide" 'systemd-analyze verify lotor-repo-agent.service'
+    refute "unité non activée" 'systemctl is-enabled lotor-repo-agent'
+    refute "unité non démarrée" 'systemctl is-active lotor-repo-agent'
+    check "configuration en 0644 dans un répertoire en 0755" \
+        '[ "$(stat -c %a /etc/lotor-repo-agent)" = 755 ] && [ "$(stat -c %a /etc/lotor-repo-agent/config.yaml)" = 644 ]'
+    # Sans aucun credential (remise à zéro par un fichier d'extension), l'agent s'arrête sur
+    # le premier secret : la configuration a donc été lue sous le compte dynamique.
+    x 'mkdir -p /etc/systemd/system/lotor-repo-agent.service.d && printf "[Service]\nLoadCredentialEncrypted=\n" > /etc/systemd/system/lotor-repo-agent.service.d/credentials.conf && systemctl daemon-reload'
+    x 'systemctl start lotor-repo-agent' || true
+    check "configuration lue sous le compte dynamique" \
+        'for i in 1 2 3 4 5 6 7 8 9 10; do journalctl -u lotor-repo-agent -o cat | grep -q "CREDENTIALS_DIRECTORY absent" && exit 0; sleep 1; done; exit 1'
+    x 'echo "# modification locale" >> /etc/lotor-repo-agent/config.yaml'
+    x "DEBIAN_FRONTEND=noninteractive apt-get install -y --reinstall /root/lotor-repo-agent.deb >>/root/install.log 2>&1"
+    check "mise à jour : configuration modifiée gardée" 'tail -n 1 /etc/lotor-repo-agent/config.yaml | grep -q "modification locale"'
+    x 'systemctl enable lotor-repo-agent >/dev/null 2>&1'
+    x 'DEBIAN_FRONTEND=noninteractive apt-get remove -y lotor-repo-agent >>/root/install.log 2>&1'
+    refute "désinstallation : unité désactivée" 'systemctl is-enabled lotor-repo-agent'
+    check "désinstallation : configuration gardée" 'test -f /etc/lotor-repo-agent/config.yaml'
+    x 'DEBIAN_FRONTEND=noninteractive apt-get purge -y lotor-repo-agent >>/root/install.log 2>&1'
+    refute "purge : configuration supprimée" 'test -f /etc/lotor-repo-agent/config.yaml'
 }
 
 # Le cluster d'une version trop ancienne n'est pas utilisé.

@@ -1,6 +1,6 @@
 # Publication d'une version : une étiquette vX.Y.Z poussée sur un commit de main construit
 # les binaires des trois rôles (linux amd64 et arm64), les paquets deb et rpm de l'agent
-# serveur, le paquet deb du serveur et leurs sommes SHA-256 (make release), puis crée une
+# serveur, les paquets deb du serveur et de l'agent dépôt et leurs sommes SHA-256 (make release), puis crée une
 # préversion GitHub dont les notes sont la section de la version dans CHANGELOG.md. Les vérifications complètes ont
 # déjà passé sur main (ci.yml) ; les tests unitaires sont rejoués ici par sûreté.
 name: release

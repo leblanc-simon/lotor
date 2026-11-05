@@ -66,3 +66,4 @@ décision contraire fait l'objet d'un nouvel ADR qui le remplace.
 | [0059](0059-recherche-a-une-date-passee.md) | Recherche à une date passée : instantané en vigueur par référence, fin de journée UTC, composants seulement, avertissement avant l'horizon de la rétention | Accepté |
 | [0060](0060-mode-hors-ligne.md) | Mode hors ligne : archives signées par l'empreinte du jeton, inscription par archive, import par l'écran, l'API et un répertoire surveillé | Accepté |
 | [0061](0061-licences.md) | Licences : expressions SPDX évaluées dans le projet (Grant non importé), politique qui accepte tout par défaut, constats, sujet « licence » des règles, recherche `license:` | Accepté |
+| [0062](0062-paquet-deb-agent-depot.md) | Paquet deb de l'agent dépôt : compte dynamique, unité inactive à l'installation, credentials des forges par fichier d'extension | Accepté |

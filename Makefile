@@ -35,7 +35,7 @@ AGENT_ARCHES := amd64 arm64
 PKG_VERSION  := $(shell echo '$(VERSION)' | sed -E 's/^v//; /^[0-9]+[.][0-9]/!s/^/0.0.0~/; s/-/./g')
 
 .PHONY: packages
-packages: ## Agent serveur (deb, rpm) et serveur (deb), amd64 et arm64, dans dist/
+packages: ## Agent serveur (deb, rpm), serveur et agent dépôt (deb), amd64 et arm64, dans dist/
 	@mkdir -p dist
 	@for a in $(AGENT_ARCHES); do \
 		echo "build lotor-host-agent (linux/$$a, $(VERSION))"; \
@@ -48,6 +48,9 @@ packages: ## Agent serveur (deb, rpm) et serveur (deb), amd64 et arm64, dans dis
 		CGO_ENABLED=0 GOOS=linux GOARCH=$$a $(GO) build -trimpath -ldflags "$(LDFLAGS)" -o bin/package/lotor-server ./cmd/lotor-server || exit 1; \
 		sed 's#/usr/local/bin/lotor-server#/usr/bin/lotor-server#' deploy/systemd/lotor-server.service > bin/package/lotor-server.service || exit 1; \
 		PKG_ARCH=$$a PKG_VERSION=$(PKG_VERSION) $(GO) tool nfpm package --config deploy/nfpm/server.yaml --packager deb --target dist/ || exit 1; \
+		echo "build lotor-repo-agent (linux/$$a, $(VERSION))"; \
+		CGO_ENABLED=0 GOOS=linux GOARCH=$$a $(GO) build -trimpath -ldflags "$(LDFLAGS)" -o bin/package/lotor-repo-agent ./cmd/lotor-repo-agent || exit 1; \
+		PKG_ARCH=$$a PKG_VERSION=$(PKG_VERSION) $(GO) tool nfpm package --config deploy/nfpm/repo-agent.yaml --packager deb --target dist/ || exit 1; \
 	done
 	@ls -l bin/linux-*/lotor-host-agent dist/
 
@@ -163,7 +166,7 @@ selfscan: sbom ## Analyse les SBOM des binaires ; échec sur une vulnérabilité
 ci: fmt-check generate-check vet lint test-race test-integration vuln build packages ## Toutes les vérifications de la CI
 
 .PHONY: test-package
-test-package: packages ## Recette du paquet deb du serveur dans des conteneurs systemd (Docker)
+test-package: packages ## Recette des paquets deb du serveur et de l'agent dépôt dans des conteneurs systemd (Docker)
 	./scripts/test-package.sh
 
 .PHONY: clean

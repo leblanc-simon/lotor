@@ -19,6 +19,12 @@ d'un simple compte rendu.
 
 ### Ajouté
 
+- Paquet deb `lotor-repo-agent` (amd64, arm64 ; ADR 0062) : binaire, unité systemd durcie,
+  `/etc/lotor-repo-agent/config.yaml`, dépendance à git 2.30 ou plus ; aucun utilisateur
+  créé (compte dynamique), unité ni activée ni démarrée à l'installation, agent actif
+  redémarré par une mise à jour. Credentials des forges non utilisées retirés par un
+  fichier d'extension :
+  [`docs/operations.md`](https://github.com/leblanc-simon/lotor/blob/main/docs/operations.md#agent-dépôt).
 - Inscription (T28, ADR 0056) : `signup.mode` `private` (défaut), `invitation` (codes
   d'inscription créés par les administrateurs d'instance, usage unique, 30 jours par
   défaut, révocables, envoyés par courriel ou transmis à la main) ou `public` (adresse
@@ -81,6 +87,12 @@ d'un simple compte rendu.
 
 - Rangées de formulaire avec une aide (création d'organisation, filtres des projets) : les
   champs, les cases et les boutons sont de nouveau alignés.
+
+### Corrigé
+
+- Installation manuelle de l'agent dépôt : `/etc/lotor-repo-agent` en `0755` et non plus
+  `0700`. Le compte dynamique de l'unité ne pouvait pas lire `config.yaml`, et l'agent
+  démarrait sans sa configuration.
 
 ## [0.2.1] - 2026-11-04
 

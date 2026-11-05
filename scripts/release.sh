@@ -1,7 +1,7 @@
 #!/bin/sh
 # Construit les fichiers d'une version dans un répertoire : archives des trois binaires
 # (linux amd64 et arm64, CGO_ENABLED=0, version injectée), paquets deb et rpm de l'agent
-# serveur, paquet deb du serveur, sommes SHA-256. Appelé par `make release` et par .github/workflows/release.yml.
+# serveur, paquets deb du serveur et de l'agent dépôt, sommes SHA-256. Appelé par `make release` et par .github/workflows/release.yml.
 #
 # Usage : scripts/release.sh <version> <répertoire de sortie>   (version : v0.1.0)
 set -eu
@@ -51,11 +51,12 @@ for arch in $ARCHES; do
   done
 done
 
-# Paquets de l'agent serveur et du serveur (nfpm), version des paquets tirée de l'étiquette.
+# Paquets de l'agent serveur, du serveur et de l'agent dépôt (nfpm), version des paquets tirée de l'étiquette.
 make --no-print-directory packages VERSION="$VERSION" >/dev/null
 cp dist/lotor-host-agent_"$NUM"_amd64.deb dist/lotor-host-agent_"$NUM"_arm64.deb \
   dist/lotor-host-agent-"$NUM"-1.x86_64.rpm dist/lotor-host-agent-"$NUM"-1.aarch64.rpm \
-  dist/lotor-server_"$NUM"_amd64.deb dist/lotor-server_"$NUM"_arm64.deb "$OUT/"
+  dist/lotor-server_"$NUM"_amd64.deb dist/lotor-server_"$NUM"_arm64.deb \
+  dist/lotor-repo-agent_"$NUM"_amd64.deb dist/lotor-repo-agent_"$NUM"_arm64.deb "$OUT/"
 
 (cd "$OUT" && sha256sum -- *.tar.gz *.deb *.rpm > SHA256SUMS)
 echo "fichiers de $VERSION dans $OUT :"

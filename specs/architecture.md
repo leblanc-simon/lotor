@@ -944,7 +944,7 @@ qu'aucune mesure ne la justifie (ADR 0015).
 - **Versions** (ADR 0032) : une étiquette `vX.Y.Z` sur `main` déclenche
   `.github/workflows/release.yml`, qui construit par `make release` les archives des trois
   rôles (linux amd64 et arm64), les paquets deb et rpm de l'agent serveur, le paquet deb du
-  serveur (T27, ADR 0053) et `SHA256SUMS`,
+  serveur (T27, ADR 0053), le paquet deb de l'agent dépôt (ADR 0062) et `SHA256SUMS`,
   et crée une préversion GitHub dont les notes viennent de `CHANGELOG.md` (Keep a
   Changelog). Préversions seulement jusqu'à T26.
 
