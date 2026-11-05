@@ -1,5 +1,5 @@
-# Recette du paquet deb du serveur (make test-package) : le vrai paquet installé dans des
-# conteneurs systemd. Longue : seulement quand le paquet ou ce qu'il installe change.
+# Recette des paquets deb du serveur et de l'agent dépôt (make test-package) : les vrais
+# paquets installés dans des conteneurs systemd. Longue : seulement quand le paquet ou ce qu'il installe change.
 name: package
 
 on:
@@ -10,7 +10,9 @@ on:
       - Makefile
       - config.example.yaml
       - deploy/nfpm/server.yaml
+      - deploy/nfpm/repo-agent.yaml
       - deploy/server/**
+      - deploy/lotor-repo-agent/**
       - deploy/systemd/lotor-server.service
       - scripts/test-package*
   pull_request:

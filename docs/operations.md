@@ -1109,15 +1109,27 @@ commentée et unité systemd durcie : `deploy/lotor-repo-agent/`.
 
 1. Dans l'organisation : **Agents › Nouvel agent dépôt** ; noter le jeton (affiché une
    fois).
-2. Sur la machine de l'agent (git 2.30 ou plus, accès HTTPS aux forges et au serveur) :
-   extraire `lotor-repo-agent_<version>_linux_<arch>.tar.gz`, puis
-   `sudo install -m 0755 lotor-repo-agent /usr/bin/`,
-   `sudo install -m 0644 lotor-repo-agent.service /etc/systemd/system/`,
-   `sudo install -d -m 0700 /etc/lotor-repo-agent` et
-   `sudo install -m 0644 config.example.yaml /etc/lotor-repo-agent/config.yaml`.
+2. Sur la machine de l'agent (accès HTTPS aux forges et au serveur) :
+   - **par le paquet deb** (Debian, Ubuntu ; amd64, arm64 ; page des versions ou
+     `make packages`, non signé, à vérifier par `SHA256SUMS`) :
+     `sudo apt install ./lotor-repo-agent_<version>_<arch>.deb`. Il installe git
+     (2.30 ou plus), le binaire, l'unité `lotor-repo-agent.service` et
+     `/etc/lotor-repo-agent/config.yaml` ; il n'active pas l'unité. Aucun utilisateur
+     n'est créé : l'unité tourne sous un compte dynamique (`DynamicUser=yes`) ;
+   - **à la main** (git 2.30 ou plus) : extraire
+     `lotor-repo-agent_<version>_linux_<arch>.tar.gz`, puis
+     `sudo install -m 0755 lotor-repo-agent /usr/bin/`,
+     `sudo install -m 0644 lotor-repo-agent.service /etc/systemd/system/`,
+     `sudo install -d -m 0755 /etc/lotor-repo-agent` et
+     `sudo install -m 0644 config.example.yaml /etc/lotor-repo-agent/config.yaml`.
+
+   Le répertoire et la configuration restent lisibles de tous : le compte dynamique de
+   l'unité lit `config.yaml`, qui ne contient aucun secret. Dans un répertoire en `0700`,
+   le fichier serait illisible et l'agent démarrerait sans lui.
 3. Créer la GitHub App ou le compte de service GitLab (ci-dessous), renseigner
    `server.*`, `forges[]` et `allowed_namespaces`, chiffrer les secrets (« Secrets et
-   credentials systemd »), retirer de l'unité les credentials des forges non utilisées.
+   credentials systemd »), retirer de l'unité les credentials des forges non utilisées
+   (avec le paquet, par un fichier d'extension, ci-dessous).
 4. `sudo systemctl daemon-reload && sudo systemctl enable --now lotor-repo-agent` ;
    `journalctl -u lotor-repo-agent` montre le premier rattrapage (« rattrapage »,
    « SBOM envoyé »).
@@ -1278,7 +1290,7 @@ fournie (`DynamicUser=yes`, `StateDirectory=lotor-repo-agent`, durcissement
 `ProtectSystem=strict`, `NoNewPrivileges=yes`, aucune capacité) :
 
 ```bash
-install -d -m 0700 /etc/lotor-repo-agent
+install -d -m 0755 /etc/lotor-repo-agent
 systemd-creds encrypt --name=agent-token agent-token.txt /etc/lotor-repo-agent/agent-token.cred
 systemd-creds encrypt --name=github-app-key app.private-key.pem /etc/lotor-repo-agent/github-app-key.cred
 systemd-creds encrypt --name=github-webhook-secret github-secret.txt /etc/lotor-repo-agent/github-webhook-secret.cred
@@ -1287,8 +1299,23 @@ systemd-creds encrypt --name=gitlab-webhook-secret gitlab-secret.txt /etc/lotor-
 shred -u agent-token.txt app.private-key.pem github-secret.txt gitlab-token.txt gitlab-secret.txt
 ```
 
-Retirer de l'unité les `LoadCredentialEncrypted=` des forges non utilisées. Les
-identifiants de clonage n'apparaissent ni dans les arguments des processus (`ps`), ni
+Les fichiers `*.cred` ne se déchiffrent qu'avec la clé de l'hôte, réservée à `root`
+(`/var/lib/systemd/credential.secret`) ou le TPM : c'est systemd qui les lit. Retirer de
+l'unité les `LoadCredentialEncrypted=` des forges non utilisées : une ligne dont le fichier
+manque empêche le démarrage. Avec le
+paquet, ne pas modifier `/usr/lib/systemd/system/lotor-repo-agent.service`, remplacé à
+chaque mise à jour, mais déclarer la liste complète dans un fichier d'extension, qu'une
+affectation vide remet à zéro (`sudo systemctl edit lotor-repo-agent`) :
+
+```ini
+[Service]
+LoadCredentialEncrypted=
+LoadCredentialEncrypted=agent-token:/etc/lotor-repo-agent/agent-token.cred
+LoadCredentialEncrypted=gitlab-token:/etc/lotor-repo-agent/gitlab-token.cred
+LoadCredentialEncrypted=gitlab-webhook-secret:/etc/lotor-repo-agent/gitlab-webhook-secret.cred
+```
+
+Les identifiants de clonage n'apparaissent ni dans les arguments des processus (`ps`), ni
 dans l'URL, ni dans les journaux : ils passent à git par l'environnement
 (`GIT_CONFIG_KEY_n`/`GIT_CONFIG_VALUE_n`, en-tête `Authorization`), que `ProtectProc=
 invisible` cache aux autres comptes.
@@ -1506,8 +1533,9 @@ conditionnel, rattrapage de l'agent dépôt).
    `/readyz`.
 5. **Agents** : l'API des agents est versionnée (`/api/v1`) ; un changement incompatible
    serait annoncé dans `CHANGELOG.md`, avec l'ordre de mise à jour. Mettre à jour l'agent serveur par son
-   paquet (le démon redémarre, l'inscription est gardée) et l'agent dépôt en remplaçant
-   son binaire puis `systemctl restart lotor-repo-agent`.
+   paquet (le démon redémarre, l'inscription est gardée) et l'agent dépôt par son paquet
+   (l'agent actif redémarre ; configuration, credentials et fichier d'extension gardés), ou
+   en remplaçant son binaire puis `systemctl restart lotor-repo-agent`.
 
 Retour arrière : restaurer la sauvegarde prise avant la mise à jour et réinstaller
 l'ancien binaire (un ancien binaire refuse une base migrée par une version plus récente).

@@ -58,7 +58,7 @@ dépendances npm, Maven, PyPI et Go, base Grype du jour.</sub>
 | Binaire | Rôle |
 | --- | --- |
 | `lotor-host-agent` | agent serveur : inventaire d'un hôte Linux et de ses conteneurs (paquets deb et rpm) |
-| `lotor-repo-agent` | agent dépôt : clonage des dépôts des forges et analyse Syft, enrichissement IA facultatif |
+| `lotor-repo-agent` | agent dépôt : clonage des dépôts des forges et analyse Syft, enrichissement IA facultatif (paquet deb) |
 | `lotor-server` | interface web (français, anglais), API REST, analyse Grype, politiques et notifications |
 
 Les agents produisent les SBOM avec Syft et n'envoient que ce qui a changé ; le serveur

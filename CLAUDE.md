@@ -205,7 +205,10 @@ liste SPDX du schéma CycloneDX (`license.KnownFrom`), politique par organisatio
 `license_findings` évalués dans `OnAnalyzed` avant les politiques, job
 `license.evaluate_org` ; sujet `license` des règles (`policy.OnLicenseChange`, modèle AGPL
 disponible), recherche `license:` (`license_expressions`), page `/o/{slug}/licenses` et
-onglet Licences du projet (migration 028). **Lot 3 en cours** : T19, T20, T21, T23 faits ;
+onglet Licences du projet (migration 028).
+Paquet deb de l'agent dépôt, hors lot (ADR 0062 ; `deploy/nfpm/repo-agent.yaml`, compte
+dynamique, unité inactive à l'installation, credentials par fichier d'extension), scénario
+`repo_agent` de `make test-package`. **Lot 3 en cours** : T19, T20, T21, T23 faits ;
 restent T22, T25, puis T24 et T26.
 
 ## Règles de travail

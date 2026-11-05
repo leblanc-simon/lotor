@@ -1,0 +1,55 @@
+# Paquet deb de lotor-repo-agent (nfpm, go tool nfpm), produit par `make packages` : PKG_ARCH
+# et PKG_VERSION viennent du Makefile. Non signé (signature : T24, T26). ADR 0062.
+name: lotor-repo-agent
+arch: ${PKG_ARCH}
+platform: linux
+version: ${PKG_VERSION}
+version_schema: none
+section: admin
+priority: optional
+maintainer: Simon Leblanc <contact@leblanc-simon.eu>
+vendor: lotor
+homepage: https://github.com/leblanc-simon/lotor
+license: WTFPL
+description: |
+  Agent dépôt de lotor : SBOM des dépôts git
+  Agent dépôt de lotor : reçoit les webhooks de push de GitHub et GitLab, extrait le
+  commit visé, l'analyse avec Syft (enrichissement IA facultatif) et envoie le SBOM au
+  serveur. Unité systemd durcie, compte dynamique, secrets en credentials chiffrés.
+
+depends:
+  - git (>= 1:2.30)
+
+contents:
+  # Copie du binaire de l'architecture en cours, posée par make packages.
+  - src: bin/package/lotor-repo-agent
+    dst: /usr/bin/lotor-repo-agent
+    file_info:
+      mode: 0755
+  # Lisible du compte dynamique de l'unité, qui lit config.yaml (aucun secret) ; les
+  # credentials *.cred y sont chiffrés et lus par systemd seul.
+  - dst: /etc/lotor-repo-agent
+    type: dir
+    file_info:
+      mode: 0755
+  - src: deploy/lotor-repo-agent/config.example.yaml
+    dst: /etc/lotor-repo-agent/config.yaml
+    type: config|noreplace
+    file_info:
+      mode: 0644
+  - src: deploy/lotor-repo-agent/lotor-repo-agent.service
+    dst: /usr/lib/systemd/system/lotor-repo-agent.service
+    file_info:
+      mode: 0644
+  - src: LICENSE
+    dst: /usr/share/doc/lotor-repo-agent/LICENSE
+    file_info:
+      mode: 0644
+
+scripts:
+  postinstall: deploy/lotor-repo-agent/postinstall.sh
+  preremove: deploy/lotor-repo-agent/preremove.sh
+
+overrides:
+  deb:
+    recommends: [systemd]
