@@ -80,12 +80,13 @@ Sur Debian 13 ou Ubuntu 24.04, le paquet du serveur crée la base PostgreSQL loc
 secrets, le premier administrateur et le site nginx ou Apache :
 
 ```bash
-sudo apt install ./lotor-server_0.2.1_amd64.deb
+sudo apt install ./lotor-server_0.3.0_amd64.deb
 ```
 
 Agents, installation manuelle et configuration : [`docs/operations.md`](docs/operations.md).
-État : préversion **0.2.1** (équipes et droits, conteneurs, triage et VEX, politiques et
-alertes, différences d'instantanés, enrichissement IA) ; évolutions :
+État : préversion **0.3.0** (équipes et droits, conteneurs, triage et VEX, politiques et
+alertes, différences d'instantanés, enrichissement IA, compatibilité Dependency-Track, mode
+hors ligne, licences, recherche à une date passée, inscription) ; évolutions :
 [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Développement

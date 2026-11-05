@@ -8,14 +8,37 @@ appliquées automatiquement, sans retour arrière.
 
 ## [Non publié]
 
-**Mise à jour** : `notify.public_url` devient **`web.public_url`** (`LOTOR_PUBLIC_URL`) ;
-déplacer la clé sous `web:` avant de redémarrer : l'ancienne est ignorée (messages sans
-lien). Les migrations 024 à 028 s'appliquent au démarrage ; l'instance reste privée. Au premier
-scan après la mise à jour, chaque référence reçoit un nouvel ensemble d'inventaire
-(empreinte `lotor-inventory-v2`) : un hôte a un instantané de plus à inventaire identique.
-Mettre à jour **`lotor-host-agent` en même temps** : un agent antérieur calcule l'ancienne
-empreinte, que le serveur ne reconnaît plus, et renverrait son SBOM à chaque cycle au lieu
-d'un simple compte rendu.
+## [0.3.0] - 2026-11-05
+
+Préversion intermédiaire du **lot 3** : compatibilité Dependency-Track, mode hors ligne,
+licences, recherche à une date passée, inscription et emplacements des composants. Le lot
+n'est pas terminé : l'agent Windows (T22), le SSO OIDC (T25) et les SBOM signés (T24) restent
+à venir. Mêmes fichiers qu'en 0.2.1, plus le paquet deb de l'agent dépôt.
+
+**Mise à jour depuis 0.2.x** :
+
+- **À faire avant de redémarrer** : `notify.public_url` devient **`web.public_url`**, et
+  `LOTOR_NOTIFY_PUBLIC_URL` devient `LOTOR_PUBLIC_URL`. L'ancienne clé et l'ancienne variable
+  sont ignorées sans erreur, et les messages partent alors sans lien. La mise à jour du paquet
+  deb ne déplace pas la clé : modifier le fichier à la main ou lancer
+  `dpkg-reconfigure lotor-server`.
+- **Agent serveur** : mettre à jour `lotor-host-agent` **en même temps que le serveur**. Un
+  agent antérieur calcule l'ancienne empreinte d'inventaire, que le serveur ne reconnaît plus,
+  et renvoie son SBOM à chaque cycle au lieu d'un simple compte rendu ; rien ne se perd.
+- **Agent dépôt** : la version 0.2.x continue de fonctionner ; la 0.3.0 n'est nécessaire que
+  pour `dependency_track.*` et `offline.dir`.
+- **Base** : les migrations 024 à 028 s'appliquent au démarrage.
+- **Inventaires** : au premier scan, chaque référence reçoit un nouvel ensemble d'inventaire
+  (empreinte `lotor-inventory-v2`). Un hôte a donc un instantané de plus à inventaire identique :
+  différence vide, constats inchangés.
+- **Invitations** : l'instance reste privée (`signup.mode: private`), mais le lien d'une
+  nouvelle invitation d'organisation permet désormais à une personne **sans compte** d'en créer
+  un. Les invitations antérieures n'ont pas de lien : un compte existant les accepte comme avant.
+- **Licences** : les constats apparaissent à la prochaine analyse de vulnérabilités de chaque
+  référence, ou dès qu'une organisation modifie sa politique de licences.
+
+Détail :
+[`docs/operations.md`](https://github.com/leblanc-simon/lotor/blob/main/docs/operations.md#mise-à-jour).
 
 ### Ajouté
 
@@ -24,36 +47,42 @@ d'un simple compte rendu.
   créé (compte dynamique), unité ni activée ni démarrée à l'installation, agent actif
   redémarré par une mise à jour. Credentials des forges non utilisées retirés par un
   fichier d'extension :
-  [`docs/operations.md`](https://github.com/leblanc-simon/lotor/blob/main/docs/operations.md#agent-dépôt).
+  [`docs/operations.md`](https://github.com/leblanc-simon/lotor/blob/main/docs/operations.md#agent-dépôt)
+  ([#44](https://github.com/leblanc-simon/lotor/pull/44)).
 - Inscription (T28, ADR 0056) : `signup.mode` `private` (défaut), `invitation` (codes
   d'inscription créés par les administrateurs d'instance, usage unique, 30 jours par
   défaut, révocables, envoyés par courriel ou transmis à la main) ou `public` (adresse
   vérifiée, `signup.allowed_domains` facultatif ; exige SMTP et `web.public_url`). Chaque
   inscription crée une organisation dont le compte est administrateur ; mot de passe choisi,
-  TOTP enrôlé aussitôt, codes de secours.
+  TOTP enrôlé aussitôt, codes de secours ([#39](https://github.com/leblanc-simon/lotor/pull/39)).
 - Lien secret sur chaque invitation d'organisation, dans tous les modes : envoyé par
   courriel dans la langue de l'invitant, ou montré une fois sur la page des membres ; il crée
-  le compte à l'adresse invitée ou fait accepter le compte connecté.
-- Page **Administration › Inscription** (mode, envoi de courriels, codes).
+  le compte à l'adresse invitée ou fait accepter le compte connecté
+  ([#39](https://github.com/leblanc-simon/lotor/pull/39)).
+- Page **Administration › Inscription** (mode, envoi de courriels, codes)
+  ([#39](https://github.com/leblanc-simon/lotor/pull/39)).
 - Courriels en HTML (notifications et inscription) : gabarit commun vérifié dans
-  Thunderbird en clair et en sombre, logo joint au message, version texte conservée.
+  Thunderbird en clair et en sombre, logo joint au message, version texte conservée
+  ([#39](https://github.com/leblanc-simon/lotor/pull/39)).
 - Emplacements des composants (ADR 0057) : fichiers où Syft a trouvé chaque composant
   (chemin réel, chemin d'accès, couche, preuve secondaire), montrés dans les listes de
   constats, la fiche d'un constat, la recherche, les composants d'un instantané et la
   fiche composant ; champ `locations` de l'API de recherche et de l'export (dernière
-  colonne CSV). Les inventaires antérieurs n'en ont pas : ils apparaissent au scan suivant.
+  colonne CSV). Les inventaires antérieurs n'en ont pas : ils apparaissent au scan suivant
+  ([#41](https://github.com/leblanc-simon/lotor/pull/41)).
 - Point compatible Dependency-Track (T19, ADR 0058) : les outils configurés pour
   Dependency-Track envoient à `https://<serveur>/dt` (`PUT`/`POST /api/v1/bom`, suivi par
   `/api/v1/event/token/{uuid}`), avec le jeton d'un agent dépôt comme clé d'API ; le nom
   du projet désigne un dépôt confié à l'agent, la version une **version** du dépôt
   (nouvelle nature de référence, sans commit, saisissable dans les réglages du projet).
   Création automatique (`autoCreate`) autorisée par agent d'équipe, sur sa fiche, et
-  auditée. Guide : `docs/dependency-track.md`.
+  auditée. Guide : `docs/dependency-track.md` ([#42](https://github.com/leblanc-simon/lotor/pull/42)).
 - Sortie vers Dependency-Track des agents (`dependency_track.*`, désactivée par défaut) :
   l'agent serveur envoie le SBOM de l'hôte en CycloneDX 1.6 quand son inventaire change,
   en plus de lotor ou à sa place (`only: true`) ; l'agent dépôt envoie le SBOM du commit de
   tête de chaque référence après lotor. Clé d'API en fichier `0600` ou credential systemd
-  `dependency-track-api-key`. `make test-dtrack` : recette contre un vrai Dependency-Track 5.
+  `dependency-track-api-key`. `make test-dtrack` : recette contre un vrai Dependency-Track 5
+  ([#42](https://github.com/leblanc-simon/lotor/pull/42)).
 - Mode hors ligne (T23, ADR 0060, guide `docs/site-isole.md`) : l'agent serveur écrit une
   archive (`.lotor`, SBOM et contexte signés par l'empreinte de son jeton) à chaque
   inventaire changé, en plus de ses envois (`offline.dir`) ou à leur place
@@ -61,13 +90,14 @@ d'un simple compte rendu.
   archive) ; l'agent dépôt peut aussi en écrire une par envoi. Le serveur les importe par
   **Agents › Importer des archives**, par `POST /api/v1/orgs/{org}/archives` (jeton
   personnel d'un compte qui gère des agents) ou par un répertoire surveillé
-  (`offline.watch_dir`) ; une archive importée deux fois ne crée rien.
+  (`offline.watch_dir`) ; une archive importée deux fois ne crée rien
+  ([#42](https://github.com/leblanc-simon/lotor/pull/42)).
 - Recherche à une date passée (T21, ADR 0059) : champ **À la date du** de l'écran de
   recherche et paramètre `at` de l'API (`AAAA-MM-JJ`, fin de journée UTC, ou RFC 3339).
   Pour chaque référence, l'instantané en vigueur à cette date, projets archivés et
   références retirées compris, avec sa date ; composants seulement (les constats d'alors ne
   sont pas conservés) ; avertissement « résultat partiel » avant l'horizon de la rétention
-  (`partial` et `retention_horizon` dans l'API).
+  (`partial` et `retention_horizon` dans l'API) ([#42](https://github.com/leblanc-simon/lotor/pull/42)).
 - Licences (T20, ADR 0061) : politique de licences par organisation (page **Licences** :
   licences refusées, à revoir, acceptées, règle des licences SPDX non citées, composant sans
   licence à revoir ou non) ; **par défaut, toute licence SPDX connue est acceptée**, une
@@ -75,24 +105,28 @@ d'un simple compte rendu.
   (`MIT OR GPL-3.0-only` conforme si MIT est acceptée). Constats de licence par référence,
   onglet **Licences** de chaque projet, recherche `license:AGPL-3.0-only`, règles de
   politique de sujet « constats de licence » et modèle « Licence AGPL dans un produit
-  distribué » désormais disponible (bloquant).
+  distribué » désormais disponible (bloquant) ([#42](https://github.com/leblanc-simon/lotor/pull/42)).
 
 ### Modifié
 
 - `web.public_url` remplace `notify.public_url` (liens des notifications, des verdicts et
-  des courriels) ; le paquet deb écrit la nouvelle clé.
-- Pages de connexion et de second facteur : le focus est posé sur le premier champ.
+  des courriels) ; le paquet deb écrit la nouvelle clé à l'installation et par
+  `dpkg-reconfigure` ([#39](https://github.com/leblanc-simon/lotor/pull/39)).
+- API : `SearchRef.kind` peut valoir `version`, la nouvelle nature de référence
+  ([#42](https://github.com/leblanc-simon/lotor/pull/42)).
+- Pages de connexion et de second facteur : le focus est posé sur le premier champ
+  ([#43](https://github.com/leblanc-simon/lotor/pull/43)).
+- Favicon : ajout des yeux, agrandis pour rester lisibles de 16 à 56 px
+  ([#40](https://github.com/leblanc-simon/lotor/pull/40)).
 
 ### Corrigé
 
 - Rangées de formulaire avec une aide (création d'organisation, filtres des projets) : les
-  champs, les cases et les boutons sont de nouveau alignés.
-
-### Corrigé
-
+  champs, les cases et les boutons sont de nouveau alignés
+  ([#43](https://github.com/leblanc-simon/lotor/pull/43)).
 - Installation manuelle de l'agent dépôt : `/etc/lotor-repo-agent` en `0755` et non plus
   `0700`. Le compte dynamique de l'unité ne pouvait pas lire `config.yaml`, et l'agent
-  démarrait sans sa configuration.
+  démarrait sans sa configuration ([#44](https://github.com/leblanc-simon/lotor/pull/44)).
 
 ## [0.2.1] - 2026-11-04
 
@@ -420,7 +454,8 @@ arm64), paquets deb et rpm de l'agent serveur, sommes SHA-256. Installation :
   corrections ([grille](https://github.com/leblanc-simon/lotor/blob/main/docs/accessibilite/grille-rgaa-lot1.md),
   [#14](https://github.com/leblanc-simon/lotor/pull/14)).
 
-[Non publié]: https://github.com/leblanc-simon/lotor/compare/v0.2.1...HEAD
+[Non publié]: https://github.com/leblanc-simon/lotor/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/leblanc-simon/lotor/releases/tag/v0.3.0
 [0.2.1]: https://github.com/leblanc-simon/lotor/releases/tag/v0.2.1
 [0.2.0]: https://github.com/leblanc-simon/lotor/releases/tag/v0.2.0
 [0.1.0]: https://github.com/leblanc-simon/lotor/releases/tag/v0.1.0
