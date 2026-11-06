@@ -489,7 +489,9 @@ func TestStopReleasesLeaseOfJobInterruptedBeforeSnapshot(t *testing.T) {
 	}
 	waitFor(t, 10*time.Second, "job en cours", func() bool { return status(t, tdb.App, id) == "running" })
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	// Stop garde pour la libération le quart du délai, au plus maxStopMargin, et afterCancel
+	// en consomme 200 ms : avec une seconde, il restait 50 ms à la base, trop peu en CI.
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
 	defer cancel()
 	if err := r.Stop(ctx); err != nil {
 		t.Fatalf("Stop : %v", err)
