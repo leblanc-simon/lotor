@@ -115,6 +115,7 @@ scripts/release.sh       # fichiers d'une version (make release, workflow releas
 docs/                    # cahier des charges, adr/, operations.md, benchmarks.md, security/
 specs/                   # ce document, index des lots, fiches de lots
 testdata/                # SBOM d'exemple, systèmes de fichiers et dépôts de test
+third_party/             # copies corrigées de modules tiers, par replace (une par ADR : 0063)
 ```
 
 Nommage : paquets courts en anglais, jamais de paquet fourre-tout (`util`, `helper`,
@@ -174,6 +175,10 @@ relevées en T00 (une montée de version ultérieure ne demande pas de nouvelle 
 | Fournisseur de modèle | `github.com/anthropics/anthropic-sdk-go/v2`, construit sans aucune valeur lue dans l'environnement ; Ollama par son API HTTP sans SDK | v2.4.0 | Validé en T12 (ADR 0042 ; modèle par défaut `claude-sonnet-5-5`, IA désactivée par défaut) |
 | Règles de politique | `github.com/google/cel-go`, sous son nouveau chemin de module `cel.dev/cel-go` (dépendance transitive nouvelle : `github.com/antlr4-go/antlr/v4` v4.13.1) | v0.32.0 | Validé le 1er novembre 2026 (T15, ADR 0045) |
 | OIDC | `oidcx` dans open-go-base, ou paquet local | — | Point ouvert, T25 |
+
+Copies corrigées : un module tiers vulnérable sans version corrective est copié sous
+`third_party/`, corrigé et branché par `replace`, avec un ADR qui fixe ses écarts et sa
+condition de retrait (`github.com/blakesmith/ar`, ADR 0063).
 
 Sans dépendance : client Git (binaire `git` du système), clients des forges (HTTP + JWT
 RS256 en stdlib), client de l'API Docker et Podman (HTTP sur socket Unix, quatre appels ;

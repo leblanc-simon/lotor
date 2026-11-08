@@ -520,7 +520,8 @@ les pièges découverts, pour ne pas les reproduire. Une entrée = le constat, p
   (`go mod edit -replace leblanc.io/open-go-base=/home/user/open-go-base`) a permis de
   passer les tests d'intégration PostgreSQL de lotor (store de verrouillage) avant
   d'ouvrir et de fusionner la PR, donc une seule PR. Règle : `-dropreplace` puis
-  `go get …@<sha fusionné>` avant tout commit ; jamais de `replace` commité.
+  `go get …@<sha fusionné>` avant tout commit ; jamais de `replace` commité, sauf vers une
+  copie corrigée de `third_party/` décidée par un ADR (ADR 0063).
 - **Recherche d'une ancre de remplacement dans un YAML de traductions** : `expiry_365: 1 an`
   apparaît dans deux sections ; le script d'édition a refusé (deux occurrences) avant
   d'écrire. Règle : ancrer sur un contexte unique (clé parente) ou ajouter en fin de
