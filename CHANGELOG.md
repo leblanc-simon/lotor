@@ -14,6 +14,11 @@ appliquées automatiquement, sans retour arrière.
   allocation excessive à la décompression) et `github.com/klauspost/compress` v1.20.3
   (GO-2026-6865, panique sur des trames à deux blocs)
   ([#46](https://github.com/leblanc-simon/lotor/pull/46)).
+- `github.com/blakesmith/ar`, sans version corrective, remplacé par une copie corrigée
+  (GO-2026-6905, ADR 0063) : une archive `.deb` dont un membre déclare une taille négative
+  est refusée au lieu de faire paniquer la lecture. Parmi les agents, seul l'agent dépôt
+  utilise ce catalogueur de Syft, qui prévoit déjà de rattraper une telle panique
+  ([#46](https://github.com/leblanc-simon/lotor/pull/46)).
 
 ## [0.3.0] - 2026-11-05
 

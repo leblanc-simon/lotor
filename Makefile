@@ -79,9 +79,14 @@ fmt-check: ## Échoue si un fichier n'est pas formaté
 # analysés comme le reste.
 TEST_TAGS := integration integration,grypedb measure evalai dtrack
 
+# Copie corrigée de github.com/blakesmith/ar (ADR 0063) : module à part, hors de ./...,
+# vérifiée par vet et les tests unitaires (pas par staticcheck : code amont gardé au plus près).
+THIRD_PARTY_AR := third_party/blakesmith-ar
+
 .PHONY: vet
 vet: ## go vet (sans étiquette, puis avec chaque étiquette de test)
 	$(GO) vet ./...
+	$(GO) -C $(THIRD_PARTY_AR) vet ./...
 	@set -e; for tags in $(TEST_TAGS); do echo "go vet -tags $$tags"; $(GO) vet -tags "$$tags" ./...; done
 
 .PHONY: lint
@@ -104,10 +109,12 @@ generate-check: generate ## Échoue si le code généré n'est pas à jour
 .PHONY: test
 test: ## Tests unitaires
 	$(GO) test ./...
+	$(GO) -C $(THIRD_PARTY_AR) test ./...
 
 .PHONY: test-race
 test-race: ## Tests unitaires avec le détecteur de concurrence
 	$(GO) test -race ./...
+	$(GO) -C $(THIRD_PARTY_AR) test -race ./...
 
 .PHONY: test-integration
 test-integration: ## Tests d'intégration (PostgreSQL : docker compose -f deploy/compose.yaml up -d)

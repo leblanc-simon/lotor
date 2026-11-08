@@ -414,3 +414,5 @@ require (
 	rsc.io/qr v0.2.0 // indirect
 	software.sslmate.com/src/go-pkcs12 v0.7.2 // indirect
 )
+
+replace github.com/blakesmith/ar => ./third_party/blakesmith-ar
