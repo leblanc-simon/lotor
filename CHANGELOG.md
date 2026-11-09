@@ -8,6 +8,15 @@ appliquées automatiquement, sans retour arrière.
 
 ## [Non publié]
 
+## [0.3.1] - 2026-11-09
+
+Version corrective de sécurité : deux dépendances indirectes montées et une copie corrigée de
+`github.com/blakesmith/ar`, sans version corrective en amont. Mêmes fichiers qu'en 0.3.0.
+
+**Mise à jour depuis 0.3.0** : aucune migration, aucun changement de configuration ni de
+l'API des agents ; le serveur et les agents se mettent à jour séparément. La correction de
+`ar` ne concerne que l'agent dépôt, seul à cataloguer des archives `.deb`.
+
 ### Sécurité
 
 - Dépendances indirectes montées : `github.com/andybalholm/brotli` v1.2.8 (GO-2026-6888,
@@ -466,7 +475,8 @@ arm64), paquets deb et rpm de l'agent serveur, sommes SHA-256. Installation :
   corrections ([grille](https://github.com/leblanc-simon/lotor/blob/main/docs/accessibilite/grille-rgaa-lot1.md),
   [#14](https://github.com/leblanc-simon/lotor/pull/14)).
 
-[Non publié]: https://github.com/leblanc-simon/lotor/compare/v0.3.0...HEAD
+[Non publié]: https://github.com/leblanc-simon/lotor/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/leblanc-simon/lotor/releases/tag/v0.3.1
 [0.3.0]: https://github.com/leblanc-simon/lotor/releases/tag/v0.3.0
 [0.2.1]: https://github.com/leblanc-simon/lotor/releases/tag/v0.2.1
 [0.2.0]: https://github.com/leblanc-simon/lotor/releases/tag/v0.2.0
