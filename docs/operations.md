@@ -1125,7 +1125,8 @@ commentée et unité systemd durcie : `deploy/lotor-repo-agent/`.
 
    Le répertoire et la configuration restent lisibles de tous : le compte dynamique de
    l'unité lit `config.yaml`, qui ne contient aucun secret. Dans un répertoire en `0700`,
-   le fichier serait illisible et l'agent démarrerait sans lui.
+   le fichier serait illisible et l'agent refuserait de démarrer (« fichier de
+   configuration … : permission denied »).
 3. Créer la GitHub App ou le compte de service GitLab (ci-dessous), renseigner
    `server.*`, `forges[]` et `allowed_namespaces`, chiffrer les secrets (« Secrets et
    credentials systemd »), retirer de l'unité les credentials des forges non utilisées

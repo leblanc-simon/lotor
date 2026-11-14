@@ -5,9 +5,13 @@ les pièges découverts, pour ne pas les reproduire. Une entrée = le constat, p
 
 ## Environnement et outillage
 
-- **Chaîne Go** : `go.mod` fixe `toolchain go1.26.10`. Une machine avec un Go plus ancien
-  télécharge la bonne chaîne d'elle-même (`GOTOOLCHAIN=auto`) ; ne pas modifier la ligne
-  `toolchain` pour s'adapter à la machine.
+- **Chaîne Go** : `go.mod` fixe `go 1.26.11` (minimum et chaîne de la CI, par
+  `go-version-file`). Une machine avec un Go plus ancien télécharge la bonne chaîne d'elle-même
+  (`GOTOOLCHAIN=auto`) ; ne pas modifier la directive pour s'adapter à la machine. Une
+  machine avec un Go plus récent (1.27) compile avec lui : `make vuln` en local ne voit
+  alors pas une vulnérabilité de la bibliothèque standard propre à la 1.26, que la CI
+  signale (GO-2026-6859, vue seulement par la CI). Après une alerte de la CI sur la
+  bibliothèque standard, la vérifier par `GOTOOLCHAIN=go1.26.N make vuln`.
 - **PostgreSQL local** : sans Docker, un PostgreSQL 16 natif convient ; le mot de passe du
   rôle `postgres` doit valoir `postgres` pour le DSN par défaut du Makefile.
 - **Proxy réseau** : un téléchargement de module peut échouer ponctuellement
