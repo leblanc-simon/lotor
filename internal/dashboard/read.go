@@ -335,6 +335,51 @@ func (s *Service) Org(ctx context.Context, org tenant.OrgID, vis tenant.Visibili
 	return out, err
 }
 
+// OpenByProject renvoie les constats ouverts à traiter de chaque projet demandé (liste des
+// projets), selon la règle de l'en-tête de leur fiche : références actives, sans les non
+// affectés ni les faux positifs. Les projets sans constat, ou hors des équipes visibles,
+// sont absents de la table.
+func (s *Service) OpenByProject(ctx context.Context, org tenant.OrgID, vis tenant.Visibility, ids []uuid.UUID) (map[uuid.UUID]Counts, error) {
+	out := map[uuid.UUID]Counts{}
+	if len(ids) == 0 {
+		return out, nil
+	}
+	strs := make([]string, len(ids))
+	for i, id := range ids {
+		strs[i] = id.String()
+	}
+	err := s.pool.InOrg(ctx, org, func(tx *db.OrgTx) error {
+		rows, err := tx.QueryContext(ctx, `SELECT f.project_id, f.severity, count(*), count(*) FILTER (WHERE f.kev)
+			  FROM findings f
+			  JOIN tracked_refs r ON r.org_id = f.org_id AND r.id = f.ref_id
+			  JOIN projects p ON p.org_id = f.org_id AND p.id = f.project_id
+			 WHERE f.status = 'open' AND r.removed_at IS NULL AND f.project_id = ANY($1::uuid[])
+			   AND lotor_team_visible(p.team_id)`+mutedTriage+`
+			 GROUP BY f.project_id, f.severity`, strs)
+		if err != nil {
+			return wrap("constats ouverts par projet", err)
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var id uuid.UUID
+			var sev string
+			var n, kev int
+			if err := rows.Scan(&id, &sev, &n, &kev); err != nil {
+				return wrap("constats ouverts par projet", err)
+			}
+			c, ok := out[id]
+			if !ok {
+				c = newCounts()
+			}
+			c.BySeverity[vuln.ParseSeverity(sev)] += n
+			c.KEV += kev
+			out[id] = c
+		}
+		return wrap("constats ouverts par projet", rows.Err())
+	}, db.ReadOnly(), db.Visible(vis))
+	return out, err
+}
+
 // projectKinds compte les projets actifs et visibles par nature.
 func projectKinds(ctx context.Context, tx *db.OrgTx) (map[project.Kind]int, error) {
 	rows, err := tx.QueryContext(ctx, `SELECT kind, count(*) FROM projects WHERE archived_at IS NULL
