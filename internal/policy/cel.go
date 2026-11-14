@@ -12,8 +12,8 @@ import (
 	"unicode/utf8"
 
 	"cel.dev/cel-go/cel"
-	"cel.dev/cel-go/checker"
 	"cel.dev/cel-go/common"
+	"cel.dev/cel-go/common/cost"
 	"cel.dev/cel-go/ext"
 )
 
@@ -324,11 +324,11 @@ func exprError(errs []*common.Error) error {
 // contexte, sans quoi toute compréhension aurait un coût estimé infini.
 type sizeEstimator struct{}
 
-func (sizeEstimator) EstimateSize(checker.AstNode) *checker.SizeEstimate {
-	return &checker.SizeEstimate{Min: 0, Max: estimatedSize}
+func (sizeEstimator) EstimateSize(cost.AstNode) *cost.SizeEstimate {
+	return &cost.SizeEstimate{Min: 0, Max: estimatedSize}
 }
 
-func (sizeEstimator) EstimateCallCost(string, string, *checker.AstNode, []checker.AstNode) *checker.CallEstimate {
+func (sizeEstimator) EstimateCallCost(string, string, *cost.AstNode, []cost.AstNode) *cost.CallEstimate {
 	return nil
 }
 

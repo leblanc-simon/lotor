@@ -5,9 +5,13 @@ les pièges découverts, pour ne pas les reproduire. Une entrée = le constat, p
 
 ## Environnement et outillage
 
-- **Chaîne Go** : `go.mod` fixe `toolchain go1.26.10`. Une machine avec un Go plus ancien
-  télécharge la bonne chaîne d'elle-même (`GOTOOLCHAIN=auto`) ; ne pas modifier la ligne
-  `toolchain` pour s'adapter à la machine.
+- **Chaîne Go** : `go.mod` fixe `go 1.26.11` (minimum et chaîne de la CI, par
+  `go-version-file`). Une machine avec un Go plus ancien télécharge la bonne chaîne d'elle-même
+  (`GOTOOLCHAIN=auto`) ; ne pas modifier la directive pour s'adapter à la machine. Une
+  machine avec un Go plus récent (1.27) compile avec lui : `make vuln` en local ne voit
+  alors pas une vulnérabilité de la bibliothèque standard propre à la 1.26, que la CI
+  signale (GO-2026-6859, vue seulement par la CI). Après une alerte de la CI sur la
+  bibliothèque standard, la vérifier par `GOTOOLCHAIN=go1.26.N make vuln`.
 - **PostgreSQL local** : sans Docker, un PostgreSQL 16 natif convient ; le mot de passe du
   rôle `postgres` doit valoir `postgres` pour le DSN par défaut du Makefile.
 - **Proxy réseau** : un téléchargement de module peut échouer ponctuellement
@@ -1119,3 +1123,18 @@ les pièges découverts, pour ne pas les reproduire. Une entrée = le constat, p
   notifications (titre, ligne), l'écran des violations et les clés `policy_subject.*`,
   `policy_form.preview_*` et `policy_help.*` (vérifiées par `TestDynamicKeysExist`). Règle :
   chercher `SubjectAgent` dans tout le dépôt et traiter chaque occurrence.
+
+## Credentials systemd de l'agent dépôt (correctif 0.3.2)
+
+- **Droits d'un credential** : l'agent dépôt exigeait `0600` ou `0400` de tout secret, y
+  compris dans `$CREDENTIALS_DIRECTORY`, où systemd dépose les credentials en `0440` sous
+  `DynamicUser=yes` ; l'agent refusait de démarrer dès le premier vrai déploiement. Le test
+  unitaire écrivait le credential lui-même en `0400`, avec les droits qu'on imaginait.
+  L'agent serveur avait déjà l'exemption (`inCredentials`). Règle : un contrôle de droits
+  sur un fichier produit par systemd se teste avec les droits que systemd lui donne
+  réellement ; chercher l'équivalent dans l'autre agent avant d'écrire un contrôle.
+- **Credentials dans la recette du paquet** : systemd 257, dans les conteneurs Docker de
+  `make test-package`, ne livre aucun credential (`SetCredential=`, `LoadCredential=` ou
+  chiffré : `$CREDENTIALS_DIRECTORY` est défini mais absent, même sans compte dynamique ni
+  isolation). La recette ne peut pas couvrir la lecture d'un credential ; c'est le test
+  unitaire en `0440` qui la garde, et la vérification se fait sur une vraie machine.

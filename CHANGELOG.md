@@ -8,6 +8,33 @@ appliquées automatiquement, sans retour arrière.
 
 ## [Non publié]
 
+**Mise à jour depuis 0.3.1** : aucune migration, aucun changement de configuration ni de
+l'API des agents. Un fichier de configuration présent mais illisible par le service arrête
+désormais celui-ci au lieu de le laisser démarrer sans lui : vérifier les droits avant la
+mise à jour (`/etc/lotor-repo-agent` et `config.yaml` lisibles du compte dynamique).
+
+### Sécurité
+
+- Go 1.26.11 (GO-2026-6859, `net/http`), minimum désormais exigé par `go.mod`.
+
+### Modifié
+
+- Dépendances montées : Syft v1.57.1, Grype v0.121.3, stereoscope v0.4.1, cel-go v0.33.2,
+  SDK Anthropic v2.9.0, pgx v5.13.0, `modernc.org/sqlite` v1.62.0, oapi-codegen runtime
+  v1.9.0 et les dépendances indirectes ; open-go-base v1.4.3.
+
+### Corrigé
+
+- Serveur et agents : un fichier de configuration présent mais inaccessible (droits du
+  fichier ou d'un répertoire parent) est une erreur explicite. Il était ignoré sans rien
+  dire, et le service démarrait sur l'environnement seul, avec des erreurs de validation
+  trompeuses (« server.url … », « forges : au moins une forge ») ; open-go-base v1.4.3.
+
+- Agent dépôt : un secret désigné par `credential:<nom>` n'est plus refusé pour ses droits.
+  Sous `DynamicUser=yes`, systemd dépose les credentials en `0440` ; l'agent installé selon
+  `docs/operations.md` s'arrêtait au démarrage (« droits 0440 trop larges »). Un fichier
+  désigné par son chemin doit toujours être en `0600` ou `0400`.
+
 ## [0.3.1] - 2026-11-09
 
 Version corrective de sécurité : deux dépendances indirectes montées et une copie corrigée de
