@@ -55,9 +55,17 @@ func TestReadSecret(t *testing.T) {
 func TestReadSecretFromSystemdCredential(t *testing.T) {
 	dir := t.TempDir()
 	writeSecret(t, dir, "agent-token", "secret", 0o400)
+	// Sous DynamicUser=yes, systemd dépose les credentials en 0440 : ses droits font foi.
+	writeSecret(t, dir, "github-app-key", "key", 0o440)
 	t.Setenv("CREDENTIALS_DIRECTORY", dir)
-	if got, err := ReadSecret("credential:agent-token"); err != nil || string(got) != "secret" {
-		t.Fatalf("%q %v", got, err)
+	for name, want := range map[string]string{"agent-token": "secret", "github-app-key": "key"} {
+		if got, err := ReadSecret("credential:" + name); err != nil || string(got) != want {
+			t.Fatalf("%s : %q %v", name, got, err)
+		}
+	}
+	// Le même fichier désigné par son chemin reste soumis au contrôle des droits.
+	if _, err := ReadSecret(filepath.Join(dir, "github-app-key")); err == nil {
+		t.Error("fichier en 0440 accepté hors credential")
 	}
 	for _, bad := range []string{"credential:", "credential:../agent-token", "credential:a/b", "credential:.."} {
 		if _, err := ReadSecret(bad); err == nil {

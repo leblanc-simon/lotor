@@ -22,7 +22,11 @@ const maxSecret = 64 << 10
 // credential systemd, ou le chemin absolu d'un fichier qui n'est lisible ni par le groupe
 // ni par les autres (0600 ou 0400). La valeur elle-même n'est jamais dans le fichier de
 // configuration. Les fins de ligne finales sont retirées.
+//
+// Les droits d'un credential ne sont pas contrôlés : systemd les choisit (0440 sous
+// DynamicUser=yes, groupe du compte dynamique) dans un répertoire réservé au service.
 func ReadSecret(ref string) ([]byte, error) {
+	_, credential := strings.CutPrefix(ref, credentialPrefix)
 	path, err := secretPath(ref)
 	if err != nil {
 		return nil, err
@@ -39,7 +43,7 @@ func ReadSecret(ref string) ([]byte, error) {
 	if !info.Mode().IsRegular() {
 		return nil, fmt.Errorf("secret %s : fichier ordinaire attendu", ref)
 	}
-	if perm := info.Mode().Perm(); perm&0o077 != 0 {
+	if perm := info.Mode().Perm(); perm&0o077 != 0 && !credential {
 		return nil, fmt.Errorf("secret %s : droits %#o trop larges (0600 ou 0400 attendus)", ref, perm)
 	}
 	data, err := io.ReadAll(io.LimitReader(f, maxSecret+1))

@@ -8,6 +8,13 @@ appliquées automatiquement, sans retour arrière.
 
 ## [Non publié]
 
+### Corrigé
+
+- Agent dépôt : un secret désigné par `credential:<nom>` n'est plus refusé pour ses droits.
+  Sous `DynamicUser=yes`, systemd dépose les credentials en `0440` ; l'agent installé selon
+  `docs/operations.md` s'arrêtait au démarrage (« droits 0440 trop larges »). Un fichier
+  désigné par son chemin doit toujours être en `0600` ou `0400`.
+
 ## [0.3.1] - 2026-11-09
 
 Version corrective de sécurité : deux dépendances indirectes montées et une copie corrigée de
