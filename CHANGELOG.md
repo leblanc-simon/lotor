@@ -8,6 +8,12 @@ appliquées automatiquement, sans retour arrière.
 
 ## [Non publié]
 
+### Ajouté
+
+- Liste des projets : colonne « Constats ouverts », avec le décompte par sévérité et le nombre
+  de KEV de chaque projet, selon la règle de sa fiche (références actives, sans les non
+  affectés ni les faux positifs).
+
 ## [0.3.2] - 2026-11-14
 
 Version corrective : Go 1.26.11 (vulnérabilité de `net/http`) et dépendances montées ; l'agent

@@ -936,6 +936,7 @@ projects:
   list_archived: Projets archivés
   caption: Projets de l'organisation, par nom
   col_project: Projet
+  col_open: Constats ouverts
   col_type: Type
   col_labels: Étiquettes
   col_agent: Agent

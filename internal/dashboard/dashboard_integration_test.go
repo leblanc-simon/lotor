@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
+
 	"leblanc.io/lotor/internal/db"
 	"leblanc.io/lotor/internal/jobs"
 	"leblanc.io/lotor/internal/project"
@@ -438,5 +440,55 @@ func TestMutedFindingsLeaveIndicators(t *testing.T) {
 	wantCounts(t, "ouverts à traiter", o.Open, 0, 1, 2, 1, 0)
 	if o.KEVVulns != 0 || o.KEVProjects != 0 {
 		t.Errorf("KEV : %d vulnérabilités, %d projets", o.KEVVulns, o.KEVProjects)
+	}
+}
+
+// TestOpenByProject : constats ouverts à traiter par projet (liste des projets), selon la
+// règle de la fiche projet : références actives, projets archivés compris, triage
+// « non affecté » et « faux positif » exclus, équipes invisibles et autres
+// organisations absentes.
+func TestOpenByProject(t *testing.T) {
+	t.Parallel()
+	pool, _, s := newDB(t)
+	f := reference(t, pool, "atelier")
+	other := reference(t, pool, "autre")
+	ids := []uuid.UUID{f.id("api"), f.id("srv"), f.id("old"), f.id("quiet"), other.id("api")}
+	ctx := context.Background()
+
+	got, err := s.OpenByProject(ctx, f.org, tenant.AllTeams(), ids)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantCounts(t, "api", got[f.id("api")], 1, 1, 1, 0, 1) // la référence retirée « dev » ne compte pas
+	wantCounts(t, "srv", got[f.id("srv")], 0, 0, 1, 1, 0)
+	wantCounts(t, "old (archivé)", got[f.id("old")], 1, 0, 0, 0, 1)
+	if _, ok := got[f.id("quiet")]; ok {
+		t.Error("projet sans constat présent")
+	}
+	if _, ok := got[other.id("api")]; ok || len(got) != 3 {
+		t.Errorf("projets lus : %v", got)
+	}
+
+	decision := newID()
+	f.exec(`INSERT INTO triage_decisions (org_id, id, scope, vuln_id, purl_base, action, status, author_label, created_at)
+		VALUES ($1, $2, 'org', 'CVE-2099-0002', 'pkg:npm/lodash', 'set', 'false_positive', 'system', now())`, f.org, decision)
+	f.exec(`UPDATE findings SET triage_status = 'false_positive', triage_decision_id = $2 WHERE project_id = $1 AND vuln_id = 'CVE-2099-0002'`,
+		f.id("api"), decision)
+	ops := newID()
+	f.exec(`INSERT INTO teams (org_id, id, name) VALUES ($1, $2, 'Exploitation')`, f.org, ops)
+	f.exec(`UPDATE projects SET team_id = $2 WHERE id = $1`, f.id("srv"), ops)
+	if got, err = s.OpenByProject(ctx, f.org, tenant.AllTeams(), ids); err != nil {
+		t.Fatal(err)
+	}
+	wantCounts(t, "api après triage", got[f.id("api")], 1, 0, 1, 0, 1)
+	if got, err = s.OpenByProject(ctx, f.org, tenant.OnlyTeams(ops), ids); err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 1 {
+		t.Errorf("équipe Exploitation : %v", got)
+	}
+	wantCounts(t, "srv pour son équipe", got[f.id("srv")], 0, 0, 1, 1, 0)
+	if got, err = s.OpenByProject(ctx, f.org, tenant.AllTeams(), nil); err != nil || len(got) != 0 {
+		t.Errorf("sans projet : %v, %v", got, err)
 	}
 }
