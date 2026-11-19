@@ -83,6 +83,9 @@ type projectRow struct {
 	LastSeen    *stamp
 	// LastSnapshot est la date du dernier instantané (liste des projets).
 	LastSnapshot *stamp
+	// Sev et KEV résument les constats ouverts à traiter (liste des projets).
+	Sev []sevCount
+	KEV int
 }
 
 func (id *identity) projectRow(p project.Project, now time.Time) projectRow {
@@ -154,12 +157,23 @@ func (id *identity) projects(w http.ResponseWriter, r *http.Request) {
 		id.serverError(w, r, err)
 		return
 	}
+	ids := make([]uuid.UUID, len(page.Items))
+	for i, p := range page.Items {
+		ids[i] = p.ID
+	}
+	open, err := id.Dashboard.OpenByProject(r.Context(), acc.Org, acc.Visibility(), ids)
+	if err != nil {
+		id.serverError(w, r, err)
+		return
+	}
 	now := id.Agents.Now()
 	for _, p := range page.Items {
 		row := id.projectRow(p, now)
 		if t, ok := last[p.ID]; ok {
 			row.LastSnapshot = stampAt(t)
 		}
+		c := open[p.ID]
+		row.Sev, row.KEV = sevCounts(finding.Counts{BySeverity: c.BySeverity}), c.KEV
 		view.Rows = append(view.Rows, row)
 	}
 	if page.NextCursor != "" {

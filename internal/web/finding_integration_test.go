@@ -162,6 +162,19 @@ func TestFindingScreens(t *testing.T) {
 			t.Errorf("onglet des constats sans %q", want)
 		}
 	}
+	// Liste des projets : constats ouverts à traiter du projet, même règle que la fiche.
+	for _, lang := range []string{"fr", "en"} {
+		pg := b.get("/o/org-a/projects?lang=" + lang)
+		webtest.AssertAccessible(t, []byte(pg.body))
+		webtest.AssertNoInlineCode(t, []byte(pg.body))
+	}
+	list := unescape(b.get("/o/org-a/projects").body)
+	for _, want := range []string{"Constats ouverts", `<span class="visually-hidden">Critique </span><span>1</span>`,
+		`<span class="visually-hidden">Faible </span><span>0</span>`, `<span class="kev"><span>KEV</span>`} {
+		if !strings.Contains(list, want) {
+			t.Errorf("liste des projets sans %q", want)
+		}
+	}
 	if filtered := unescape(b.get(base + "/findings?severity=low").body); strings.Contains(filtered, "CVE-2021-44228") ||
 		!strings.Contains(filtered, "Aucun constat ne correspond aux filtres") {
 		t.Error("filtre de sévérité")

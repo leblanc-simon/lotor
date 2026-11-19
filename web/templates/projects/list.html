@@ -53,6 +53,7 @@
         <thead>
           <tr>
             <th scope="col">{{T "projects.col_project"}}</th>
+            <th scope="col">{{T "projects.col_open"}}</th>
             <th scope="col">{{T "projects.col_type"}}</th>
             <th scope="col">{{T "projects.col_team"}}</th>
             <th scope="col">{{T "projects.col_labels"}}</th>
@@ -67,6 +68,7 @@
           <tr>
             <th scope="row"><span class="cell-stack"><a href="{{$base}}/projects/{{.Slug}}">{{.Name}}</a><span class="mono muted">{{.Slug}}</span>
               {{- with .Parent}}<span class="muted">{{T "projects.container_of"}} <a href="{{$base}}/projects/{{.Slug}}">{{.Name}}</a></span>{{end}}</span></th>
+            <td><span class="cell-stack">{{template "sevcounts" .Sev}}{{if .KEV}}<span>{{template "kev"}} {{.KEV}}</span>{{end}}</span></td>
             <td>{{template "project_kind" .Kind}}</td>
             <td><a href="{{$base}}/teams/{{.TeamID}}">{{.TeamName}}</a></td>
             <td class="wrap">{{template "labels" .Labels}}</td>
