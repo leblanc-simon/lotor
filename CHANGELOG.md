@@ -8,11 +8,32 @@ appliquées automatiquement, sans retour arrière.
 
 ## [Non publié]
 
+## [0.3.3] - 2026-11-20
+
+Version corrective du serveur : la correspondance des vulnérabilités suit les données de la
+bonne distribution pour le noyau Linux de Debian et d'Ubuntu et pour les snaps, ce qui retire
+des milliers de faux positifs ; la liste des projets montre leurs constats ouverts.
+
+**Mise à jour depuis 0.3.2** : aucune migration, aucun changement de configuration ni de
+l'API des agents. Seul le serveur change ; les agents 0.3.2 restent valables. Les constats
+corrigés le sont à la réanalyse qui suit le prochain changement de base Grype (en pratique
+dans la journée), sans nouveau scan : des constats du noyau et des snaps passent alors en
+« résolus », et, sur Debian, d'autres apparaissent sur l'image du noyau, selon le suivi de
+sécurité de Debian.
+
 ### Ajouté
 
 - Liste des projets : colonne « Constats ouverts », avec le décompte par sévérité et le nombre
   de KEV de chaque projet, selon la règle de sa fiche (références actives, sans les non
-  affectés ni les faux positifs).
+  affectés ni les faux positifs) ([#51](https://github.com/leblanc-simon/lotor/pull/51)).
+
+### Modifié
+
+- README en anglais ; la version française devient `README.fr.md`
+  ([#52](https://github.com/leblanc-simon/lotor/pull/52)).
+- Outil de génération du code de l'API : kin-openapi v0.153.0 (neuf avis sur v0.142.0, tirée
+  par oapi-codegen) ; aucun binaire ne l'embarque, le code généré est inchangé
+  ([#50](https://github.com/leblanc-simon/lotor/pull/50)).
 
 ### Corrigé
 
@@ -21,16 +42,15 @@ appliquées automatiquement, sans retour arrière.
   (`linux-image-*`, source `linux-signed*`) est désormais rapprochée des données de sécurité de
   la distribution ; sur Debian, elle ne l'était pas du tout. Une CVE encore ouverte est
   signalée sur les paquets de la distribution, avec sa version corrigée, et plus en double sur
-  le binaire. Sur un hôte
-  Ubuntu 26.04, environ 1 550 faux positifs disparaissent ; sur Debian, le décompte suit le
-  suivi de sécurité de Debian. Prise en compte à la réanalyse qui suit le prochain changement de
-  base Grype, sans nouveau scan (ADR 0064).
+  le binaire. Sur un hôte Ubuntu 26.04, environ 1 550 faux positifs disparaissent ; sur
+  Debian, le décompte suit le suivi de sécurité de Debian (ADR 0064,
+  [#52](https://github.com/leblanc-simon/lotor/pull/52)).
 - Snaps : les paquets d'un snap (core22, snapd, snaps applicatifs) sont comparés aux données
   de sécurité de leur version d'Ubuntu, et plus à celles de l'hôte (openssl de core22, Ubuntu
   22.04, n'est plus jugé d'après les correctifs d'Ubuntu 26.04). Les binaires d'un snap
   (`/snap/core22/…/usr/bin/openssl`) suivent le paquet du snap qui les fournit au lieu des
   seules versions amont de la NVD : CVE-2022-2068 et les autres CVE corrigées par Ubuntu
-  disparaissent. Même prise en compte (ADR 0065).
+  disparaissent (ADR 0065, [#52](https://github.com/leblanc-simon/lotor/pull/52)).
 
 ## [0.3.2] - 2026-11-14
 
@@ -537,7 +557,8 @@ arm64), paquets deb et rpm de l'agent serveur, sommes SHA-256. Installation :
   corrections ([grille](https://github.com/leblanc-simon/lotor/blob/main/docs/accessibilite/grille-rgaa-lot1.md),
   [#14](https://github.com/leblanc-simon/lotor/pull/14)).
 
-[Non publié]: https://github.com/leblanc-simon/lotor/compare/v0.3.2...HEAD
+[Non publié]: https://github.com/leblanc-simon/lotor/compare/v0.3.3...HEAD
+[0.3.3]: https://github.com/leblanc-simon/lotor/releases/tag/v0.3.3
 [0.3.2]: https://github.com/leblanc-simon/lotor/releases/tag/v0.3.2
 [0.3.1]: https://github.com/leblanc-simon/lotor/releases/tag/v0.3.1
 [0.3.0]: https://github.com/leblanc-simon/lotor/releases/tag/v0.3.0
