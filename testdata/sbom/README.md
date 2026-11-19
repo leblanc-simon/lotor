@@ -20,6 +20,7 @@ fichiers attendus (`golden/*.golden.json`) sont le `sbom.Document` que produit
 | `log4shell.cdx16.json` | CycloneDX 1.6 | Application Java : `log4j-core` et `log4j-api` 2.14.1, `guava` (analyse, T06) |
 | `ubuntu-26.04-kernel.syft.json` | Syft JSON | Hôte Ubuntu 26.04 : image signée et modules du noyau 7.0.0-43, binaire `/boot/vmlinuz-*` (ADR 0064) |
 | `debian-12-kernel.syft.json` | Syft JSON | Hôte Debian 12 : image signée du noyau 6.1.174-1, binaire `/boot/vmlinuz-*` (ADR 0064) |
+| `ubuntu-26.04-snap.syft.json` | Syft JSON | Hôte Ubuntu 26.04 avec les snaps core22, snapd et canonical-livepatch : paquets des snaps, binaires de core22 (ADR 0065) |
 
 ## Provenance
 
@@ -62,3 +63,10 @@ chemin de la source ramené à `/`. Chaque racine contient `/etc/os-release`, un
 `/var/lib/dpkg/info/*.md5sums` (d'où la relation `ownership-by-file-overlap`) et une image
 `/boot/vmlinuz-*` minimale : un en-tête bzImage de 4 Kio portant la chaîne de version, que le
 catalogueur du noyau reconnaît.
+
+`ubuntu-26.04-snap.syft.json` (19 novembre 2026, ADR 0065) est produit de la même façon. La
+racine reproduit les snaps de l'hôte `srv1` d'après son SBOM d'origine : un sous-ensemble
+de `/snap/core22/3129/usr/share/snappy/dpkg.yaml` (versions réelles de core22), les
+`snap/manifest.yaml` de snapd (sans base, paquets en 22.04) et de canonical-livepatch
+(`base: core22`), et quatre faux binaires de core22 (`openssl`, `bash`, `gzip`, `getopt`)
+réduits aux motifs que le classificateur binaire de Syft reconnaît.

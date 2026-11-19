@@ -2,8 +2,6 @@ package grype
 
 import (
 	"context"
-	"os"
-	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
@@ -12,7 +10,6 @@ import (
 	"github.com/anchore/grype/grype/distro"
 
 	"leblanc.io/lotor/internal/vuln"
-	"leblanc.io/lotor/internal/vuln/grype/grypetest"
 )
 
 func TestUnsignedKernelSource(t *testing.T) {
@@ -50,67 +47,25 @@ const (
 	nvdOnlyCVE = "CVE-2099-0003"
 )
 
-// kernelArchive écrit une base qui décrit les trois vulnérabilités pour le source linux
-// d'Ubuntu 26.04 et de Debian 12, et pour le CPE du noyau dans la NVD.
-func kernelArchive(t *testing.T) string {
-	t.Helper()
-	nvd := &v6.Provider{ID: "nvd"}
-	// Les fiches sont écrites d'abord : AddAffected* n'écrit pas le contenu d'une fiche.
-	var handles []*v6.VulnerabilityHandle
-	handle := func(p *v6.Provider, id string) *v6.VulnerabilityHandle {
-		h := &v6.VulnerabilityHandle{Name: id, Status: v6.VulnerabilityActive, Provider: p,
-			BlobValue: &v6.VulnerabilityBlob{ID: id, Description: "d " + id}}
-		handles = append(handles, h)
-		return h
-	}
-	distroRange := func(constraint string, state v6.FixStatus, fix string) []v6.Range {
-		return []v6.Range{{Version: v6.Version{Type: "dpkg", Constraint: constraint}, Fix: &v6.Fix{Version: fix, State: state}}}
-	}
-	type entry struct {
-		os     *v6.OperatingSystem
-		cve    string
-		ranges []v6.Range
-	}
-	ubuntu := &v6.OperatingSystem{Name: "ubuntu", ReleaseID: "ubuntu", MajorVersion: "26", MinorVersion: "04", Codename: "resolute"}
-	debian := &v6.OperatingSystem{Name: "debian", ReleaseID: "debian", MajorVersion: "12", Codename: "bookworm"}
-	entries := []entry{
-		{ubuntu, fixedCVE, distroRange("< 7.0.0-31.31", v6.FixedStatus, "7.0.0-31.31")},
-		{ubuntu, openCVE, distroRange("", v6.NotFixedStatus, "")},
-		{debian, fixedCVE, distroRange("< 6.1.170-3", v6.FixedStatus, "6.1.170-3")},
-		{debian, openCVE, distroRange("< 6.1.176-1", v6.FixedStatus, "6.1.176-1")},
-	}
-	var packages []*v6.AffectedPackageHandle
-	for _, e := range entries {
-		packages = append(packages, &v6.AffectedPackageHandle{
-			Vulnerability: handle(&v6.Provider{ID: e.os.Name}, e.cve), OperatingSystem: e.os,
-			Package:   &v6.Package{Ecosystem: "deb", Name: "linux"},
-			BlobValue: &v6.PackageBlob{CVEs: []string{e.cve}, Ranges: e.ranges},
-		})
-	}
-	var cpes []*v6.AffectedCPEHandle
-	for _, id := range []string{fixedCVE, openCVE, nvdOnlyCVE} {
-		cpes = append(cpes, &v6.AffectedCPEHandle{
-			Vulnerability: handle(nvd, id),
-			CPE:           &v6.Cpe{Part: "o", Vendor: "linux", Product: "linux_kernel"},
-			BlobValue: &v6.PackageBlob{CVEs: []string{id}, Ranges: []v6.Range{{
-				Version: v6.Version{Constraint: ">= 5.16, < 7.0.13"},
-				Fix:     &v6.Fix{Version: "7.0.13", State: v6.FixedStatus},
-			}}},
-		})
-	}
-	path, err := grypetest.Archive(t.TempDir(), func(w v6.ReadWriter) error {
-		if err := w.AddVulnerabilities(handles...); err != nil {
-			return err
-		}
-		if err := w.AddAffectedPackages(packages...); err != nil {
-			return err
-		}
-		return w.AddAffectedCPEs(cpes...)
+var (
+	ubuntu2604 = &v6.OperatingSystem{Name: "ubuntu", ReleaseID: "ubuntu", MajorVersion: "26", MinorVersion: "04", Codename: "resolute"}
+	ubuntu2204 = &v6.OperatingSystem{Name: "ubuntu", ReleaseID: "ubuntu", MajorVersion: "22", MinorVersion: "04", Codename: "jammy"}
+	debian12   = &v6.OperatingSystem{Name: "debian", ReleaseID: "debian", MajorVersion: "12", Codename: "bookworm"}
+)
+
+// kernelDB décrit les trois vulnérabilités pour le source linux d'Ubuntu 26.04 et de
+// Debian 12, et pour le CPE du noyau dans la NVD.
+func kernelDB(t *testing.T) vuln.Database {
+	return openTestDB(t, []distroEntry{
+		{ubuntu2604, "linux", fixedCVE, "< 7.0.0-31.31", v6.FixedStatus, "7.0.0-31.31"},
+		{ubuntu2604, "linux", openCVE, "", v6.NotFixedStatus, ""},
+		{debian12, "linux", fixedCVE, "< 6.1.170-3", v6.FixedStatus, "6.1.170-3"},
+		{debian12, "linux", openCVE, "< 6.1.176-1", v6.FixedStatus, "6.1.176-1"},
+	}, []cpeEntry{
+		{"o", "linux", "linux_kernel", fixedCVE, ">= 5.16, < 7.0.13", "7.0.13"},
+		{"o", "linux", "linux_kernel", openCVE, ">= 5.16, < 7.0.13", "7.0.13"},
+		{"o", "linux", "linux_kernel", nvdOnlyCVE, ">= 5.16, < 7.0.13", "7.0.13"},
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	return path
 }
 
 // TestKernelFollowsDistroData : sur Ubuntu et Debian, le noyau /boot/vmlinuz-* possédé par
@@ -120,15 +75,7 @@ func kernelArchive(t *testing.T) string {
 // suit pas reste signalée par CPE (ADR 0064).
 func TestKernelFollowsDistroData(t *testing.T) {
 	ctx := context.Background()
-	dir := filepath.Join(t.TempDir(), "db")
-	if _, err := NewEngine().Install(ctx, kernelArchive(t), dir); err != nil {
-		t.Fatal(err)
-	}
-	d, err := NewEngine().Open(ctx, dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer d.Close()
+	d := kernelDB(t)
 
 	for _, c := range []struct {
 		sbom, kernel string
@@ -170,13 +117,4 @@ func TestKernelFollowsDistroData(t *testing.T) {
 			}
 		})
 	}
-}
-
-func readTestSBOM(t *testing.T, name string) []byte {
-	t.Helper()
-	b, err := os.ReadFile(filepath.Join("..", "..", "..", "testdata", "sbom", name))
-	if err != nil {
-		t.Fatal(err)
-	}
-	return b
 }

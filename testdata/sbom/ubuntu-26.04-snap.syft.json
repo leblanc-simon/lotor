@@ -1,0 +1,910 @@
+{
+ "artifacts": [
+  {
+   "id": "377e9ef0b903397e",
+   "name": "bash",
+   "version": "5.1-6ubuntu1.1",
+   "type": "deb",
+   "foundBy": "snap-cataloger",
+   "locations": [
+    {
+     "path": "/snap/core22/3129/usr/share/snappy/dpkg.yaml",
+     "accessPath": "/snap/core22/3129/usr/share/snappy/dpkg.yaml"
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:bash:bash:5.1-6ubuntu1.1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:deb/ubuntu/bash@5.1-6ubuntu1.1",
+   "metadataType": "snap-entry",
+   "metadata": {
+    "snapType": "base",
+    "base": "",
+    "snapName": "",
+    "snapVersion": "",
+    "architecture": ""
+   }
+  },
+  {
+   "id": "fd438a31d35305c6",
+   "name": "bash",
+   "version": "5.1.16",
+   "type": "binary",
+   "foundBy": "binary-classifier-cataloger",
+   "locations": [
+    {
+     "path": "/snap/core22/3129/usr/bin/bash",
+     "accessPath": "/snap/core22/3129/usr/bin/bash",
+     "annotations": {
+      "evidence": "primary"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:gnu:bash:5.1.16:*:*:*:*:*:*:*",
+     "source": "nvd-cpe-dictionary"
+    }
+   ],
+   "purl": "pkg:generic/bash@5.1.16",
+   "metadataType": "binary-signature",
+   "metadata": {
+    "matches": [
+     {
+      "classifier": "bash-binary",
+      "location": {
+       "path": "/snap/core22/3129/usr/bin/bash",
+       "accessPath": "/snap/core22/3129/usr/bin/bash",
+       "annotations": {
+        "evidence": "primary"
+       }
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "197622f1910e85bd",
+   "name": "gzip",
+   "version": "1.10",
+   "type": "binary",
+   "foundBy": "binary-classifier-cataloger",
+   "locations": [
+    {
+     "path": "/snap/core22/3129/usr/bin/gzip",
+     "accessPath": "/snap/core22/3129/usr/bin/gzip",
+     "annotations": {
+      "evidence": "primary"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:gnu:gzip:1.10:*:*:*:*:*:*:*",
+     "source": "nvd-cpe-dictionary"
+    }
+   ],
+   "purl": "pkg:generic/gzip@1.10",
+   "metadataType": "binary-signature",
+   "metadata": {
+    "matches": [
+     {
+      "classifier": "gzip-binary",
+      "location": {
+       "path": "/snap/core22/3129/usr/bin/gzip",
+       "accessPath": "/snap/core22/3129/usr/bin/gzip",
+       "annotations": {
+        "evidence": "primary"
+       }
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "ba4f411e01521036",
+   "name": "gzip",
+   "version": "1.10-4ubuntu4.2",
+   "type": "deb",
+   "foundBy": "snap-cataloger",
+   "locations": [
+    {
+     "path": "/snap/core22/3129/usr/share/snappy/dpkg.yaml",
+     "accessPath": "/snap/core22/3129/usr/share/snappy/dpkg.yaml"
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:gzip:gzip:1.10-4ubuntu4.2:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:deb/ubuntu/gzip@1.10-4ubuntu4.2",
+   "metadataType": "snap-entry",
+   "metadata": {
+    "snapType": "base",
+    "base": "",
+    "snapName": "",
+    "snapVersion": "",
+    "architecture": ""
+   }
+  },
+  {
+   "id": "422447944ec454fc",
+   "name": "libc6",
+   "version": "2.35-0ubuntu3.14",
+   "type": "deb",
+   "foundBy": "snap-cataloger",
+   "locations": [
+    {
+     "path": "/snap/snapd/28332/snap/manifest.yaml",
+     "accessPath": "/snap/snapd/28332/snap/manifest.yaml"
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:libc6:libc6:2.35-0ubuntu3.14:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:deb/ubuntu/libc6@2.35-0ubuntu3.14?arch=amd64",
+   "metadataType": "snap-entry",
+   "metadata": {
+    "snapType": "app",
+    "base": "",
+    "snapName": "snapd",
+    "snapVersion": "2.78",
+    "architecture": "amd64"
+   }
+  },
+  {
+   "id": "239717b184fe9a88",
+   "name": "libc6",
+   "version": "2.35-0ubuntu3.15",
+   "type": "deb",
+   "foundBy": "snap-cataloger",
+   "locations": [
+    {
+     "path": "/snap/core22/3129/usr/share/snappy/dpkg.yaml",
+     "accessPath": "/snap/core22/3129/usr/share/snappy/dpkg.yaml"
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:libc6:libc6:2.35-0ubuntu3.15:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:deb/ubuntu/libc6@2.35-0ubuntu3.15?arch=amd64",
+   "metadataType": "snap-entry",
+   "metadata": {
+    "snapType": "base",
+    "base": "",
+    "snapName": "",
+    "snapVersion": "",
+    "architecture": "amd64"
+   }
+  },
+  {
+   "id": "25f460b1080d8ca7",
+   "name": "libcap2",
+   "version": "1:2.44-1ubuntu0.22.04.3",
+   "type": "deb",
+   "foundBy": "snap-cataloger",
+   "locations": [
+    {
+     "path": "/snap/snapd/28332/snap/manifest.yaml",
+     "accessPath": "/snap/snapd/28332/snap/manifest.yaml"
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:libcap2:libcap2:1\\:2.44-1ubuntu0.22.04.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:deb/ubuntu/libcap2@1%3A2.44-1ubuntu0.22.04.3?arch=amd64",
+   "metadataType": "snap-entry",
+   "metadata": {
+    "snapType": "app",
+    "base": "",
+    "snapName": "snapd",
+    "snapVersion": "2.78",
+    "architecture": "amd64"
+   }
+  },
+  {
+   "id": "c04b9aea02fa49a0",
+   "name": "libgcc-s1",
+   "version": "12.3.0-1ubuntu1~22.04.3",
+   "type": "deb",
+   "foundBy": "snap-cataloger",
+   "locations": [
+    {
+     "path": "/snap/snapd/28332/snap/manifest.yaml",
+     "accessPath": "/snap/snapd/28332/snap/manifest.yaml"
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:libgcc-s1:libgcc-s1:12.3.0-1ubuntu1\\~22.04.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:libgcc-s1:libgcc_s1:12.3.0-1ubuntu1\\~22.04.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:libgcc_s1:libgcc-s1:12.3.0-1ubuntu1\\~22.04.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:libgcc_s1:libgcc_s1:12.3.0-1ubuntu1\\~22.04.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:libgcc:libgcc-s1:12.3.0-1ubuntu1\\~22.04.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:libgcc:libgcc_s1:12.3.0-1ubuntu1\\~22.04.3:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:deb/ubuntu/libgcc-s1@12.3.0-1ubuntu1~22.04.3?arch=amd64",
+   "metadataType": "snap-entry",
+   "metadata": {
+    "snapType": "app",
+    "base": "",
+    "snapName": "snapd",
+    "snapVersion": "2.78",
+    "architecture": "amd64"
+   }
+  },
+  {
+   "id": "6393ba291855efce",
+   "name": "libseccomp2",
+   "version": "2.5.3-2ubuntu3~22.04.1",
+   "type": "deb",
+   "foundBy": "snap-cataloger",
+   "locations": [
+    {
+     "path": "/snap/snapd/28332/snap/manifest.yaml",
+     "accessPath": "/snap/snapd/28332/snap/manifest.yaml"
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:libseccomp2:libseccomp2:2.5.3-2ubuntu3\\~22.04.1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:deb/ubuntu/libseccomp2@2.5.3-2ubuntu3~22.04.1?arch=amd64",
+   "metadataType": "snap-entry",
+   "metadata": {
+    "snapType": "app",
+    "base": "",
+    "snapName": "snapd",
+    "snapVersion": "2.78",
+    "architecture": "amd64"
+   }
+  },
+  {
+   "id": "10d9fa0f3d527f2a",
+   "name": "libssl3",
+   "version": "3.0.2-0ubuntu1.30",
+   "type": "deb",
+   "foundBy": "snap-cataloger",
+   "locations": [
+    {
+     "path": "/snap/canonical-livepatch/418/snap/manifest.yaml",
+     "accessPath": "/snap/canonical-livepatch/418/snap/manifest.yaml"
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:libssl3:libssl3:3.0.2-0ubuntu1.30:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:deb/ubuntu/libssl3@3.0.2-0ubuntu1.30?arch=amd64",
+   "metadataType": "snap-entry",
+   "metadata": {
+    "snapType": "app",
+    "base": "core22",
+    "snapName": "canonical-livepatch",
+    "snapVersion": "10.15.0",
+    "architecture": "amd64"
+   }
+  },
+  {
+   "id": "13f75991d7070e47",
+   "name": "libssl3",
+   "version": "3.0.2-0ubuntu1.30",
+   "type": "deb",
+   "foundBy": "snap-cataloger",
+   "locations": [
+    {
+     "path": "/snap/core22/3129/usr/share/snappy/dpkg.yaml",
+     "accessPath": "/snap/core22/3129/usr/share/snappy/dpkg.yaml"
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:libssl3:libssl3:3.0.2-0ubuntu1.30:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:deb/ubuntu/libssl3@3.0.2-0ubuntu1.30?arch=amd64",
+   "metadataType": "snap-entry",
+   "metadata": {
+    "snapType": "base",
+    "base": "",
+    "snapName": "",
+    "snapVersion": "",
+    "architecture": "amd64"
+   }
+  },
+  {
+   "id": "4e0390195a4ede49",
+   "name": "openssl",
+   "version": "3.0.2",
+   "type": "binary",
+   "foundBy": "binary-classifier-cataloger",
+   "locations": [
+    {
+     "path": "/snap/core22/3129/usr/bin/openssl",
+     "accessPath": "/snap/core22/3129/usr/bin/openssl",
+     "annotations": {
+      "evidence": "primary"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:openssl:openssl:3.0.2:*:*:*:*:*:*:*",
+     "source": "nvd-cpe-dictionary"
+    }
+   ],
+   "purl": "pkg:generic/openssl@3.0.2",
+   "metadataType": "binary-signature",
+   "metadata": {
+    "matches": [
+     {
+      "classifier": "openssl-binary",
+      "location": {
+       "path": "/snap/core22/3129/usr/bin/openssl",
+       "accessPath": "/snap/core22/3129/usr/bin/openssl",
+       "annotations": {
+        "evidence": "primary"
+       }
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "3b779d4b2d83866c",
+   "name": "openssl",
+   "version": "3.0.2-0ubuntu1.30",
+   "type": "deb",
+   "foundBy": "snap-cataloger",
+   "locations": [
+    {
+     "path": "/snap/core22/3129/usr/share/snappy/dpkg.yaml",
+     "accessPath": "/snap/core22/3129/usr/share/snappy/dpkg.yaml"
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:openssl:openssl:3.0.2-0ubuntu1.30:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:deb/ubuntu/openssl@3.0.2-0ubuntu1.30?arch=amd64",
+   "metadataType": "snap-entry",
+   "metadata": {
+    "snapType": "base",
+    "base": "",
+    "snapName": "",
+    "snapVersion": "",
+    "architecture": "amd64"
+   }
+  },
+  {
+   "id": "82d5a7fe1d76c186",
+   "name": "python3.10",
+   "version": "3.10.12-1~22.04.18",
+   "type": "deb",
+   "foundBy": "snap-cataloger",
+   "locations": [
+    {
+     "path": "/snap/core22/3129/usr/share/snappy/dpkg.yaml",
+     "accessPath": "/snap/core22/3129/usr/share/snappy/dpkg.yaml"
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:python3.10:python3.10:3.10.12-1\\~22.04.18:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:deb/ubuntu/python3.10@3.10.12-1~22.04.18?arch=amd64",
+   "metadataType": "snap-entry",
+   "metadata": {
+    "snapType": "base",
+    "base": "",
+    "snapName": "",
+    "snapVersion": "",
+    "architecture": "amd64"
+   }
+  },
+  {
+   "id": "2c6d0b92c918ecb6",
+   "name": "util-linux",
+   "version": "2.37.2",
+   "type": "binary",
+   "foundBy": "binary-classifier-cataloger",
+   "locations": [
+    {
+     "path": "/snap/core22/3129/usr/bin/getopt",
+     "accessPath": "/snap/core22/3129/usr/bin/getopt",
+     "annotations": {
+      "evidence": "primary"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:kernel:util-linux:2.37.2:*:*:*:*:*:*:*",
+     "source": "nvd-cpe-dictionary"
+    }
+   ],
+   "purl": "pkg:generic/util-linux@2.37.2",
+   "metadataType": "binary-signature",
+   "metadata": {
+    "matches": [
+     {
+      "classifier": "util-linux-binary",
+      "location": {
+       "path": "/snap/core22/3129/usr/bin/getopt",
+       "accessPath": "/snap/core22/3129/usr/bin/getopt",
+       "annotations": {
+        "evidence": "primary"
+       }
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "f6c1ce11a537e0e7",
+   "name": "util-linux",
+   "version": "2.37.2-4ubuntu3.6",
+   "type": "deb",
+   "foundBy": "snap-cataloger",
+   "locations": [
+    {
+     "path": "/snap/core22/3129/usr/share/snappy/dpkg.yaml",
+     "accessPath": "/snap/core22/3129/usr/share/snappy/dpkg.yaml"
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:util-linux:util-linux:2.37.2-4ubuntu3.6:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:util-linux:util_linux:2.37.2-4ubuntu3.6:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:util_linux:util-linux:2.37.2-4ubuntu3.6:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:util_linux:util_linux:2.37.2-4ubuntu3.6:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:util:util-linux:2.37.2-4ubuntu3.6:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:util:util_linux:2.37.2-4ubuntu3.6:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:deb/ubuntu/util-linux@2.37.2-4ubuntu3.6?arch=amd64",
+   "metadataType": "snap-entry",
+   "metadata": {
+    "snapType": "base",
+    "base": "",
+    "snapName": "",
+    "snapVersion": "",
+    "architecture": "amd64"
+   }
+  },
+  {
+   "id": "d802cbc14746009d",
+   "name": "zlib1g",
+   "version": "1:1.2.11.dfsg-2ubuntu9.2",
+   "type": "deb",
+   "foundBy": "snap-cataloger",
+   "locations": [
+    {
+     "path": "/snap/snapd/28332/snap/manifest.yaml",
+     "accessPath": "/snap/snapd/28332/snap/manifest.yaml"
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:zlib1g:zlib1g:1\\:1.2.11.dfsg-2ubuntu9.2:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:deb/ubuntu/zlib1g@1%3A1.2.11.dfsg-2ubuntu9.2?arch=amd64",
+   "metadataType": "snap-entry",
+   "metadata": {
+    "snapType": "app",
+    "base": "",
+    "snapName": "snapd",
+    "snapVersion": "2.78",
+    "architecture": "amd64"
+   }
+  }
+ ],
+ "artifactRelationships": [
+  {
+   "parent": "10d9fa0f3d527f2a",
+   "child": "5d8815f854d4cd96",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "supporting"
+   }
+  },
+  {
+   "parent": "13f75991d7070e47",
+   "child": "097907c1dde5ac4a",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "supporting"
+   }
+  },
+  {
+   "parent": "197622f1910e85bd",
+   "child": "e71dcbae95a6d9ac",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "10d9fa0f3d527f2a",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "13f75991d7070e47",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "197622f1910e85bd",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "239717b184fe9a88",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "25f460b1080d8ca7",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "2c6d0b92c918ecb6",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "377e9ef0b903397e",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "3b779d4b2d83866c",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "422447944ec454fc",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "4e0390195a4ede49",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "6393ba291855efce",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "82d5a7fe1d76c186",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "ba4f411e01521036",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "c04b9aea02fa49a0",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "d802cbc14746009d",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "f6c1ce11a537e0e7",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "fd438a31d35305c6",
+   "type": "contains"
+  },
+  {
+   "parent": "239717b184fe9a88",
+   "child": "097907c1dde5ac4a",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "supporting"
+   }
+  },
+  {
+   "parent": "25f460b1080d8ca7",
+   "child": "8cbbd1a2fea69f3d",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "supporting"
+   }
+  },
+  {
+   "parent": "2c6d0b92c918ecb6",
+   "child": "78b9b862628b5034",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  },
+  {
+   "parent": "377e9ef0b903397e",
+   "child": "097907c1dde5ac4a",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "supporting"
+   }
+  },
+  {
+   "parent": "3b779d4b2d83866c",
+   "child": "097907c1dde5ac4a",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "supporting"
+   }
+  },
+  {
+   "parent": "422447944ec454fc",
+   "child": "8cbbd1a2fea69f3d",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "supporting"
+   }
+  },
+  {
+   "parent": "4e0390195a4ede49",
+   "child": "0882b597dde42d32",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  },
+  {
+   "parent": "6393ba291855efce",
+   "child": "8cbbd1a2fea69f3d",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "supporting"
+   }
+  },
+  {
+   "parent": "82d5a7fe1d76c186",
+   "child": "097907c1dde5ac4a",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "supporting"
+   }
+  },
+  {
+   "parent": "ba4f411e01521036",
+   "child": "097907c1dde5ac4a",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "supporting"
+   }
+  },
+  {
+   "parent": "c04b9aea02fa49a0",
+   "child": "8cbbd1a2fea69f3d",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "supporting"
+   }
+  },
+  {
+   "parent": "d802cbc14746009d",
+   "child": "8cbbd1a2fea69f3d",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "supporting"
+   }
+  },
+  {
+   "parent": "f6c1ce11a537e0e7",
+   "child": "097907c1dde5ac4a",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "supporting"
+   }
+  },
+  {
+   "parent": "fd438a31d35305c6",
+   "child": "48a1e061293c78ca",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  }
+ ],
+ "files": [
+  {
+   "id": "5d8815f854d4cd96",
+   "location": {
+    "path": "/snap/canonical-livepatch/418/snap/manifest.yaml"
+   }
+  },
+  {
+   "id": "48a1e061293c78ca",
+   "location": {
+    "path": "/snap/core22/3129/usr/bin/bash"
+   },
+   "unknowns": [
+    "cargo-auditable-binary-cataloger: rust cataloger: unable to read dependency information: unknown file format"
+   ]
+  },
+  {
+   "id": "78b9b862628b5034",
+   "location": {
+    "path": "/snap/core22/3129/usr/bin/getopt"
+   },
+   "unknowns": [
+    "cargo-auditable-binary-cataloger: rust cataloger: unable to read dependency information: unknown file format"
+   ]
+  },
+  {
+   "id": "e71dcbae95a6d9ac",
+   "location": {
+    "path": "/snap/core22/3129/usr/bin/gzip"
+   },
+   "unknowns": [
+    "cargo-auditable-binary-cataloger: rust cataloger: unable to read dependency information: unknown file format"
+   ]
+  },
+  {
+   "id": "0882b597dde42d32",
+   "location": {
+    "path": "/snap/core22/3129/usr/bin/openssl"
+   },
+   "unknowns": [
+    "cargo-auditable-binary-cataloger: rust cataloger: unable to read dependency information: unknown file format"
+   ]
+  },
+  {
+   "id": "097907c1dde5ac4a",
+   "location": {
+    "path": "/snap/core22/3129/usr/share/snappy/dpkg.yaml"
+   }
+  },
+  {
+   "id": "8cbbd1a2fea69f3d",
+   "location": {
+    "path": "/snap/snapd/28332/snap/manifest.yaml"
+   }
+  },
+  {
+   "id": "3e140e9b56072de1",
+   "location": {
+    "path": "/var/lib/dpkg/status"
+   },
+   "unknowns": [
+    "dpkg-db-cataloger: unable to determine packages"
+   ]
+  }
+ ],
+ "source": {
+  "id": "1bba86814d3a2482",
+  "name": "fixture",
+  "version": "",
+  "type": "directory",
+  "metadata": {
+   "path": "/"
+  }
+ },
+ "distro": {
+  "prettyName": "Ubuntu 26.04 LTS",
+  "name": "Ubuntu",
+  "id": "ubuntu",
+  "idLike": [
+   "debian"
+  ],
+  "version": "26.04 LTS (Resolute Raccoon)",
+  "versionID": "26.04",
+  "versionCodename": "resolute"
+ },
+ "descriptor": {
+  "name": "lotor-host-agent",
+  "version": "fixture"
+ },
+ "schema": {
+  "version": "16.1.13",
+  "url": "https://raw.githubusercontent.com/anchore/syft/main/schema/json/schema-16.1.13.json"
+ }
+}

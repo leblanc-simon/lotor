@@ -25,6 +25,12 @@ appliquées automatiquement, sans retour arrière.
   Ubuntu 26.04, environ 1 550 faux positifs disparaissent ; sur Debian, le décompte suit le
   suivi de sécurité de Debian. Prise en compte à la réanalyse qui suit le prochain changement de
   base Grype, sans nouveau scan (ADR 0064).
+- Snaps : les paquets d'un snap (core22, snapd, snaps applicatifs) sont comparés aux données
+  de sécurité de leur version d'Ubuntu, et plus à celles de l'hôte (openssl de core22, Ubuntu
+  22.04, n'est plus jugé d'après les correctifs d'Ubuntu 26.04). Les binaires d'un snap
+  (`/snap/core22/…/usr/bin/openssl`) suivent le paquet du snap qui les fournit au lieu des
+  seules versions amont de la NVD : CVE-2022-2068 et les autres CVE corrigées par Ubuntu
+  disparaissent. Même prise en compte (ADR 0065).
 
 ## [0.3.2] - 2026-11-14
 

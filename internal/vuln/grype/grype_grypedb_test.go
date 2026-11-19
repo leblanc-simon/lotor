@@ -161,3 +161,27 @@ func TestRealKernel(t *testing.T) {
 		})
 	}
 }
+
+// TestRealSnap : sur un hôte Ubuntu 26.04, openssl de core22 (3.0.2-0ubuntu1.30) suit les
+// données d'Ubuntu 22.04 (ADR 0065). CVE-2022-2068, corrigée par Ubuntu 22.04 en
+// 3.0.2-0ubuntu1.5, n'est plus signalée, ni sur le paquet ni sur le binaire
+// /snap/core22/…/usr/bin/openssl ; avant, le paquet était comparé aux correctifs de 26.04
+// (86 correspondances) et le binaire à la NVD (75).
+func TestRealSnap(t *testing.T) {
+	d := openReal(t)
+	ms, _, err := d.Match(context.Background(), readTestSBOM(t, "ubuntu-26.04-snap.syft.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	byPURL := map[string]int{}
+	for _, m := range ms {
+		byPURL[m.PURL]++
+		if m.VulnerabilityID == "CVE-2022-2068" {
+			t.Errorf("CVE-2022-2068 signalée sur %s", m.PURL)
+		}
+	}
+	if n := byPURL["pkg:generic/openssl@3.0.2"]; n > 5 {
+		t.Errorf("%d correspondances CPE sur le binaire openssl de core22", n)
+	}
+	t.Logf("%d correspondances : %v", len(ms), byPURL)
+}

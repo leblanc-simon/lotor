@@ -594,6 +594,10 @@ qu'aucune mesure ne la justifie (ADR 0015).
   correspondance par CPE seul d'un binaire possédé par un paquet de la distribution
   (`/boot/vmlinuz-*`) est retirée quand ce paquet est rapproché de la même vulnérabilité.
   Aucune CVE n'est retirée sans que la distribution se soit prononcée sur elle.
+- **Snaps** (ADR 0065) : les paquets deb lus dans un snap prennent la version d'Ubuntu du
+  snap (`coreNN`, base déclarée, sinon unique version d'Ubuntu de leurs versions) au lieu de
+  celle de l'hôte ; un binaire du snap est lié au paquet deb du même snap de même nom et de
+  même version amont, comme un fichier possédé.
 - Base Grype, version cible commune à toutes les instances :
   - l'échéance `vulndb.check` (une seule instance l'exécute, § 16) interroge la liste de
     distribution, télécharge, vérifie la somme de contrôle, valide l'ouverture par une

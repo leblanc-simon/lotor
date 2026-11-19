@@ -130,11 +130,12 @@ func matcherConfig() matcher.Config {
 // sources intacts) et le confronte à la base. Les identifiants sont ramenés au CVE quand
 // la source n'en cite qu'un (comme grype --by-cve).
 func (d *database) Match(ctx context.Context, blob []byte) ([]vuln.Match, map[string]vuln.Vulnerability, error) {
-	pkgs, pctx, _, err := pkg.ProvideFromReader(bytes.NewReader(blob), pkg.ProviderConfig{})
+	pkgs, pctx, doc, err := pkg.ProvideFromReader(bytes.NewReader(blob), pkg.ProviderConfig{})
 	if err != nil {
 		return nil, nil, fmt.Errorf("grype: décodage du SBOM : %w", err)
 	}
 	signedKernelUpstreams(pkgs)
+	snapPackages(pkgs, doc)
 	// VulnerabilityMatcher garde un état par appel : un par correspondance.
 	m := grypelib.VulnerabilityMatcher{
 		VulnerabilityProvider: d.provider,

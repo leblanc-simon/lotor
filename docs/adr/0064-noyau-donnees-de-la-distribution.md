@@ -87,6 +87,5 @@ le retrait du doublon ne dépend que de ce que la base contient.
 - Une montée de version de Grype doit vérifier que le cas est toujours nécessaire (Grype
   pourrait apprendre lui-même le renvoi des sources signés) : `TestKernelFollowsDistroData`
   et `TestRealKernel` le montrent.
-- Les binaires embarqués dans un snap (`/snap/core22/…/openssl`) relèvent du même défaut
-  (version amont lue dans le binaire, correctifs de la distribution invisibles) et ne sont pas
-  traités ici.
+- Les binaires embarqués dans un snap (`/snap/core22/…/openssl`) relèvent du même défaut ;
+  ils sont traités par l'ADR 0065.

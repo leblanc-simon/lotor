@@ -1165,3 +1165,23 @@ les pièges découverts, pour ne pas les reproduire. Une entrée = le constat, p
 - **Réanalyse** : l'analyse est idempotente pour un couple (ensemble, base). Un changement de
   la logique de correspondance ne s'applique qu'au prochain changement de base cible
   (`analysis.rescan_all`), en pratique dans la journée.
+
+## Snaps (hors lot, ADR 0065)
+
+- **Distribution implicite** : un paquet deb sans distribution (purl sans `distro`, comme
+  ceux que le catalogueur des snaps de Syft tire de `dpkg.yaml` ou de `manifest.yaml`) reçoit
+  de Grype la distribution de l'hôte. core22 (Ubuntu 22.04) sur un hôte 26.04 était comparé
+  aux correctifs de 26.04 : 86 faux positifs sur openssl. Règle : pour tout paquet « deb »
+  trouvé hors de la base dpkg de l'hôte (snap, image embarquée, archive), se demander de
+  quelle distribution il vient avant de le confier à Grype.
+- **Lire le vrai SBOM avant de concevoir** : les métadonnées des snaps (`base` vide pour
+  snapd, aucune source, aucun fichier, un paquet `linux-image-*` tiré de la documentation de
+  l'hôte) ne se devinent pas ; le SBOM d'origine d'un instantané (téléchargement
+  « original ») les montre, lu en lecture seule avec l'accord de l'utilisateur.
+- **Binaires reconnus par leur contenu** : le classificateur de Syft ne lit que des motifs
+  dans le fichier ; un jeu d'essai peut porter de faux binaires de quelques octets
+  (`\x00OpenSSL 3.0.2 …`, `@(#)Bash version …`, `%s: %s: not in gzip format`).
+- **Structures partagées entre bases de test** : l'écriture d'une base Grype inscrit
+  l'identifiant de l'enregistrement dans la structure `OperatingSystem` passée ; partagée
+  entre deux bases, la seconde échoue (contrainte d'unicité). `openTestDB` copie chaque
+  système par base.
