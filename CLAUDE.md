@@ -208,7 +208,14 @@ disponible), recherche `license:` (`license_expressions`), page `/o/{slug}/licen
 onglet Licences du projet (migration 028).
 Paquet deb de l'agent dépôt, hors lot (ADR 0062 ; `deploy/nfpm/repo-agent.yaml`, compte
 dynamique, unité inactive à l'installation, credentials par fichier d'extension), scénario
-`repo_agent` de `make test-package`. **Lot 3 en cours** : T19, T20, T21, T23 faits ;
+`repo_agent` de `make test-package`.
+Correspondance, hors lot (ADR 0064, 0065 ; `internal/vuln/grype/kernel.go`, `snap.go`) :
+images de noyau signées de Debian et d'Ubuntu (`linux-signed*`) rapprochées comme leur source
+`linux*` ; doublon CPE d'un binaire possédé retiré quand la distribution cite la même CVE ;
+paquets des snaps comparés à leur version d'Ubuntu (`coreNN`, base déclarée, sinon versions),
+binaires d'un snap liés au paquet de même nom. Règle : aucune CVE retirée sans que la bonne
+distribution se soit prononcée. Base Grype de test `openTestDB`, `TestRealKernel`,
+`TestRealSnap`. **Lot 3 en cours** : T19, T20, T21, T23 faits ;
 restent T22, T25, puis T24 et T26.
 
 ## Règles de travail
