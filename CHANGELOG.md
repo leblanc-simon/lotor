@@ -14,6 +14,18 @@ appliquées automatiquement, sans retour arrière.
   de KEV de chaque projet, selon la règle de sa fiche (références actives, sans les non
   affectés ni les faux positifs).
 
+### Corrigé
+
+- Noyau Linux sur Debian et Ubuntu : les CVE déjà corrigées par la distribution ne sont plus
+  signalées sur `/boot/vmlinuz-*` d'après les seules versions amont de la NVD. L'image signée
+  (`linux-image-*`, source `linux-signed*`) est désormais rapprochée des données de sécurité de
+  la distribution ; sur Debian, elle ne l'était pas du tout. Une CVE encore ouverte est
+  signalée sur les paquets de la distribution, avec sa version corrigée, et plus en double sur
+  le binaire. Sur un hôte
+  Ubuntu 26.04, environ 1 550 faux positifs disparaissent ; sur Debian, le décompte suit le
+  suivi de sécurité de Debian. Prise en compte à la réanalyse qui suit le prochain changement de
+  base Grype, sans nouveau scan (ADR 0064).
+
 ## [0.3.2] - 2026-11-14
 
 Version corrective : Go 1.26.11 (vulnérabilité de `net/http`) et dépendances montées ; l'agent

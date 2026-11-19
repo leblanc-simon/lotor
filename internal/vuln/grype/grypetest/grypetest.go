@@ -1,6 +1,6 @@
-// Package grypetest construit pour les tests une vraie archive de base Grype v6, vide mais
-// valide (schéma et date de construction), sans la base complète ni réseau. Il vit sous
-// vuln/grype : seul l'adaptateur importe Grype.
+// Package grypetest construit pour les tests une vraie archive de base Grype v6, valide
+// (schéma et date de construction), vide ou remplie par le test, sans la base complète ni
+// réseau. Il vit sous vuln/grype : seul l'adaptateur importe Grype.
 package grypetest
 
 import (
@@ -17,6 +17,12 @@ import (
 // TinyArchive écrit dans dir une archive tar.gz d'une base Grype v6 vide et renvoie son
 // chemin.
 func TinyArchive(dir string) (string, error) {
+	return Archive(dir, nil)
+}
+
+// Archive écrit dans dir une archive tar.gz d'une base Grype v6 remplie par fill (nil :
+// base vide) et renvoie son chemin.
+func Archive(dir string, fill func(v6.ReadWriter) error) (string, error) {
 	work, err := os.MkdirTemp(dir, "grypetest-")
 	if err != nil {
 		return "", err
@@ -25,6 +31,12 @@ func TinyArchive(dir string) (string, error) {
 	w, err := v6.NewWriter(v6.Config{DBDirPath: work})
 	if err != nil {
 		return "", fmt.Errorf("grypetest: %w", err)
+	}
+	if fill != nil {
+		if err := fill(w); err != nil {
+			_ = w.Close()
+			return "", fmt.Errorf("grypetest: %w", err)
+		}
 	}
 	if err := w.SetDBMetadata(); err != nil {
 		_ = w.Close()

@@ -134,6 +134,7 @@ func (d *database) Match(ctx context.Context, blob []byte) ([]vuln.Match, map[st
 	if err != nil {
 		return nil, nil, fmt.Errorf("grype: décodage du SBOM : %w", err)
 	}
+	signedKernelUpstreams(pkgs)
 	// VulnerabilityMatcher garde un état par appel : un par correspondance.
 	m := grypelib.VulnerabilityMatcher{
 		VulnerabilityProvider: d.provider,
@@ -144,7 +145,7 @@ func (d *database) Match(ctx context.Context, blob []byte) ([]vuln.Match, map[st
 	if err != nil {
 		return nil, nil, fmt.Errorf("grype: correspondance : %w", err)
 	}
-	return convert(found.Sorted(), d.cveMetadata)
+	return convert(dropOwnedCPEDuplicates(found.Sorted()), d.cveMetadata)
 }
 
 // cveMetadata renvoie la fiche NVD d'un CVE, ou nil si la base n'en a pas.

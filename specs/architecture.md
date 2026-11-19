@@ -589,6 +589,11 @@ qu'aucune mesure ne la justifie (ADR 0015).
   `finding_events` garde l'historique.
 - Identifiants ramenés au CVE quand la source n'en cite qu'un (`--by-cve`) ; fiche du
   catalogue prise au NVD quand la base l'a.
+- **Noyau Linux** (ADR 0064) : les images signées de Debian et d'Ubuntu (`linux-signed*`)
+  sont rapprochées comme leur source `linux*`, à la version du paquet binaire ; une
+  correspondance par CPE seul d'un binaire possédé par un paquet de la distribution
+  (`/boot/vmlinuz-*`) est retirée quand ce paquet est rapproché de la même vulnérabilité.
+  Aucune CVE n'est retirée sans que la distribution se soit prononcée sur elle.
 - Base Grype, version cible commune à toutes les instances :
   - l'échéance `vulndb.check` (une seule instance l'exécute, § 16) interroge la liste de
     distribution, télécharge, vérifie la somme de contrôle, valide l'ouverture par une
