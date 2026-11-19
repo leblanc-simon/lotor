@@ -82,11 +82,11 @@ On Debian 13 or Ubuntu 24.04, the server package creates the local PostgreSQL da
 the secrets, the first administrator and the nginx or Apache site:
 
 ```bash
-sudo apt install ./lotor-server_0.3.2_amd64.deb
+sudo apt install ./lotor-server_0.3.3_amd64.deb
 ```
 
 Agents, manual installation and configuration: [`docs/operations.md`](docs/operations.md).
-Status: pre-release **0.3.2** (teams and permissions, containers, triage and VEX, policies
+Status: pre-release **0.3.3** (teams and permissions, containers, triage and VEX, policies
 and alerts, snapshot diffs, AI enrichment, Dependency-Track compatibility, offline mode,
 licenses, point-in-time search, sign-up); changes: [`CHANGELOG.md`](CHANGELOG.md).
 
