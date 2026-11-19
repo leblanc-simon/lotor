@@ -18,6 +18,9 @@ fichiers attendus (`golden/*.golden.json`) sont le `sbom.Document` que produit
 | `portail-client.cdx16.json` | CycloneDX 1.6 | Dépôt : npm (dont `@babel/runtime`), PyPI, modules Go |
 | `portail-client-ia.cdx16.json` | CycloneDX 1.6 | Le même dépôt enrichi par l'IA (voir plus bas) |
 | `log4shell.cdx16.json` | CycloneDX 1.6 | Application Java : `log4j-core` et `log4j-api` 2.14.1, `guava` (analyse, T06) |
+| `ubuntu-26.04-kernel.syft.json` | Syft JSON | Hôte Ubuntu 26.04 : image signée et modules du noyau 7.0.0-43, binaire `/boot/vmlinuz-*` (ADR 0064) |
+| `debian-12-kernel.syft.json` | Syft JSON | Hôte Debian 12 : image signée du noyau 6.1.174-1, binaire `/boot/vmlinuz-*` (ADR 0064) |
+| `ubuntu-26.04-snap.syft.json` | Syft JSON | Hôte Ubuntu 26.04 avec les snaps core22, snapd et canonical-livepatch : paquets des snaps, binaires de core22 (ADR 0065) |
 
 ## Provenance
 
@@ -50,3 +53,20 @@ composants d'origine IA (propriétés `lotor:origin`, `lotor:confidence`,
 `lotor:model`, champ `evidence`) : `jquery` (purl `pkg:NPM/…` à canonicaliser,
 empreinte SHA-256 en majuscules), `libfoo-interne` (sans purl : identification faible) et
 `Django_Extensions` (purl PyPI à canonicaliser, qualificatif vide).
+
+`ubuntu-26.04-kernel.syft.json` et `debian-12-kernel.syft.json` (19 novembre 2026, ADR 0064)
+sont produits par l'agent serveur lui-même (`hostagent.SyftScanner`, Syft v1.57.1) sur une
+racine factice, par un test jetable hors dépôt ; descripteur réduit au nom de l'outil et
+chemin de la source ramené à `/`. Chaque racine contient `/etc/os-release`, une base dpkg
+écrite à la main (paquets du noyau, `Source:` réels des distributions : `linux-signed` et
+`linux` sur Ubuntu, `linux-signed-amd64 (6.1.174+1)` sur Debian), leurs fichiers
+`/var/lib/dpkg/info/*.md5sums` (d'où la relation `ownership-by-file-overlap`) et une image
+`/boot/vmlinuz-*` minimale : un en-tête bzImage de 4 Kio portant la chaîne de version, que le
+catalogueur du noyau reconnaît.
+
+`ubuntu-26.04-snap.syft.json` (19 novembre 2026, ADR 0065) est produit de la même façon. La
+racine reproduit les snaps de l'hôte `srv1` d'après son SBOM d'origine : un sous-ensemble
+de `/snap/core22/3129/usr/share/snappy/dpkg.yaml` (versions réelles de core22), les
+`snap/manifest.yaml` de snapd (sans base, paquets en 22.04) et de canonical-livepatch
+(`base: core22`), et quatre faux binaires de core22 (`openssl`, `bash`, `gzip`, `getopt`)
+réduits aux motifs que le classificateur binaire de Syft reconnaît.

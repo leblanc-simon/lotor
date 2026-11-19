@@ -1,0 +1,254 @@
+{
+ "artifacts": [
+  {
+   "id": "292c0575cb5a7017",
+   "name": "linux-image-6.1.0-40-amd64",
+   "version": "6.1.174-1",
+   "type": "deb",
+   "foundBy": "dpkg-db-cataloger",
+   "locations": [
+    {
+     "path": "/var/lib/dpkg/status",
+     "accessPath": "/var/lib/dpkg/status",
+     "annotations": {
+      "evidence": "primary"
+     }
+    },
+    {
+     "path": "/var/lib/dpkg/info/linux-image-6.1.0-40-amd64.md5sums",
+     "accessPath": "/var/lib/dpkg/info/linux-image-6.1.0-40-amd64.md5sums",
+     "annotations": {
+      "evidence": "supporting"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:linux-image-6.1.0-40-amd64:linux-image-6.1.0-40-amd64:6.1.174-1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-image-6.1.0-40-amd64:linux_image_6.1.0_40_amd64:6.1.174-1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_image_6.1.0_40_amd64:linux-image-6.1.0-40-amd64:6.1.174-1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_image_6.1.0_40_amd64:linux_image_6.1.0_40_amd64:6.1.174-1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-image-6.1.0-40:linux-image-6.1.0-40-amd64:6.1.174-1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-image-6.1.0-40:linux_image_6.1.0_40_amd64:6.1.174-1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_image_6.1.0_40:linux-image-6.1.0-40-amd64:6.1.174-1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_image_6.1.0_40:linux_image_6.1.0_40_amd64:6.1.174-1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-image-6.1.0:linux-image-6.1.0-40-amd64:6.1.174-1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-image-6.1.0:linux_image_6.1.0_40_amd64:6.1.174-1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_image_6.1.0:linux-image-6.1.0-40-amd64:6.1.174-1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_image_6.1.0:linux_image_6.1.0_40_amd64:6.1.174-1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-image:linux-image-6.1.0-40-amd64:6.1.174-1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-image:linux_image_6.1.0_40_amd64:6.1.174-1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_image:linux-image-6.1.0-40-amd64:6.1.174-1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_image:linux_image_6.1.0_40_amd64:6.1.174-1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux:linux-image-6.1.0-40-amd64:6.1.174-1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux:linux_image_6.1.0_40_amd64:6.1.174-1:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:deb/debian/linux-image-6.1.0-40-amd64@6.1.174-1?arch=amd64&distro=debian-12&upstream=linux-signed-amd64%406.1.174%2B1",
+   "metadataType": "dpkg-db-entry",
+   "metadata": {
+    "package": "linux-image-6.1.0-40-amd64",
+    "source": "linux-signed-amd64",
+    "version": "6.1.174-1",
+    "sourceVersion": "6.1.174+1",
+    "architecture": "amd64",
+    "maintainer": "Debian Kernel Team <debian-kernel@lists.debian.org>",
+    "installedSize": 400000,
+    "files": [
+     {
+      "path": "/boot/vmlinuz-6.1.0-40-amd64",
+      "digest": {
+       "algorithm": "md5",
+       "value": "3a1b0c6f5d1e2f3a4b5c6d7e8f901234"
+      },
+      "isConfigFile": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "8750216d0650b53d",
+   "name": "linux-kernel",
+   "version": "6.1.0-40-amd64",
+   "type": "linux-kernel",
+   "foundBy": "linux-kernel-cataloger",
+   "locations": [
+    {
+     "path": "/boot/vmlinuz-6.1.0-40-amd64",
+     "accessPath": "/boot/vmlinuz-6.1.0-40-amd64",
+     "annotations": {
+      "evidence": "primary"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:o:linux:linux_kernel:6.1.0-40-amd64:*:*:*:*:*:*:*",
+     "source": "nvd-cpe-dictionary"
+    }
+   ],
+   "purl": "pkg:generic/linux-kernel@6.1.0-40-amd64",
+   "metadataType": "linux-kernel-archive",
+   "metadata": {
+    "name": "",
+    "architecture": "x86",
+    "version": "6.1.0-40-amd64",
+    "extendedVersion": "6.1.0-40-amd64 (buildd@lcy02) #43-Ubuntu SMP PREEMPT_DYNAMIC",
+    "format": "bzImage",
+    "rwRootFS": true
+   }
+  }
+ ],
+ "artifactRelationships": [
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "292c0575cb5a7017",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "8750216d0650b53d",
+   "type": "contains"
+  },
+  {
+   "parent": "292c0575cb5a7017",
+   "child": "3e140e9b56072de1",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  },
+  {
+   "parent": "292c0575cb5a7017",
+   "child": "517cbfd7464915c3",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "supporting"
+   }
+  },
+  {
+   "parent": "292c0575cb5a7017",
+   "child": "8750216d0650b53d",
+   "type": "ownership-by-file-overlap",
+   "metadata": {
+    "files": [
+     "/boot/vmlinuz-6.1.0-40-amd64"
+    ]
+   }
+  },
+  {
+   "parent": "292c0575cb5a7017",
+   "child": "cc59c9ac09f80a49",
+   "type": "contains"
+  },
+  {
+   "parent": "8750216d0650b53d",
+   "child": "cc59c9ac09f80a49",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  }
+ ],
+ "files": [
+  {
+   "id": "cc59c9ac09f80a49",
+   "location": {
+    "path": "/boot/vmlinuz-6.1.0-40-amd64"
+   }
+  },
+  {
+   "id": "517cbfd7464915c3",
+   "location": {
+    "path": "/var/lib/dpkg/info/linux-image-6.1.0-40-amd64.md5sums"
+   }
+  },
+  {
+   "id": "3e140e9b56072de1",
+   "location": {
+    "path": "/var/lib/dpkg/status"
+   }
+  }
+ ],
+ "source": {
+  "id": "1bba86814d3a2482",
+  "name": "fixture",
+  "version": "",
+  "type": "directory",
+  "metadata": {
+   "path": "/"
+  }
+ },
+ "distro": {
+  "prettyName": "Debian GNU/Linux 12 (bookworm)",
+  "name": "Debian GNU/Linux",
+  "id": "debian",
+  "version": "12 (bookworm)",
+  "versionID": "12",
+  "versionCodename": "bookworm"
+ },
+ "descriptor": {
+  "name": "lotor-host-agent",
+  "version": "fixture"
+ },
+ "schema": {
+  "version": "16.1.13",
+  "url": "https://raw.githubusercontent.com/anchore/syft/main/schema/json/schema-16.1.13.json"
+ }
+}

@@ -1,0 +1,280 @@
+{
+  "format": "syft",
+  "spec_version": "16.1.13",
+  "distro": {
+    "id": "ubuntu",
+    "version_id": "26.04",
+    "name": "Ubuntu 26.04 LTS"
+  },
+  "components": [
+    {
+      "purl": "pkg:deb/ubuntu/bash@5.1-6ubuntu1.1",
+      "purl_base": "pkg:deb/ubuntu/bash",
+      "type": "deb",
+      "name": "bash",
+      "version": "5.1-6ubuntu1.1",
+      "cpes": [
+        "cpe:2.3:a:bash:bash:5.1-6ubuntu1.1:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/snap/core22/3129/usr/share/snappy/dpkg.yaml"
+        }
+      ]
+    },
+    {
+      "purl": "pkg:deb/ubuntu/gzip@1.10-4ubuntu4.2",
+      "purl_base": "pkg:deb/ubuntu/gzip",
+      "type": "deb",
+      "name": "gzip",
+      "version": "1.10-4ubuntu4.2",
+      "cpes": [
+        "cpe:2.3:a:gzip:gzip:1.10-4ubuntu4.2:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/snap/core22/3129/usr/share/snappy/dpkg.yaml"
+        }
+      ]
+    },
+    {
+      "purl": "pkg:deb/ubuntu/libc6@2.35-0ubuntu3.14?arch=amd64",
+      "purl_base": "pkg:deb/ubuntu/libc6",
+      "type": "deb",
+      "name": "libc6",
+      "version": "2.35-0ubuntu3.14",
+      "cpes": [
+        "cpe:2.3:a:libc6:libc6:2.35-0ubuntu3.14:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/snap/snapd/28332/snap/manifest.yaml"
+        }
+      ]
+    },
+    {
+      "purl": "pkg:deb/ubuntu/libc6@2.35-0ubuntu3.15?arch=amd64",
+      "purl_base": "pkg:deb/ubuntu/libc6",
+      "type": "deb",
+      "name": "libc6",
+      "version": "2.35-0ubuntu3.15",
+      "cpes": [
+        "cpe:2.3:a:libc6:libc6:2.35-0ubuntu3.15:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/snap/core22/3129/usr/share/snappy/dpkg.yaml"
+        }
+      ]
+    },
+    {
+      "purl": "pkg:deb/ubuntu/libcap2@1:2.44-1ubuntu0.22.04.3?arch=amd64",
+      "purl_base": "pkg:deb/ubuntu/libcap2",
+      "type": "deb",
+      "name": "libcap2",
+      "version": "1:2.44-1ubuntu0.22.04.3",
+      "cpes": [
+        "cpe:2.3:a:libcap2:libcap2:1\\:2.44-1ubuntu0.22.04.3:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/snap/snapd/28332/snap/manifest.yaml"
+        }
+      ]
+    },
+    {
+      "purl": "pkg:deb/ubuntu/libgcc-s1@12.3.0-1ubuntu1~22.04.3?arch=amd64",
+      "purl_base": "pkg:deb/ubuntu/libgcc-s1",
+      "type": "deb",
+      "name": "libgcc-s1",
+      "version": "12.3.0-1ubuntu1~22.04.3",
+      "cpes": [
+        "cpe:2.3:a:libgcc-s1:libgcc-s1:12.3.0-1ubuntu1\\~22.04.3:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libgcc-s1:libgcc_s1:12.3.0-1ubuntu1\\~22.04.3:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libgcc:libgcc-s1:12.3.0-1ubuntu1\\~22.04.3:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libgcc:libgcc_s1:12.3.0-1ubuntu1\\~22.04.3:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libgcc_s1:libgcc-s1:12.3.0-1ubuntu1\\~22.04.3:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libgcc_s1:libgcc_s1:12.3.0-1ubuntu1\\~22.04.3:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/snap/snapd/28332/snap/manifest.yaml"
+        }
+      ]
+    },
+    {
+      "purl": "pkg:deb/ubuntu/libseccomp2@2.5.3-2ubuntu3~22.04.1?arch=amd64",
+      "purl_base": "pkg:deb/ubuntu/libseccomp2",
+      "type": "deb",
+      "name": "libseccomp2",
+      "version": "2.5.3-2ubuntu3~22.04.1",
+      "cpes": [
+        "cpe:2.3:a:libseccomp2:libseccomp2:2.5.3-2ubuntu3\\~22.04.1:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/snap/snapd/28332/snap/manifest.yaml"
+        }
+      ]
+    },
+    {
+      "purl": "pkg:deb/ubuntu/libssl3@3.0.2-0ubuntu1.30?arch=amd64",
+      "purl_base": "pkg:deb/ubuntu/libssl3",
+      "type": "deb",
+      "name": "libssl3",
+      "version": "3.0.2-0ubuntu1.30",
+      "cpes": [
+        "cpe:2.3:a:libssl3:libssl3:3.0.2-0ubuntu1.30:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/snap/canonical-livepatch/418/snap/manifest.yaml"
+        },
+        {
+          "path": "/snap/core22/3129/usr/share/snappy/dpkg.yaml"
+        }
+      ]
+    },
+    {
+      "purl": "pkg:deb/ubuntu/openssl@3.0.2-0ubuntu1.30?arch=amd64",
+      "purl_base": "pkg:deb/ubuntu/openssl",
+      "type": "deb",
+      "name": "openssl",
+      "version": "3.0.2-0ubuntu1.30",
+      "cpes": [
+        "cpe:2.3:a:openssl:openssl:3.0.2-0ubuntu1.30:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/snap/core22/3129/usr/share/snappy/dpkg.yaml"
+        }
+      ]
+    },
+    {
+      "purl": "pkg:deb/ubuntu/python3.10@3.10.12-1~22.04.18?arch=amd64",
+      "purl_base": "pkg:deb/ubuntu/python3.10",
+      "type": "deb",
+      "name": "python3.10",
+      "version": "3.10.12-1~22.04.18",
+      "cpes": [
+        "cpe:2.3:a:python3.10:python3.10:3.10.12-1\\~22.04.18:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/snap/core22/3129/usr/share/snappy/dpkg.yaml"
+        }
+      ]
+    },
+    {
+      "purl": "pkg:deb/ubuntu/util-linux@2.37.2-4ubuntu3.6?arch=amd64",
+      "purl_base": "pkg:deb/ubuntu/util-linux",
+      "type": "deb",
+      "name": "util-linux",
+      "version": "2.37.2-4ubuntu3.6",
+      "cpes": [
+        "cpe:2.3:a:util-linux:util-linux:2.37.2-4ubuntu3.6:*:*:*:*:*:*:*",
+        "cpe:2.3:a:util-linux:util_linux:2.37.2-4ubuntu3.6:*:*:*:*:*:*:*",
+        "cpe:2.3:a:util:util-linux:2.37.2-4ubuntu3.6:*:*:*:*:*:*:*",
+        "cpe:2.3:a:util:util_linux:2.37.2-4ubuntu3.6:*:*:*:*:*:*:*",
+        "cpe:2.3:a:util_linux:util-linux:2.37.2-4ubuntu3.6:*:*:*:*:*:*:*",
+        "cpe:2.3:a:util_linux:util_linux:2.37.2-4ubuntu3.6:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/snap/core22/3129/usr/share/snappy/dpkg.yaml"
+        }
+      ]
+    },
+    {
+      "purl": "pkg:deb/ubuntu/zlib1g@1:1.2.11.dfsg-2ubuntu9.2?arch=amd64",
+      "purl_base": "pkg:deb/ubuntu/zlib1g",
+      "type": "deb",
+      "name": "zlib1g",
+      "version": "1:1.2.11.dfsg-2ubuntu9.2",
+      "cpes": [
+        "cpe:2.3:a:zlib1g:zlib1g:1\\:1.2.11.dfsg-2ubuntu9.2:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/snap/snapd/28332/snap/manifest.yaml"
+        }
+      ]
+    },
+    {
+      "purl": "pkg:generic/bash@5.1.16",
+      "purl_base": "pkg:generic/bash",
+      "type": "generic",
+      "name": "bash",
+      "version": "5.1.16",
+      "cpes": [
+        "cpe:2.3:a:gnu:bash:5.1.16:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/snap/core22/3129/usr/bin/bash"
+        }
+      ]
+    },
+    {
+      "purl": "pkg:generic/gzip@1.10",
+      "purl_base": "pkg:generic/gzip",
+      "type": "generic",
+      "name": "gzip",
+      "version": "1.10",
+      "cpes": [
+        "cpe:2.3:a:gnu:gzip:1.10:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/snap/core22/3129/usr/bin/gzip"
+        }
+      ]
+    },
+    {
+      "purl": "pkg:generic/openssl@3.0.2",
+      "purl_base": "pkg:generic/openssl",
+      "type": "generic",
+      "name": "openssl",
+      "version": "3.0.2",
+      "cpes": [
+        "cpe:2.3:a:openssl:openssl:3.0.2:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/snap/core22/3129/usr/bin/openssl"
+        }
+      ]
+    },
+    {
+      "purl": "pkg:generic/util-linux@2.37.2",
+      "purl_base": "pkg:generic/util-linux",
+      "type": "generic",
+      "name": "util-linux",
+      "version": "2.37.2",
+      "cpes": [
+        "cpe:2.3:a:kernel:util-linux:2.37.2:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/snap/core22/3129/usr/bin/getopt"
+        }
+      ]
+    }
+  ]
+}

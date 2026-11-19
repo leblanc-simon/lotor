@@ -5,7 +5,6 @@ package grype
 import (
 	"context"
 	"os"
-	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
@@ -30,18 +29,9 @@ func openReal(t *testing.T) vuln.Database {
 	return d
 }
 
-func readSBOM(t *testing.T, name string) []byte {
-	t.Helper()
-	b, err := os.ReadFile(filepath.Join("..", "..", "..", "testdata", "sbom", name))
-	if err != nil {
-		t.Fatal(err)
-	}
-	return b
-}
-
 func TestRealLog4Shell(t *testing.T) {
 	d := openReal(t)
-	ms, vulns, err := d.Match(context.Background(), readSBOM(t, "log4shell.cdx16.json"))
+	ms, vulns, err := d.Match(context.Background(), readTestSBOM(t, "log4shell.cdx16.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,7 +64,7 @@ func TestRealLog4Shell(t *testing.T) {
 // libssl3, rattachées par leur paquet source (curl, openssl).
 func TestRealDebian(t *testing.T) {
 	d := openReal(t)
-	ms, vulns, err := d.Match(context.Background(), readSBOM(t, "debian-12.cdx15.json"))
+	ms, vulns, err := d.Match(context.Background(), readTestSBOM(t, "debian-12.cdx15.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,7 +102,7 @@ func TestRealDebian(t *testing.T) {
 // TestRealConcurrent : la base ouverte sert plusieurs correspondances à la fois (workers).
 func TestRealConcurrent(t *testing.T) {
 	d := openReal(t)
-	blob := readSBOM(t, "debian-12.cdx15.json")
+	blob := readTestSBOM(t, "debian-12.cdx15.json")
 	want, _, err := d.Match(context.Background(), blob)
 	if err != nil {
 		t.Fatal(err)
@@ -127,4 +117,71 @@ func TestRealConcurrent(t *testing.T) {
 		})
 	}
 	wg.Wait()
+}
+
+// TestRealKernel : le noyau d'Ubuntu 26.04 et de Debian 12 suit les données de la
+// distribution (ADR 0064). CVE-2026-53266, corrigée par Ubuntu en 7.0.0-31.31, ne touche
+// plus 7.0.0-43.43 ; sur Debian 6.1.174-1, elle est encore ouverte (corrigée en
+// 6.1.176-1) et signalée une seule fois, sur l'image ; CVE-2026-46300, corrigée par
+// Debian en 6.1.174-1, a disparu, y compris du binaire /boot/vmlinuz-*.
+func TestRealKernel(t *testing.T) {
+	d := openReal(t)
+	for _, c := range []struct {
+		sbom   string
+		absent []string
+		// imageOnly : CVE attendue sur l'image seule, avec la version corrigée de la
+		// distribution.
+		imageOnly, image, fix string
+	}{
+		{sbom: "ubuntu-26.04-kernel.syft.json", absent: []string{"CVE-2026-53266"}},
+		{sbom: "debian-12-kernel.syft.json", absent: []string{"CVE-2026-46300"},
+			imageOnly: "CVE-2026-53266", image: "/linux-image-6.1.0-40-amd64@", fix: "6.1.176-1"},
+	} {
+		t.Run(c.sbom, func(t *testing.T) {
+			ms, _, err := d.Match(context.Background(), readTestSBOM(t, c.sbom))
+			if err != nil {
+				t.Fatal(err)
+			}
+			byType := map[vuln.MatchType]int{}
+			var image []vuln.Match
+			for _, m := range ms {
+				byType[m.Type]++
+				if slices.Contains(c.absent, m.VulnerabilityID) {
+					t.Errorf("%s signalée sur %s", m.VulnerabilityID, m.PURL)
+				}
+				if m.VulnerabilityID == c.imageOnly {
+					image = append(image, m)
+				}
+			}
+			if c.imageOnly != "" && (len(image) != 1 || !strings.Contains(image[0].PURL, c.image) ||
+				!slices.Equal(image[0].FixedVersions, []string{c.fix})) {
+				t.Errorf("%s : %+v ; attendue une fois sur %s, corrigée en %s", c.imageOnly, image, c.image, c.fix)
+			}
+			t.Logf("%d correspondances, par type : %v", len(ms), byType)
+		})
+	}
+}
+
+// TestRealSnap : sur un hôte Ubuntu 26.04, openssl de core22 (3.0.2-0ubuntu1.30) suit les
+// données d'Ubuntu 22.04 (ADR 0065). CVE-2022-2068, corrigée par Ubuntu 22.04 en
+// 3.0.2-0ubuntu1.5, n'est plus signalée, ni sur le paquet ni sur le binaire
+// /snap/core22/…/usr/bin/openssl ; avant, le paquet était comparé aux correctifs de 26.04
+// (86 correspondances) et le binaire à la NVD (75).
+func TestRealSnap(t *testing.T) {
+	d := openReal(t)
+	ms, _, err := d.Match(context.Background(), readTestSBOM(t, "ubuntu-26.04-snap.syft.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	byPURL := map[string]int{}
+	for _, m := range ms {
+		byPURL[m.PURL]++
+		if m.VulnerabilityID == "CVE-2022-2068" {
+			t.Errorf("CVE-2022-2068 signalée sur %s", m.PURL)
+		}
+	}
+	if n := byPURL["pkg:generic/openssl@3.0.2"]; n > 5 {
+		t.Errorf("%d correspondances CPE sur le binaire openssl de core22", n)
+	}
+	t.Logf("%d correspondances : %v", len(ms), byPURL)
 }

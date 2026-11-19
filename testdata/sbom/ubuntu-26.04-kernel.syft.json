@@ -1,0 +1,404 @@
+{
+ "artifacts": [
+  {
+   "id": "5ba6a3690ac9c3d5",
+   "name": "linux-image-7.0.0-43-generic",
+   "version": "7.0.0-43.43",
+   "type": "deb",
+   "foundBy": "dpkg-db-cataloger",
+   "locations": [
+    {
+     "path": "/var/lib/dpkg/status",
+     "accessPath": "/var/lib/dpkg/status",
+     "annotations": {
+      "evidence": "primary"
+     }
+    },
+    {
+     "path": "/var/lib/dpkg/info/linux-image-7.0.0-43-generic.md5sums",
+     "accessPath": "/var/lib/dpkg/info/linux-image-7.0.0-43-generic.md5sums",
+     "annotations": {
+      "evidence": "supporting"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:linux-image-7.0.0-43-generic:linux-image-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-image-7.0.0-43-generic:linux_image_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_image_7.0.0_43_generic:linux-image-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_image_7.0.0_43_generic:linux_image_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-image-7.0.0-43:linux-image-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-image-7.0.0-43:linux_image_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_image_7.0.0_43:linux-image-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_image_7.0.0_43:linux_image_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-image-7.0.0:linux-image-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-image-7.0.0:linux_image_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_image_7.0.0:linux-image-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_image_7.0.0:linux_image_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-image:linux-image-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-image:linux_image_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_image:linux-image-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_image:linux_image_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux:linux-image-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux:linux_image_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:deb/ubuntu/linux-image-7.0.0-43-generic@7.0.0-43.43?arch=amd64&distro=ubuntu-26.04&upstream=linux-signed",
+   "metadataType": "dpkg-db-entry",
+   "metadata": {
+    "package": "linux-image-7.0.0-43-generic",
+    "source": "linux-signed",
+    "version": "7.0.0-43.43",
+    "sourceVersion": "",
+    "architecture": "amd64",
+    "maintainer": "Canonical Kernel Team <kernel-team@lists.ubuntu.com>",
+    "installedSize": 15000,
+    "files": [
+     {
+      "path": "/boot/vmlinuz-7.0.0-43-generic",
+      "digest": {
+       "algorithm": "md5",
+       "value": "3a1b0c6f5d1e2f3a4b5c6d7e8f901234"
+      },
+      "isConfigFile": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "9240c946be9b9477",
+   "name": "linux-kernel",
+   "version": "7.0.0-43-generic",
+   "type": "linux-kernel",
+   "foundBy": "linux-kernel-cataloger",
+   "locations": [
+    {
+     "path": "/boot/vmlinuz-7.0.0-43-generic",
+     "accessPath": "/boot/vmlinuz-7.0.0-43-generic",
+     "annotations": {
+      "evidence": "primary"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:o:linux:linux_kernel:7.0.0-43-generic:*:*:*:*:*:*:*",
+     "source": "nvd-cpe-dictionary"
+    }
+   ],
+   "purl": "pkg:generic/linux-kernel@7.0.0-43-generic",
+   "metadataType": "linux-kernel-archive",
+   "metadata": {
+    "name": "",
+    "architecture": "x86",
+    "version": "7.0.0-43-generic",
+    "extendedVersion": "7.0.0-43-generic (buildd@lcy02) #43-Ubuntu SMP PREEMPT_DYNAMIC",
+    "format": "bzImage",
+    "rwRootFS": true
+   }
+  },
+  {
+   "id": "dcf219de8654237e",
+   "name": "linux-modules-7.0.0-43-generic",
+   "version": "7.0.0-43.43",
+   "type": "deb",
+   "foundBy": "dpkg-db-cataloger",
+   "locations": [
+    {
+     "path": "/var/lib/dpkg/status",
+     "accessPath": "/var/lib/dpkg/status",
+     "annotations": {
+      "evidence": "primary"
+     }
+    },
+    {
+     "path": "/var/lib/dpkg/info/linux-modules-7.0.0-43-generic.md5sums",
+     "accessPath": "/var/lib/dpkg/info/linux-modules-7.0.0-43-generic.md5sums",
+     "annotations": {
+      "evidence": "supporting"
+     }
+    }
+   ],
+   "licenses": [],
+   "language": "",
+   "cpes": [
+    {
+     "cpe": "cpe:2.3:a:linux-modules-7.0.0-43-generic:linux-modules-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-modules-7.0.0-43-generic:linux_modules_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_modules_7.0.0_43_generic:linux-modules-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_modules_7.0.0_43_generic:linux_modules_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-modules-7.0.0-43:linux-modules-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-modules-7.0.0-43:linux_modules_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_modules_7.0.0_43:linux-modules-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_modules_7.0.0_43:linux_modules_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-modules-7.0.0:linux-modules-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-modules-7.0.0:linux_modules_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_modules_7.0.0:linux-modules-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_modules_7.0.0:linux_modules_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-modules:linux-modules-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux-modules:linux_modules_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_modules:linux-modules-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux_modules:linux_modules_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux:linux-modules-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    },
+    {
+     "cpe": "cpe:2.3:a:linux:linux_modules_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+     "source": "syft-generated"
+    }
+   ],
+   "purl": "pkg:deb/ubuntu/linux-modules-7.0.0-43-generic@7.0.0-43.43?arch=amd64&distro=ubuntu-26.04&upstream=linux",
+   "metadataType": "dpkg-db-entry",
+   "metadata": {
+    "package": "linux-modules-7.0.0-43-generic",
+    "source": "linux",
+    "version": "7.0.0-43.43",
+    "sourceVersion": "",
+    "architecture": "amd64",
+    "maintainer": "Canonical Kernel Team <kernel-team@lists.ubuntu.com>",
+    "installedSize": 100000,
+    "files": [
+     {
+      "path": "/lib/modules/7.0.0-43-generic/modules.order",
+      "digest": {
+       "algorithm": "md5",
+       "value": "0123456789abcdef0123456789abcdef"
+      },
+      "isConfigFile": false
+     }
+    ]
+   }
+  }
+ ],
+ "artifactRelationships": [
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "5ba6a3690ac9c3d5",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "9240c946be9b9477",
+   "type": "contains"
+  },
+  {
+   "parent": "1bba86814d3a2482",
+   "child": "dcf219de8654237e",
+   "type": "contains"
+  },
+  {
+   "parent": "5ba6a3690ac9c3d5",
+   "child": "01aa8bf48a8a1838",
+   "type": "contains"
+  },
+  {
+   "parent": "5ba6a3690ac9c3d5",
+   "child": "3e140e9b56072de1",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  },
+  {
+   "parent": "5ba6a3690ac9c3d5",
+   "child": "9240c946be9b9477",
+   "type": "ownership-by-file-overlap",
+   "metadata": {
+    "files": [
+     "/boot/vmlinuz-7.0.0-43-generic"
+    ]
+   }
+  },
+  {
+   "parent": "5ba6a3690ac9c3d5",
+   "child": "9f44f0d8daece19e",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "supporting"
+   }
+  },
+  {
+   "parent": "9240c946be9b9477",
+   "child": "01aa8bf48a8a1838",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  },
+  {
+   "parent": "dcf219de8654237e",
+   "child": "3e140e9b56072de1",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "primary"
+   }
+  },
+  {
+   "parent": "dcf219de8654237e",
+   "child": "d0cb98c4eeec881c",
+   "type": "evident-by",
+   "metadata": {
+    "kind": "supporting"
+   }
+  }
+ ],
+ "files": [
+  {
+   "id": "01aa8bf48a8a1838",
+   "location": {
+    "path": "/boot/vmlinuz-7.0.0-43-generic"
+   }
+  },
+  {
+   "id": "9f44f0d8daece19e",
+   "location": {
+    "path": "/var/lib/dpkg/info/linux-image-7.0.0-43-generic.md5sums"
+   }
+  },
+  {
+   "id": "d0cb98c4eeec881c",
+   "location": {
+    "path": "/var/lib/dpkg/info/linux-modules-7.0.0-43-generic.md5sums"
+   }
+  },
+  {
+   "id": "3e140e9b56072de1",
+   "location": {
+    "path": "/var/lib/dpkg/status"
+   }
+  }
+ ],
+ "source": {
+  "id": "1bba86814d3a2482",
+  "name": "fixture",
+  "version": "",
+  "type": "directory",
+  "metadata": {
+   "path": "/"
+  }
+ },
+ "distro": {
+  "prettyName": "Ubuntu 26.04 LTS",
+  "name": "Ubuntu",
+  "id": "ubuntu",
+  "idLike": [
+   "debian"
+  ],
+  "version": "26.04 LTS (Resolute Raccoon)",
+  "versionID": "26.04",
+  "versionCodename": "resolute"
+ },
+ "descriptor": {
+  "name": "lotor-host-agent",
+  "version": "fixture"
+ },
+ "schema": {
+  "version": "16.1.13",
+  "url": "https://raw.githubusercontent.com/anchore/syft/main/schema/json/schema-16.1.13.json"
+ }
+}

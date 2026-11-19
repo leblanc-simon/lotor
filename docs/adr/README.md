@@ -68,3 +68,5 @@ décision contraire fait l'objet d'un nouvel ADR qui le remplace.
 | [0061](0061-licences.md) | Licences : expressions SPDX évaluées dans le projet (Grant non importé), politique qui accepte tout par défaut, constats, sujet « licence » des règles, recherche `license:` | Accepté |
 | [0062](0062-paquet-deb-agent-depot.md) | Paquet deb de l'agent dépôt : compte dynamique, unité inactive à l'installation, credentials des forges par fichier d'extension | Accepté |
 | [0063](0063-copie-corrigee-de-blakesmith-ar.md) | Copie corrigée de `github.com/blakesmith/ar` (GO-2026-6905, sans version corrective) par une directive `replace`, vérifiée par vet et les tests | Accepté |
+| [0064](0064-noyau-donnees-de-la-distribution.md) | Noyau Linux : images signées de Debian et d'Ubuntu renvoyées à leur source `linux*`, doublon CPE du binaire possédé retiré quand la distribution se prononce | Accepté |
+| [0065](0065-paquets-et-binaires-des-snaps.md) | Snaps : paquets comparés aux données de leur version d'Ubuntu (base, base déclarée, versions), binaires du snap rattachés au paquet de même nom | Accepté |

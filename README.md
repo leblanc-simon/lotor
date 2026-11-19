@@ -2,118 +2,121 @@
 
 # lotor
 
-**Une CVE tombe. Vous savez qui est touché.**
+*[Version française](README.fr.md)*
 
-lotor inventorie chaque jour les logiciels de vos **serveurs**, de leurs **conteneurs** et
-de vos **dépôts git** (SBOM), les confronte à la base de vulnérabilités Grype et répond en
-une recherche à « qui utilise ce composant ? » et « qui est touché par cette CVE ? ».
-Open source, auto-hébergé, multi-organisation. Chaque instance présente l'outil sur sa page
-d'accueil aux visiteurs non connectés, avec un lien vers la connexion.
+**A CVE drops. You know who is affected.**
 
-[Guide de démarrage](docs/demarrage.md) ·
-[Getting started (English)](docs/getting-started.md) ·
-[Installation et exploitation](docs/operations.md) ·
-[Versions](https://github.com/leblanc-simon/lotor/releases)
+Every day, lotor inventories the software on your **servers**, their **containers** and
+your **git repositories** (SBOMs), matches it against the Grype vulnerability database, and
+answers "who uses this component?" and "who is affected by this CVE?" in a single search.
+Open source, self-hosted, multi-organization. Each instance introduces the tool on its home
+page to signed-out visitors, with a link to sign in.
 
-![Tableau de bord d'une organisation : constats ouverts par sévérité, vulnérabilités KEV, alertes des politiques et tendance sur 90 jours](web/static/img/screenshots/dashboard.webp)
+[Getting started](docs/getting-started.md) ·
+[Guide de démarrage (français)](docs/demarrage.md) ·
+[Installation and operations](docs/operations.md) ·
+[Releases](https://github.com/leblanc-simon/lotor/releases)
 
-## Pourquoi lotor
+![Organization dashboard: open findings by severity, KEV vulnerabilities, policy alerts and 90-day trend](web/static/img/screenshots/dashboard.webp)
 
-- **Tout le parc, sans effort** : un agent léger par serveur Linux (deb, rpm, apk, archives
-  Java, paquets Python…), les conteneurs Docker et Podman en projets enfants de leur hôte,
-  et un agent dépôt branché sur GitHub et GitLab qui analyse chaque push.
-- **Toujours à jour** : la base Grype est rechargée chaque jour et tout le parc réanalysé ;
-  une nouvelle CVE apparaît sur vos projets sans que les agents ne renvoient rien. CVSS,
-  EPSS et catalogue KEV classent les risques.
-- **Une recherche, toutes les réponses** : par nom, purl, plage `vers`, CVE, GHSA ou
-  empreinte SHA-256, sur tous les projets à la fois — moins de 50 ms sur 1 000 projets et
-  un million de composants ([mesures](docs/benchmarks.md)). Export CSV et JSON, API.
-- **Trier, pas subir** : décisions affecté, non affecté, faux positif ou risque accepté
-  avec échéance, journalisées et appliquées aux constats futurs ; export OpenVEX et
-  CycloneDX, import des VEX d'éditeurs.
-- **Vos règles, appliquées** : politiques en CEL, violations datées, alertes par e-mail,
-  webhook signé, Matrix, Mattermost ou Slack, statut de commit bloquant sur la forge.
-- **L'historique qui parle** : instantanés datés, comparaison de deux versions avec
-  l'effet sur la sécurité, tendances et délai médian de correction.
-- **IA facultative et prouvée** : un modèle local (Ollama) ou Anthropic, sur autorisation,
-  cherche les dépendances qu'aucun manifeste ne déclare ; chaque trouvaille est vérifiée
-  et accompagnée de sa preuve.
+## Why lotor
 
-## En images
+- **Your whole fleet, effortlessly**: a lightweight agent per Linux server (deb, rpm, apk,
+  Java archives, Python packages…), Docker and Podman containers as child projects of
+  their host, and a repository agent hooked into GitHub and GitLab that scans every push.
+- **Always up to date**: the Grype database is reloaded daily and the whole fleet
+  rescanned; a new CVE shows up on your projects without the agents sending anything.
+  CVSS, EPSS and the KEV catalog rank the risks.
+- **One search, every answer**: by name, purl, `vers` range, CVE, GHSA or SHA-256 digest,
+  across all projects at once — under 50 ms on 1,000 projects and one million components
+  ([benchmarks](docs/benchmarks.md)). CSV and JSON export, API.
+- **Triage, don't endure**: affected, not affected, false positive or accepted risk with an
+  expiry date — decisions are logged and applied to future findings; OpenVEX and CycloneDX
+  export, import of vendor VEX documents.
+- **Your rules, enforced**: CEL policies, dated violations, alerts by email, signed
+  webhook, Matrix, Mattermost or Slack, blocking commit status on the forge.
+- **History that speaks**: dated snapshots, comparison of two versions with their security
+  impact, trends and median time to fix.
+- **Optional, evidence-backed AI**: a local model (Ollama) or Anthropic, when authorized,
+  looks for dependencies no manifest declares; every finding is verified and comes with its
+  proof.
+
+## Screenshots
 
 | | |
 | --- | --- |
-| ![Recherche de CVE-2023-44487 : neuf occurrences dans quatre serveurs](web/static/img/screenshots/search.webp) | ![Comparaison de deux instantanés : 24 montées de version, 26 constats résolus](web/static/img/screenshots/compare.webp) |
-| **Recherche transverse** — qui est touché par HTTP/2 « Rapid Reset » ? | **Comparaison d'instantanés** — ce qu'une montée de version a corrigé |
-| ![Fiche du constat Spring4Shell, KEV, EPSS 99,6 %, triage affecté](web/static/img/screenshots/finding.webp) | ![Politiques en CEL avec leurs violations ouvertes](web/static/img/screenshots/policies.webp) |
-| **Triage et VEX** — une décision justifiée, tracée, exportable | **Politiques et alertes** — modèles fournis, règles bloquantes |
-| ![Fiche d'un serveur : constats et tendance sur 90 jours](web/static/img/screenshots/host.webp) | ![Tableau de bord en thème sombre](web/static/img/screenshots/dashboard-dark.webp) |
-| **Fiche d'un serveur** — constats, tendance, conteneurs | **Thème sombre** — et interface auditée RGAA |
+| ![Search for CVE-2023-44487: nine occurrences across four servers](web/static/img/screenshots/search.webp) | ![Comparison of two snapshots: 24 version upgrades, 26 findings resolved](web/static/img/screenshots/compare.webp) |
+| **Cross-project search** — who is affected by HTTP/2 "Rapid Reset"? | **Snapshot comparison** — what an upgrade fixed |
+| ![Spring4Shell finding page, KEV, EPSS 99.6%, triaged as affected](web/static/img/screenshots/finding.webp) | ![CEL policies with their open violations](web/static/img/screenshots/policies.webp) |
+| **Triage and VEX** — a justified, traced, exportable decision | **Policies and alerts** — built-in templates, blocking rules |
+| ![Server page: findings and 90-day trend](web/static/img/screenshots/host.webp) | ![Dashboard in dark theme](web/static/img/screenshots/dashboard-dark.webp) |
+| **Server page** — findings, trend, containers | **Dark theme** — and an accessibility-audited interface (RGAA) |
 
-<sub>Captures d'une instance de démonstration : paquets réels de Debian 12 et Ubuntu 24.04,
-dépendances npm, Maven, PyPI et Go, base Grype du jour.</sub>
+<sub>Screenshots from a demo instance: real Debian 12 and Ubuntu 24.04 packages, npm,
+Maven, PyPI and Go dependencies, current Grype database.</sub>
 
-## Comment ça marche
+## How it works
 
-| Binaire | Rôle |
+| Binary | Role |
 | --- | --- |
-| `lotor-host-agent` | agent serveur : inventaire d'un hôte Linux et de ses conteneurs (paquets deb et rpm) |
-| `lotor-repo-agent` | agent dépôt : clonage des dépôts des forges et analyse Syft, enrichissement IA facultatif (paquet deb) |
-| `lotor-server` | interface web (français, anglais), API REST, analyse Grype, politiques et notifications |
+| `lotor-host-agent` | host agent: inventory of a Linux host and its containers (deb and rpm packages) |
+| `lotor-repo-agent` | repository agent: clones forge repositories and scans them with Syft, optional AI enrichment (deb package) |
+| `lotor-server` | web interface (French, English), REST API, Grype scanning, policies and notifications |
 
-Les agents produisent les SBOM avec Syft et n'envoient que ce qui a changé ; le serveur
-les historise et les analyse. Une seule dépendance : PostgreSQL. Formats reçus :
-CycloneDX JSON 1.5 à 1.7, SPDX JSON 2.3, Syft JSON.
+Agents build SBOMs with Syft and only send what changed; the server keeps their history
+and scans them. A single dependency: PostgreSQL. Accepted formats: CycloneDX JSON 1.5 to
+1.7, SPDX JSON 2.3, Syft JSON.
 
-## Sécurité et souveraineté
+## Security and sovereignty
 
-- Auto-hébergé, sans télémétrie ; site isolé possible (import manuel de la base de
-  vulnérabilités).
-- Organisations étanches, isolement imposé par PostgreSQL (sécurité au niveau des
-  lignes) ; équipes et rôles (lecteur, analyste, administrateur) ; journal d'audit.
-- Second facteur TOTP obligatoire, codes de secours ; jetons d'agent révocables, mTLS en
-  option, secrets chiffrés au repos. [Modèle de menace](docs/security/threat-model.md).
+- Self-hosted, no telemetry; air-gapped sites supported (manual import of the
+  vulnerability database).
+- Strictly separated organizations, isolation enforced by PostgreSQL (row-level
+  security); teams and roles (reader, analyst, administrator); audit log.
+- Mandatory TOTP second factor, recovery codes; revocable agent tokens, optional mTLS,
+  secrets encrypted at rest. [Threat model](docs/security/threat-model.md).
 
-## Installer
+## Install
 
-Sur Debian 13 ou Ubuntu 24.04, le paquet du serveur crée la base PostgreSQL locale, les
-secrets, le premier administrateur et le site nginx ou Apache :
+On Debian 13 or Ubuntu 24.04, the server package creates the local PostgreSQL database,
+the secrets, the first administrator and the nginx or Apache site:
 
 ```bash
 sudo apt install ./lotor-server_0.3.2_amd64.deb
 ```
 
-Agents, installation manuelle et configuration : [`docs/operations.md`](docs/operations.md).
-État : préversion **0.3.2** (équipes et droits, conteneurs, triage et VEX, politiques et
-alertes, différences d'instantanés, enrichissement IA, compatibilité Dependency-Track, mode
-hors ligne, licences, recherche à une date passée, inscription) ; évolutions :
-[`CHANGELOG.md`](CHANGELOG.md).
+Agents, manual installation and configuration: [`docs/operations.md`](docs/operations.md).
+Status: pre-release **0.3.2** (teams and permissions, containers, triage and VEX, policies
+and alerts, snapshot diffs, AI enrichment, Dependency-Track compatibility, offline mode,
+licenses, point-in-time search, sign-up); changes: [`CHANGELOG.md`](CHANGELOG.md).
 
-## Développement
+## Development
 
-Prérequis : Go 1.26, `make`, PostgreSQL 16 pour les tests d'intégration
+Requirements: Go 1.26, `make`, PostgreSQL 16 for the integration tests
 (`docker compose -f deploy/compose.yaml up -d`).
 
 ```bash
-make ci        # toutes les vérifications, identiques à la CI
+make ci        # every check, same as the CI
 make build     # bin/lotor-server, bin/lotor-host-agent, bin/lotor-repo-agent
-make run       # serveur local (cp config.example.yaml config.yaml)
-make help      # liste des cibles
+make run       # local server (cp config.example.yaml config.yaml)
+make help      # list of targets
 ```
 
 ## Documentation
 
-- [Cahier des charges](docs/cahier-des-charges.md)
-- [Architecture de référence](specs/architecture.md)
-- [Lots techniques](specs/README.md)
-- [Guide d'utilisation](docs/utilisation.md)
-- [Notifications](docs/notifications.md)
-- [Exploitation](docs/operations.md)
-- [Mesures de performance](docs/benchmarks.md)
-- [Journal des modifications](CHANGELOG.md)
-- [Décisions d'architecture](docs/adr/)
-- [Modèle de menace](docs/security/threat-model.md)
+Except for the getting started guide, the documentation is written in French.
 
-## Licence
+- [Requirements](docs/cahier-des-charges.md)
+- [Reference architecture](specs/architecture.md)
+- [Technical work packages](specs/README.md)
+- [User guide](docs/utilisation.md)
+- [Notifications](docs/notifications.md)
+- [Operations](docs/operations.md)
+- [Benchmarks](docs/benchmarks.md)
+- [Changelog](CHANGELOG.md)
+- [Architecture decision records](docs/adr/)
+- [Threat model](docs/security/threat-model.md)
+
+## License
 
 [WTFPL](LICENSE).

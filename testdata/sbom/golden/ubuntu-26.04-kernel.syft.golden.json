@@ -1,0 +1,101 @@
+{
+  "format": "syft",
+  "spec_version": "16.1.13",
+  "distro": {
+    "id": "ubuntu",
+    "version_id": "26.04",
+    "name": "Ubuntu 26.04 LTS"
+  },
+  "components": [
+    {
+      "purl": "pkg:deb/ubuntu/linux-image-7.0.0-43-generic@7.0.0-43.43?arch=amd64\u0026distro=ubuntu-26.04\u0026upstream=linux-signed",
+      "purl_base": "pkg:deb/ubuntu/linux-image-7.0.0-43-generic",
+      "type": "deb",
+      "name": "linux-image-7.0.0-43-generic",
+      "version": "7.0.0-43.43",
+      "cpes": [
+        "cpe:2.3:a:linux-image-7.0.0-43-generic:linux-image-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux-image-7.0.0-43-generic:linux_image_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux-image-7.0.0-43:linux-image-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux-image-7.0.0-43:linux_image_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux-image-7.0.0:linux-image-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux-image-7.0.0:linux_image_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux-image:linux-image-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux-image:linux_image_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux:linux-image-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux:linux_image_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux_image:linux-image-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux_image:linux_image_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux_image_7.0.0:linux-image-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux_image_7.0.0:linux_image_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux_image_7.0.0_43:linux-image-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux_image_7.0.0_43:linux_image_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux_image_7.0.0_43_generic:linux-image-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux_image_7.0.0_43_generic:linux_image_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/dpkg/status"
+        },
+        {
+          "path": "/var/lib/dpkg/info/linux-image-7.0.0-43-generic.md5sums",
+          "supporting": true
+        }
+      ]
+    },
+    {
+      "purl": "pkg:deb/ubuntu/linux-modules-7.0.0-43-generic@7.0.0-43.43?arch=amd64\u0026distro=ubuntu-26.04\u0026upstream=linux",
+      "purl_base": "pkg:deb/ubuntu/linux-modules-7.0.0-43-generic",
+      "type": "deb",
+      "name": "linux-modules-7.0.0-43-generic",
+      "version": "7.0.0-43.43",
+      "cpes": [
+        "cpe:2.3:a:linux-modules-7.0.0-43-generic:linux-modules-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux-modules-7.0.0-43-generic:linux_modules_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux-modules-7.0.0-43:linux-modules-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux-modules-7.0.0-43:linux_modules_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux-modules-7.0.0:linux-modules-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux-modules-7.0.0:linux_modules_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux-modules:linux-modules-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux-modules:linux_modules_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux:linux-modules-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux:linux_modules_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux_modules:linux-modules-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux_modules:linux_modules_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux_modules_7.0.0:linux-modules-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux_modules_7.0.0:linux_modules_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux_modules_7.0.0_43:linux-modules-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux_modules_7.0.0_43:linux_modules_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux_modules_7.0.0_43_generic:linux-modules-7.0.0-43-generic:7.0.0-43.43:*:*:*:*:*:*:*",
+        "cpe:2.3:a:linux_modules_7.0.0_43_generic:linux_modules_7.0.0_43_generic:7.0.0-43.43:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/var/lib/dpkg/status"
+        },
+        {
+          "path": "/var/lib/dpkg/info/linux-modules-7.0.0-43-generic.md5sums",
+          "supporting": true
+        }
+      ]
+    },
+    {
+      "purl": "pkg:generic/linux-kernel@7.0.0-43-generic",
+      "purl_base": "pkg:generic/linux-kernel",
+      "type": "generic",
+      "name": "linux-kernel",
+      "version": "7.0.0-43-generic",
+      "cpes": [
+        "cpe:2.3:o:linux:linux_kernel:7.0.0-43-generic:*:*:*:*:*:*:*"
+      ],
+      "origin": "syft",
+      "locations": [
+        {
+          "path": "/boot/vmlinuz-7.0.0-43-generic"
+        }
+      ]
+    }
+  ]
+}

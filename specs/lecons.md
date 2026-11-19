@@ -1138,3 +1138,50 @@ les pièges découverts, pour ne pas les reproduire. Une entrée = le constat, p
   chiffré : `$CREDENTIALS_DIRECTORY` est défini mais absent, même sans compte dynamique ni
   isolation). La recette ne peut pas couvrir la lecture d'un credential ; c'est le test
   unitaire en `0440` qui la garde, et la vérification se fait sur une vraie machine.
+
+## Noyau Linux et données de la distribution (hors lot, ADR 0064)
+
+- **Faux positifs massifs sur le noyau** : sur Ubuntu, 1 556 CVE sur `/boot/vmlinuz-*`,
+  rapproché par CPE des plages amont de la NVD, alors que la distribution les avait
+  corrigées. Grype sait retirer, CVE par CVE, la correspondance CPE d'un fichier possédé par
+  un paquet de la distribution, mais seulement si ce paquet est lui-même rapproché : l'image
+  `linux-image-*` venait d'un source signé (`linux-signed*`) absent de la base. Règle : avant
+  d'écarter une source de correspondance, vérifier dans la base (`vulnerability.db`, SQLite)
+  que le paquet de la distribution est bien rapproché ; un renvoi de nom suffit souvent, une
+  exclusion globale non.
+- **Une exclusion « évidente » peut tout masquer** : « binaire possédé par un paquet de la
+  distribution → plus de CPE » aurait retiré toutes les CVE du noyau sur Debian, où l'image
+  n'était rapprochée de rien. Règle : ne retirer une correspondance que si la distribution
+  s'est prononcée sur cette CVE, et mesurer par distribution sur la vraie base.
+- **Jeu d'essai d'un hôte** : un SBOM réaliste s'obtient par `hostagent.SyftScanner` sur une
+  racine factice. La propriété des fichiers des paquets deb vient des `*.md5sums` de
+  `/var/lib/dpkg/info`, pas des `*.list` : sans eux, pas de relation
+  `ownership-by-file-overlap`. Une image de noyau minimale (en-tête bzImage de 4 Kio) suffit
+  au catalogueur du noyau.
+- **Base Grype de test** : `grypetest.Archive` écrit une vraie base v6 remplie par le test ;
+  `AddAffectedPackages` et `AddAffectedCPEs` n'écrivent pas le contenu des fiches : appeler
+  `AddVulnerabilities` d'abord, sinon la lecture échoue (« nil data ») et Grype ne trouve
+  rien, sans erreur.
+- **Réanalyse** : l'analyse est idempotente pour un couple (ensemble, base). Un changement de
+  la logique de correspondance ne s'applique qu'au prochain changement de base cible
+  (`analysis.rescan_all`), en pratique dans la journée.
+
+## Snaps (hors lot, ADR 0065)
+
+- **Distribution implicite** : un paquet deb sans distribution (purl sans `distro`, comme
+  ceux que le catalogueur des snaps de Syft tire de `dpkg.yaml` ou de `manifest.yaml`) reçoit
+  de Grype la distribution de l'hôte. core22 (Ubuntu 22.04) sur un hôte 26.04 était comparé
+  aux correctifs de 26.04 : 86 faux positifs sur openssl. Règle : pour tout paquet « deb »
+  trouvé hors de la base dpkg de l'hôte (snap, image embarquée, archive), se demander de
+  quelle distribution il vient avant de le confier à Grype.
+- **Lire le vrai SBOM avant de concevoir** : les métadonnées des snaps (`base` vide pour
+  snapd, aucune source, aucun fichier, un paquet `linux-image-*` tiré de la documentation de
+  l'hôte) ne se devinent pas ; le SBOM d'origine d'un instantané (téléchargement
+  « original ») les montre, lu en lecture seule avec l'accord de l'utilisateur.
+- **Binaires reconnus par leur contenu** : le classificateur de Syft ne lit que des motifs
+  dans le fichier ; un jeu d'essai peut porter de faux binaires de quelques octets
+  (`\x00OpenSSL 3.0.2 …`, `@(#)Bash version …`, `%s: %s: not in gzip format`).
+- **Structures partagées entre bases de test** : l'écriture d'une base Grype inscrit
+  l'identifiant de l'enregistrement dans la structure `OperatingSystem` passée ; partagée
+  entre deux bases, la seconde échoue (contrainte d'unicité). `openTestDB` copie chaque
+  système par base.
